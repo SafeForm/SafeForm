@@ -226,6 +226,9 @@
             if(firstElement.querySelector("#moveUp")) {
               firstElement.querySelector("#moveUp").style.display = "none";
             }	
+            if(listLength == 2 && firstElement.querySelector("#moveDown")) {
+              firstElement.querySelector("#moveDown").style.display = "none";
+            }
           }
 
           if(lastElement != firstElement && lastElement.querySelector("#moveDown")) {
