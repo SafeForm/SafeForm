@@ -190,22 +190,25 @@
         workoutList.appendChild(workoutItem);
         
         const listLength = workoutList.childNodes.length;
-        console.log(listLength);
+        const saveWorkout = document.getElementById("saveWorkout");
 
         //Hiding and showing move icons and break icon between exercises
         if(listLength == 2) {
         	workoutItem.querySelector("#moveDown").style.display = "none";
+          saveWorkout.style.display = "none";
         } else if(listLength == 3) {
         	workoutItem.querySelector("#exerciseBreaker").style.display = "block";
           workoutItem.querySelector("#moveDown").style.display = "none";
           workoutItem.querySelector("#moveUp").style.display = "block";
           workoutItem.previousSibling.querySelector("#moveDown").style.display = "block";
+          saveWorkout.style.display = "block";
         } else if(listLength > 3) {
         	workoutItem.querySelector("#exerciseBreaker").style.display = "block";
           workoutItem.previousSibling.querySelector("#moveDown").style.display = "block";
           workoutItem.previousSibling.querySelector("#moveUp").style.display = "block";
           workoutItem.querySelector("#moveDown").style.display = "none";
           workoutItem.querySelector("#moveUp").style.display = "block";
+          saveWorkout.style.display = "block";
         }
 
       } else if(event.target.id == "clearFilters") {
@@ -215,7 +218,13 @@
         workoutList.removeChild(event.target.parentElement.parentElement.parentElement.parentElement);
         
         const listLength = workoutList.childNodes.length;
+        const saveWorkout = document.getElementById("saveWorkout");
+        
         if(listLength >= 2) {
+        	if(listLength == 2) {
+          	//Hide workout button if there is only one exercise in list
+          	saveWorkout.style.display = "none";
+          }
           const firstElement = workoutList.querySelector("ul > li:nth-child(2)");
           const lastElement = workoutList.querySelector(`ul > li:nth-child(${listLength})`);
 
