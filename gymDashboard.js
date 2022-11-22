@@ -196,6 +196,11 @@
         //Reduce headers font size:
         workoutItem.querySelector("#guideName").style.fontSize = "20px";
         workoutItem.querySelector("#exerciseDifficulty").remove();
+
+        workoutItem.querySelector("#reps").setAttribute("required", "");
+        workoutItem.querySelector("#sets").setAttribute("required", "");
+        workoutItem.querySelector("#rest").setAttribute("required", "");
+        workoutItem.querySelector("#restBetweenExercise").setAttribute("required", "");
         
         //Add to 'workouts' list
         workoutList.appendChild(workoutItem);
