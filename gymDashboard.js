@@ -1,5 +1,4 @@
-
-	/*
+  /*
   	Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
   //Iterate through list
@@ -137,11 +136,16 @@
       }
     }
 
-    document.addEventListener("submit", function (event) {
-      console.log("Hello");
+    document.getElementById("filters-form").addEventListener("submit", function (event) {
+      console.log("fromListener");
     	console.log(event.target);
     
     }, false);
+
+    document.getElementById("filters-form").onsubmit = function() {
+      console.log("Hello normie");
+    
+    }
 
 
     //Listen for click events:
