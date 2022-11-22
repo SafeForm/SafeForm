@@ -137,6 +137,13 @@
       }
     }
 
+    document.addEventListener("submit", function (event) {
+      console.log("Hello");
+    	console.log(event.target);
+    
+    }, false);
+
+
     //Listen for click events:
     document.addEventListener('click', function (event) {
 
@@ -257,6 +264,16 @@
         var temp = currentExercise.removeChild(currentExercise.firstChild);
         currentExercise.appendChild(nextExercise.removeChild(nextExercise.firstChild));
         nextExercise.appendChild(temp);  
+      } else if(event.target.id == "saveWorkout") {
+      	
+        //Get necessary values from text boxes
+        const workoutName = document.getElementById("workoutName");
+        const workoutLength = document.getElementById("estTime");
+        const description = document.getElementById("workoutDescription");
+        const focusArea = document.getElementById("focusArea");
+        const gymName = document.getElementById("gymField");
+        const gymID = document.getElementById("gymID");
+      
       }
     }, false);
     
