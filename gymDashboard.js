@@ -136,13 +136,13 @@
       }
     }
 
-    document.getElementById("filters-form").addEventListener("submit", function (event) {
+    document.getElementById("workoutBuildForm").addEventListener("submit", function (event) {
       console.log("fromListener");
     	console.log(event.target);
     
     }, false);
 
-    document.getElementById("filters-form").onsubmit = function() {
+    document.getElementById("workoutBuildForm").onsubmit = function() {
       console.log("Hello normie");
     
     }
