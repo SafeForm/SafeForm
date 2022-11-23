@@ -86,23 +86,36 @@
       	const equipmentBody = document.getElementById("equipmentBody");
         const dashboardBody = document.getElementById("dashboardBody");
         const settingsBody = document.getElementById("settingsBody");
+        const workoutBuilderPage = document.getElementById("workoutBuilderPage");
+        const workoutSummaryPage = document.getElementById("workoutSummaryPage");
         document.getElementById("equipmentListContainer").style.display = 'block';
         document.getElementById("equipmentPage").onclick = function() {
           equipmentBody.style.display = "block";
           dashboardBody.style.display = "none";
           settingsBody.style.display = "none";
+          workoutBuilderPage.style.display = "none";
         };
 
         document.getElementById("dashboardPage").onclick = function() {
           dashboardBody.style.display = "block";
           equipmentBody.style.display = "none";
           settingsBody.style.display = "none";
+          workoutBuilderPage.style.display = "none";
         };
 
         document.getElementById("settingsPage").onclick = function() {
           settingsBody.style.display = "block";
           equipmentBody.style.display = "none";
           dashboardBody.style.display = "none";
+          workoutBuilderPage.style.display = "none";
+        };
+        
+        document.getElementById("workoutsPage").onclick = function() {
+        	workoutBuilderPage.style.display = "block";
+          settingsBody.style.display = "none";
+          equipmentBody.style.display = "none";
+          dashboardBody.style.display = "none";
+          
         };
 
       } else {
@@ -136,17 +149,43 @@
       }
     }
 
-    document.getElementById("workoutBuildForm").addEventListener("submit", function (event) {
-      console.log("fromListener");
-    	console.log(event.target);
-    
-    }, false);
+    document.getElementById("workoutBuilderForm").onsubmit = function() {
+      //Get necessary values from text boxes
 
-    document.getElementById("workoutBuildForm").onsubmit = function() {
-      console.log("Hello normie");
-    
+      var workout = {};
+
+      //Obtain form data
+      workout["name"] = document.getElementById("workoutName").value;
+      workout["length"] = document.getElementById("estTime").value;
+      workout["description"] = document.getElementById("workoutDescription").value;
+      workout["focusArea"] = document.getElementById("focusArea").value;
+      workout["gymName"] = document.getElementById("gymField").innerText;
+      workout["gymID"] = document.getElementById("gymID").innerText;
+      workout["listOfExercises"] = [];
+
+      const workoutList = document.getElementById("workoutList").children;
+
+      //Loop through list and obtain rest of data and add to object 
+      for(var i = 1; i < workoutList.length; i++) {
+        var workoutExercise = {}
+        i == 2 ? workoutExercise["restBetween"] = workoutList[i].querySelector("#restBetweenExercise").value : null;
+        workoutExercise["sets"] = workoutList[i].querySelector("#sets").value;
+        workoutExercise["reps"] = workoutList[i].querySelector("#reps").value;
+        workoutExercise["rest"] = workoutList[i].querySelector("#rest").value;
+        workoutExercise["guideID"] = workoutList[i].querySelector("#itemID").innerText;
+        workout.listOfExercises.push(workoutExercise);
+      }
+
+      //Send to make
+      fetch("https://hook.us1.make.com/7ukin7wskfgygdmvm3dyyol3aiu49re7", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(workout)
+      }).then(res => {
+        console.log("Request complete! response:", res);
+      });
+
     }
-
 
     //Listen for click events:
     document.addEventListener('click', function (event) {
@@ -196,16 +235,20 @@
         //Reduce headers font size:
         workoutItem.querySelector("#guideName").style.fontSize = "20px";
         workoutItem.querySelector("#exerciseDifficulty").remove();
-
-        workoutItem.querySelector("#reps").setAttribute("required", "");
-        workoutItem.querySelector("#sets").setAttribute("required", "");
-        workoutItem.querySelector("#rest").setAttribute("required", "");
-        workoutItem.querySelector("#restBetweenExercise").setAttribute("required", "");
         
         //Add to 'workouts' list
         workoutList.appendChild(workoutItem);
         
         const listLength = workoutList.childNodes.length;
+        
+        //Ensure required fields are set as required
+        if(listLength > 2) {
+          workoutItem.querySelector("#reps").setAttribute("required", "");
+          workoutItem.querySelector("#sets").setAttribute("required", "");
+          workoutItem.querySelector("#rest").setAttribute("required", "");
+          workoutItem.querySelector("#restBetweenExercise").setAttribute("required", "");
+       	}
+        
         const saveWorkout = document.getElementById("saveWorkout");
 
         //Hiding and showing move icons and break icon between exercises
@@ -226,7 +269,6 @@
           workoutItem.querySelector("#moveUp").style.display = "block";
           saveWorkout.style.display = "block";
         }
-
       } else if(event.target.id == "clearFilters") {
       	resetFilters();
       } else if(event.target.id == "removeExercise") {
@@ -298,5 +340,4 @@
         },
       ]);
     }
-
 	};
