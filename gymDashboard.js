@@ -150,7 +150,6 @@
     }
 
     document.getElementById("workoutBuilderForm").onsubmit = function() {
-      //Get necessary values from text boxes
 
       var workout = {};
 
@@ -184,6 +183,10 @@
       }).then(res => {
         console.log("Request complete! response:", res);
       });
+
+      //Go back to workout page
+      document.getElementById("workoutBuilderPage").style.display = "none";
+      document.getElementById("workoutSummaryPage").style.display = "block";
 
     }
 
@@ -324,7 +327,10 @@
         const focusArea = document.getElementById("focusArea");
         const gymName = document.getElementById("gymField");
         const gymID = document.getElementById("gymID");
-      
+      } else if (event.target.id == "createWorkout") {
+        //Go to workout builder
+        document.getElementById("workoutBuilderPage").style.display = "block";
+        document.getElementById("workoutSummaryPage").style.display = "none";
       }
     }, false);
     
