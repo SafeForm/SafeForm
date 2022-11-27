@@ -163,7 +163,7 @@
       workout["listOfExercises"] = [];
 
       const workoutList = document.getElementById("workoutList").children;
-
+      var experience = "beginner";
       //Loop through list and obtain rest of data and add to object 
       for(var i = 1; i < workoutList.length; i++) {
         var workoutExercise = {}
@@ -173,8 +173,16 @@
         workoutExercise["rest"] = workoutList[i].querySelector("#rest").value;
         workoutExercise["guideID"] = workoutList[i].querySelector("#itemID").innerText;
         workout.listOfExercises.push(workoutExercise);
-      }
 
+        //Check if there are any more difficulty exercises in the list, i.e intermediate or advanced
+        const exerciseDifficulty = workoutList[i].querySelector("#exerciseDifficulty").innerText;
+        if (experience != "Advanced" && exerciseDifficulty == "Intermediate") {
+          workoutExercise["experience"] = "Intermediate";
+        } else if(exerciseDifficulty == "Advanced") {
+          workoutExercise["experience"] = "Advanced";
+        }
+      }
+      
       //Send to make
       fetch("https://hook.us1.make.com/7ukin7wskfgygdmvm3dyyol3aiu49re7", {
         method: "POST",
@@ -237,7 +245,7 @@
         
         //Reduce headers font size:
         workoutItem.querySelector("#guideName").style.fontSize = "20px";
-        workoutItem.querySelector("#exerciseDifficulty").remove();
+        workoutItem.querySelector("#exerciseDifficulty").style.display = "none";
         
         //Add to 'workouts' list
         workoutList.appendChild(workoutItem);
