@@ -1,4 +1,4 @@
-  
+
   /*
   	Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
@@ -80,8 +80,7 @@
     var showPage = url.searchParams.get('showPage');
     //Hide and show necessary pages
     document.getElementById("equipmentBody").style.display = "none";
-    document.getElementById(showPage).style.display = "block";
-
+    document.getElementById("workoutSummaryPage").style.display = "block";
   }
 
   window.onload = (event) => {
@@ -110,6 +109,8 @@
           settingsBody.style.display = "none";
           workoutBuilderPage.style.display = "none";
           workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          resetGeneralFilters();
         };
 
         document.getElementById("dashboardPage").onclick = function() {
@@ -118,6 +119,8 @@
           settingsBody.style.display = "none";
           workoutBuilderPage.style.display = "none";
           workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          resetGeneralFilters();
         };
 
         document.getElementById("settingsPage").onclick = function() {
@@ -126,15 +129,19 @@
           dashboardBody.style.display = "none";
           workoutBuilderPage.style.display = "none";
           workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          resetGeneralFilters();
         };
         
         document.getElementById("workoutsPage").onclick = function() {
+          //Reset filters on workout summary page
+          resetGeneralFilters();
           workoutSummaryPage.style.display = "block";
         	workoutBuilderPage.style.display = "none";
           settingsBody.style.display = "none";
           equipmentBody.style.display = "none";
           dashboardBody.style.display = "none";
-          
+
         };
 
       } else {
@@ -197,15 +204,24 @@
         workout.listOfExercises.push(workoutExercise);
       }
       console.log("sending");
-      //Send to make and navigate back to workout summary
-      sendWorkoutToMake(workout);      
 
-
+      //Make sure they have selected a duration and focus area
+      if(!workout["length"].includes("Duration...") && !workout["focusArea"].includes("Focus Area...")) {
+        //Send to make and navigate back to workout summary
+        sendWorkoutToMake(workout);      
+      } else {
+        if(workout["length"] == "Duration...") {
+          document.getElementById("estTime").style.borderRadius = "8px";
+          document.getElementById("estTime").style.border = "2px solid red";
+        } else if(workout["focusArea"] == "Focus Area...") {
+          document.getElementById("focusArea").style.borderRadius = "8px";
+          document.getElementById("focusArea").style.border = "2px solid red";
+        }
+      }
     }
 
     //Listen for click events:
     document.addEventListener('click', function (event) {
-
 
       if (event.target.nodeName == "path") {
         // hide SVG man:
@@ -314,6 +330,7 @@
         
         if (listLength == 1) {
           document.getElementById("firstExercisePlaceholder").style.display = "block";
+          document.getElementById("experience").innerText = "Beginner";
         } else if(listLength >= 2) {
         	if(listLength == 2) {
           	//Hide workout button if there is only one exercise in list
@@ -360,18 +377,14 @@
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
       } else if(event.target.id == "reset-filters") {
-        const checkboxes = document.getElementsByClassName('filter-checkbox');
-        for (let i = 0; i < checkboxes.length; i++) { 
-          if(checkboxes[i].classList.value.includes('w--redirected-checked')) {
-            checkboxes[i].click();
-          }
-        }
+        resetGeneralFilters();
       } else if (event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" || 
         event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
         || event.target.classList.contains('filter-checkbox') || event.target.classList.contains('clear-filter') || (event.target.tagName == "INPUT" &&  event.target.id != "workoutSearch") || event.target.classList.contains('clear-container') || event.target.classList.contains('clear-filters')) {
         document.getElementById("filterMenu").style.display = "block";
       } else if(event.target.id == "exit-menu" ) {
         document.getElementById("filterMenu").style.display = "none";
+
       } else if(event.target.classList.contains("dropdownitem")) {
         
       }else if(event.target.classList.contains("dropdownitem")) {
@@ -386,6 +399,29 @@
         document.getElementById("filterMenu").style.display = "none";
       }
     }, false);
+
+    //Listen for click events:
+    document.addEventListener('change', function (event) {
+      if(event.target.id == "estTime") {
+        document.getElementById("estTime").style.borderRadius = "0px";
+        document.getElementById("estTime").style.border = "";
+      } else if (event.target.id == "focusArea") {
+        document.getElementById("focusArea").style.borderRadius = "0px";
+        document.getElementById("focusArea").style.border = "";
+      }
+    }, false);
+
+    document.addEventListener("mouseover",function (event) {
+      if(event.target.id == "experienceTag" || event.target.id == "experience") {
+        document.getElementById("toolTipText").style.display = "block";
+      }
+    }, false);
+
+    document.addEventListener("mouseout",function (event) {
+      if(event.target.id == "experienceTag" || event.target.id == "experience") {
+        document.getElementById("toolTipText").style.display = "none";
+      }
+    }, false);
     
     async function resetFilters() {
       window.fsAttributes = window.fsAttributes || [];
@@ -398,6 +434,17 @@
           await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null)
         },
       ]);
+    }
+
+    async function resetGeneralFilters() {
+
+      const checkboxes = document.getElementsByClassName('filter-checkbox');
+      for (let i = 0; i < checkboxes.length; i++) { 
+        if(checkboxes[i].classList.value.includes('w--redirected-checked')) {
+          checkboxes[i].click();
+        }
+      }
+
     }
 
     async function sendWorkoutToMake(workout) {
@@ -443,5 +490,13 @@
       "min" : 0,
       "value": 1
     });
+    $('#focusArea').each( function () {
+      $(this).children('option:first').attr("disabled", "disabled");
+    });
+    $('#estTime').each( function () {
+      $(this).children('option:first').attr("disabled", "disabled");
+    });
+    $("#focusArea").attr("required", true);
+    $("#estTime").attr("required", true);
     
 	};
