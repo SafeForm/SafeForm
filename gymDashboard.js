@@ -1,3 +1,4 @@
+  
   /*
   	Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
@@ -70,6 +71,19 @@
 
   }
 
+  /*
+    - Check if specified parameters are in URL from workout builder submitting to show appropriate page
+  */
+  url = new URL(window.location.href.replace("#",""));
+
+  if (url.searchParams.has('showPage')) {
+    var showPage = url.searchParams.get('showPage');
+    //Hide and show necessary pages
+    document.getElementById("equipmentBody").style.display = "none";
+    document.getElementById(showPage).style.display = "block";
+
+  }
+
   window.onload = (event) => {
     
     MemberStack.onReady.then(function(member) {  
@@ -88,12 +102,14 @@
         const settingsBody = document.getElementById("settingsBody");
         const workoutBuilderPage = document.getElementById("workoutBuilderPage");
         const workoutSummaryPage = document.getElementById("workoutSummaryPage");
+
         document.getElementById("equipmentListContainer").style.display = 'block';
         document.getElementById("equipmentPage").onclick = function() {
           equipmentBody.style.display = "block";
           dashboardBody.style.display = "none";
           settingsBody.style.display = "none";
           workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
         };
 
         document.getElementById("dashboardPage").onclick = function() {
@@ -101,6 +117,7 @@
           equipmentBody.style.display = "none";
           settingsBody.style.display = "none";
           workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
         };
 
         document.getElementById("settingsPage").onclick = function() {
@@ -108,10 +125,12 @@
           equipmentBody.style.display = "none";
           dashboardBody.style.display = "none";
           workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
         };
         
         document.getElementById("workoutsPage").onclick = function() {
-        	workoutBuilderPage.style.display = "block";
+          workoutSummaryPage.style.display = "block";
+        	workoutBuilderPage.style.display = "none";
           settingsBody.style.display = "none";
           equipmentBody.style.display = "none";
           dashboardBody.style.display = "none";
@@ -134,9 +153,7 @@
 
     //set onclick for clear button
     document.getElementById("clearFilters").onclick = function() {
-      svgPerson.style.display = 'block';
-      guideList.style.display = 'none';
-      clearFilters.style.display = 'none';
+
     }
     
     //If search box changes, show list and hide svg man:
@@ -161,59 +178,47 @@
       workout["gymName"] = document.getElementById("gymField").innerText;
       workout["gymID"] = document.getElementById("gymID").innerText;
       workout["listOfExercises"] = [];
+      workout["experience"] = document.getElementById("experience").innerText;;
 
       const workoutList = document.getElementById("workoutList").children;
-      var experience = "beginner";
+      
       //Loop through list and obtain rest of data and add to object 
       for(var i = 1; i < workoutList.length; i++) {
         var workoutExercise = {}
-        i == 2 ? workoutExercise["restBetween"] = workoutList[i].querySelector("#restBetweenExercise").value : null;
+        i == 2 ? workoutExercise["restBetweenSeconds"] = workoutList[i].querySelector("#restBetweenExerciseSeconds").value : null;
+        i == 2 ? workoutExercise["restBetweenMinutes"] = workoutList[i].querySelector("#restBetweenExerciseMinutes").value : null;
+
         workoutExercise["sets"] = workoutList[i].querySelector("#sets").value;
         workoutExercise["reps"] = workoutList[i].querySelector("#reps").value;
-        workoutExercise["rest"] = workoutList[i].querySelector("#rest").value;
+        workoutExercise["exerciseRestSeconds"] = workoutList[i].querySelector("#exerciseRestSeconds").value;
+        workoutExercise["exerciseRestMinutes"] = workoutList[i].querySelector("#exerciseRestMinutes").value;
+        
         workoutExercise["guideID"] = workoutList[i].querySelector("#itemID").innerText;
         workout.listOfExercises.push(workoutExercise);
-
-        //Check if there are any more difficulty exercises in the list, i.e intermediate or advanced
-        const exerciseDifficulty = workoutList[i].querySelector("#exerciseDifficulty").innerText;
-        if (experience != "Advanced" && exerciseDifficulty == "Intermediate") {
-          workoutExercise["experience"] = "Intermediate";
-        } else if(exerciseDifficulty == "Advanced") {
-          workoutExercise["experience"] = "Advanced";
-        }
       }
-      
-      //Send to make
-      fetch("https://hook.us1.make.com/7ukin7wskfgygdmvm3dyyol3aiu49re7", {
-        method: "POST",
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify(workout)
-      }).then(res => {
-        console.log("Request complete! response:", res);
-      });
+      console.log("sending");
+      //Send to make and navigate back to workout summary
+      sendWorkoutToMake(workout);      
 
-      //Go back to workout page
-      document.getElementById("workoutBuilderPage").style.display = "none";
-      document.getElementById("workoutSummaryPage").style.display = "block";
 
     }
 
     //Listen for click events:
     document.addEventListener('click', function (event) {
 
-      // If the clicked element doesn't have the right selector, bail
+
       if (event.target.nodeName == "path") {
         // hide SVG man:
         svgPerson.style.display = 'none';
         guideList.style.display = 'block';
         clearFilters.style.display = 'block';
-        
 
         // Get stored muscle value from svg man, then find the related radio button and select
         var muscleFilter = sessionStorage.getItem("muscleFilter");
         muscleFilter = muscleFilter.replaceAll(" ", "-")
         document.querySelector(`.${muscleFilter}-filter`).click();
 
+      //Adding workout exercise to list
       } else if(event.target.id == "selectWorkoutImage" || event.target.id == "selectWorkout") {
 
         //Get Guide next to pressed button
@@ -245,10 +250,20 @@
         
         //Reduce headers font size:
         workoutItem.querySelector("#guideName").style.fontSize = "20px";
-        workoutItem.querySelector("#exerciseDifficulty").style.display = "none";
+        workoutItem.querySelector("#exerciseDifficultyParent").style.display = "none";
         
         //Add to 'workouts' list
         workoutList.appendChild(workoutItem);
+
+        //Check if experience label needs to be updated i.e intermediate or advanced
+        const exerciseDifficulty = workoutItem.querySelector("#exerciseDifficulty").innerText;
+        var currentDifficulty = document.getElementById("experience");
+
+        if (currentDifficulty.innerText != "Advanced" && exerciseDifficulty == "Intermediate") {
+          currentDifficulty.innerText = "Intermediate";
+        } else if(exerciseDifficulty == "Advanced") {
+          currentDifficulty.innerText = "Advanced";
+        }
         
         const listLength = workoutList.childNodes.length;
         
@@ -256,8 +271,10 @@
         if(listLength > 2) {
           workoutItem.querySelector("#reps").setAttribute("required", "");
           workoutItem.querySelector("#sets").setAttribute("required", "");
-          workoutItem.querySelector("#rest").setAttribute("required", "");
-          workoutItem.querySelector("#restBetweenExercise").setAttribute("required", "");
+          workoutItem.querySelector("#exerciseRestMinutes").setAttribute("required", "");
+          workoutItem.querySelector("#exerciseRestSeconds").setAttribute("required", "");
+          workoutItem.querySelector("#restBetweenExerciseMinutes").setAttribute("required", "");
+          workoutItem.querySelector("#restBetweenExerciseSeconds").setAttribute("required", "");
        	}
         
         const saveWorkout = document.getElementById("saveWorkout");
@@ -266,6 +283,7 @@
         if(listLength == 2) {
         	workoutItem.querySelector("#moveDown").style.display = "none";
           saveWorkout.style.display = "none";
+          document.getElementById("firstExercisePlaceholder").style.display = "none";
         } else if(listLength == 3) {
         	workoutItem.querySelector("#exerciseBreaker").style.display = "block";
           workoutItem.querySelector("#moveDown").style.display = "none";
@@ -280,16 +298,23 @@
           workoutItem.querySelector("#moveUp").style.display = "block";
           saveWorkout.style.display = "block";
         }
-      } else if(event.target.id == "clearFilters") {
+      } else if(event.target.id == "clearFilters" || event.target.id == "clearText") {
+        svgPerson.style.display = 'block';
+        guideList.style.display = 'none';
+        clearFilters.style.display = 'none';
       	resetFilters();
+
       } else if(event.target.id == "removeExercise") {
+
       	const workoutList = document.getElementById("workoutList");
         workoutList.removeChild(event.target.parentElement.parentElement.parentElement.parentElement);
         
         const listLength = workoutList.childNodes.length;
         const saveWorkout = document.getElementById("saveWorkout");
         
-        if(listLength >= 2) {
+        if (listLength == 1) {
+          document.getElementById("firstExercisePlaceholder").style.display = "block";
+        } else if(listLength >= 2) {
         	if(listLength == 2) {
           	//Hide workout button if there is only one exercise in list
           	saveWorkout.style.display = "none";
@@ -298,6 +323,10 @@
           const lastElement = workoutList.querySelector(`ul > li:nth-child(${listLength})`);
 
           if(firstElement) {
+            //Remove required attribute of first item
+            firstElement.querySelector("#restBetweenExerciseMinutes").removeAttribute('required');
+            firstElement.querySelector("#restBetweenExerciseSeconds").removeAttribute('required');
+
             if(firstElement.querySelector("#exerciseBreaker")) {
               firstElement.querySelector("#exerciseBreaker").style.display = "none";
             }
@@ -326,19 +355,35 @@
         var temp = currentExercise.removeChild(currentExercise.firstChild);
         currentExercise.appendChild(nextExercise.removeChild(nextExercise.firstChild));
         nextExercise.appendChild(temp);  
-      } else if(event.target.id == "saveWorkout") {
-      	
-        //Get necessary values from text boxes
-        const workoutName = document.getElementById("workoutName");
-        const workoutLength = document.getElementById("estTime");
-        const description = document.getElementById("workoutDescription");
-        const focusArea = document.getElementById("focusArea");
-        const gymName = document.getElementById("gymField");
-        const gymID = document.getElementById("gymID");
-      } else if (event.target.id == "createWorkout") {
+      } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText") {
         //Go to workout builder
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
+      } else if(event.target.id == "reset-filters") {
+        const checkboxes = document.getElementsByClassName('filter-checkbox');
+        for (let i = 0; i < checkboxes.length; i++) { 
+          if(checkboxes[i].classList.value.includes('w--redirected-checked')) {
+            checkboxes[i].click();
+          }
+        }
+      } else if (event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" || 
+        event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
+        || event.target.classList.contains('filter-checkbox') || event.target.classList.contains('clear-filter') || (event.target.tagName == "INPUT" &&  event.target.id != "workoutSearch") || event.target.classList.contains('clear-container') || event.target.classList.contains('clear-filters')) {
+        document.getElementById("filterMenu").style.display = "block";
+      } else if(event.target.id == "exit-menu" ) {
+        document.getElementById("filterMenu").style.display = "none";
+      } else if(event.target.classList.contains("dropdownitem")) {
+        
+      }else if(event.target.classList.contains("dropdownitem")) {
+        if(event.target.parentElement.id == "focusAreaDropdown") {
+          document.getElementById("focusArea").innerText = event.target.innerText;
+          document.getElementById("focusAreaDropdown").style.display = "none";
+        } else if(event.target.parentElement.id == "durationDropdown") {
+          document.getElementById("estTime").innerText = event.target.innerText;
+          document.getElementById("durationDropdown").style.display = "none";
+        }
+      } else {
+        document.getElementById("filterMenu").style.display = "none";
       }
     }, false);
     
@@ -354,4 +399,49 @@
         },
       ]);
     }
+
+    async function sendWorkoutToMake(workout) {
+      fetch("https://hook.us1.make.com/7ukin7wskfgygdmvm3dyyol3aiu49re7", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(workout)
+      }).then(res => {
+        location.href = `${location.href}?showPage=workoutSummaryPage`;
+        location.reload();
+
+      });
+    }
+
+    /*
+      jQuery for limiting number inputs
+    */
+    $("#sets").attr({
+      "min" : 0,
+      "value": 3
+    });
+    $("#reps").attr({
+      "min" : 0,
+      "value": 12
+    });
+    $("#exerciseRestMinutes").attr({
+      "min" : 0,
+      "value": 1
+    });
+    $("#exerciseRestSeconds").attr({
+      "min" : 0,
+      "max": 45,
+      "step": 15,
+      "value": 30
+    });
+    $("#restBetweenExerciseSeconds").attr({
+      "min" : 0,
+      "max": 45,
+      "step": 15,
+      "value": 30
+    });
+    $("#restBetweenExerciseMinutes").attr({
+      "min" : 0,
+      "value": 1
+    });
+    
 	};
