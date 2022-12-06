@@ -150,6 +150,21 @@
       }
 
     })
+
+    /*
+      - Iterate through workout summaries and show the 'workout of the week' icon if set
+    */
+    const workoutSummaryList = document.getElementById("workoutSummaryList").children;
+
+    for(let i = 0; i < workoutSummaryList.length; i++) {
+      
+      const isWorkoutOfTheWeek = workoutSummaryList[i].querySelector("#isWorkoutOfTheWeek").innerText;
+      console.log(isWorkoutOfTheWeek);
+      if(isWorkoutOfTheWeek == "true") {
+        workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
+        break;
+      }
+    }
     
     //Object for saving removed guides in case they need to be added later
     var selectdGuides = {};
@@ -211,11 +226,16 @@
         sendWorkoutToMake(workout);      
       } else {
         if(workout["length"] == "Duration...") {
-          document.getElementById("estTime").style.borderRadius = "8px";
-          document.getElementById("estTime").style.border = "2px solid red";
+          document.getElementById("estTimeDiv").style.borderRadius = "8px";
+          document.getElementById("estTimeDiv").style.border = "1px solid red";
+          document.getElementById("durationRequired").style.display = "block";
+          
         } else if(workout["focusArea"] == "Focus Area...") {
           document.getElementById("focusArea").style.borderRadius = "8px";
-          document.getElementById("focusArea").style.border = "2px solid red";
+          document.getElementById("focusArea").style.border = "1px solid red";
+          document.getElementById("focusAreaRequired").style.display = "block";
+          
+          
         }
       }
     }
@@ -395,6 +415,36 @@
           document.getElementById("estTime").innerText = event.target.innerText;
           document.getElementById("durationDropdown").style.display = "none";
         }
+      } else if(event.target.id == "makeWorkoutOfTheWeek") {
+
+        //Object for storing new workout of the week
+        var workoutOfTheWeek = {};
+
+        //Get row of clicked element:
+        const currentWorkoutRow = event.target.parentElement.parentElement.parentElement.parentElement;
+        
+        //Hide previous workout of the week
+        const isWorkoutOfTheWeekList = document.querySelectorAll("#isWorkoutOfTheWeek");
+        for(var i = 0; i < isWorkoutOfTheWeekList.length; i++) {
+          if(isWorkoutOfTheWeekList[i].innerText == "true") {
+            isWorkoutOfTheWeekList[i].innerText == "false";
+            isWorkoutOfTheWeekList[i].parentElement.querySelector("#workoutOfTheWeekIcon").style.display = "none";
+            workoutOfTheWeek["previousWorkoutID"] = isWorkoutOfTheWeekList[i].parentElement.querySelector("#workoutID").innerText;
+            workoutOfTheWeek["previousWorkoutName"] = isWorkoutOfTheWeekList[i].parentElement.querySelector("#workoutFullName").innerText;
+          }
+        }
+
+        //Update workout of the week text or icon selected
+        currentWorkoutRow.querySelector("#isWorkoutOfTheWeek").innerText = "true";
+        currentWorkoutRow.querySelector("#workoutOfTheWeekIcon").style.display = "block";
+
+        //Send Post request to make
+        workoutOfTheWeek["workoutID"] = currentWorkoutRow.querySelector("#workoutID").innerText;
+        workoutOfTheWeek["workoutName"] = currentWorkoutRow.querySelector("#workoutFullName").innerText;
+
+        updateWorkoutOfTheWeek(workoutOfTheWeek);
+
+
       } else {
         document.getElementById("filterMenu").style.display = "none";
       }
@@ -403,11 +453,13 @@
     //Listen for click events:
     document.addEventListener('change', function (event) {
       if(event.target.id == "estTime") {
-        document.getElementById("estTime").style.borderRadius = "0px";
-        document.getElementById("estTime").style.border = "";
+        document.getElementById("estTimeDiv").style.borderRadius = "0px";
+        document.getElementById("estTimeDiv").style.border = "";
+        document.getElementById("durationRequired").style.display = "none";
       } else if (event.target.id == "focusArea") {
         document.getElementById("focusArea").style.borderRadius = "0px";
         document.getElementById("focusArea").style.border = "";
+        document.getElementById("focusAreaRequired").style.display = "none";
       }
     }, false);
 
@@ -456,6 +508,16 @@
         location.href = `${location.href}?showPage=workoutSummaryPage`;
         location.reload();
 
+      });
+    }
+
+    async function updateWorkoutOfTheWeek(workoutOfTheWeek) {
+      fetch("https://hook.us1.make.com/2clz3sgj85og9dv45xo1w9s2zwimpv19", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(workoutOfTheWeek)
+      }).then(res => {
+        console.log("Workout of the week updated")
       });
     }
 
