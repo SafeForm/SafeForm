@@ -104,46 +104,51 @@
 
         document.getElementById("equipmentListContainer").style.display = 'block';
         document.getElementById("equipmentPage").onclick = function() {
-          equipmentBody.style.display = "block";
+          //equipmentBody.style.display = "block";
           dashboardBody.style.display = "none";
           settingsBody.style.display = "none";
-          workoutBuilderPage.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
           workoutSummaryPage.style.display = "none";
           //Reset filters on workout summary page
-          resetGeneralFilters();
+          checkAndClearWorkouts("equipmentBody")
         };
 
         document.getElementById("dashboardPage").onclick = function() {
-          dashboardBody.style.display = "block";
+          //dashboardBody.style.display = "block";
           equipmentBody.style.display = "none";
           settingsBody.style.display = "none";
-          workoutBuilderPage.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
           workoutSummaryPage.style.display = "none";
           //Reset filters on workout summary page
-          resetGeneralFilters();
+          checkAndClearWorkouts("dashboardBody")
         };
 
         document.getElementById("settingsPage").onclick = function() {
-          settingsBody.style.display = "block";
+          //settingsBody.style.display = "block";
           equipmentBody.style.display = "none";
           dashboardBody.style.display = "none";
-          workoutBuilderPage.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
           workoutSummaryPage.style.display = "none";
           //Reset filters on workout summary page
-          resetGeneralFilters();
+          checkAndClearWorkouts("settingsBody")
         };
         
         document.getElementById("workoutsPage").onclick = function() {
           //Reset filters on workout summary page
-          resetGeneralFilters();
-          workoutSummaryPage.style.display = "block";
-        	workoutBuilderPage.style.display = "none";
+          //workoutSummaryPage.style.display = "block";
+        	//workoutBuilderPage.style.display = "none";
           settingsBody.style.display = "none";
           equipmentBody.style.display = "none";
           dashboardBody.style.display = "none";
           sessionStorage.setItem('editWorkout', 'false');
           sessionStorage.setItem('duplicateWorkout', 'false');
           sessionStorage.setItem('createWorkout', 'false');
+
+          // Check if there are any exercises in the list 
+          // If there is, prompt user to confirm removing list 
+
+          // If they confirm remove items from list and clear filters and hide exercise list
+          checkAndClearWorkouts("workoutSummaryPage");
 
         };
 
@@ -285,7 +290,6 @@
         	if(listLength == 2) {
           	//Hide workout button if there is only one exercise in list
           	saveWorkout.style.display = "none";
-
           }
           const firstElement = workoutList.querySelector("ul > li:nth-child(2)");
           const lastElement = workoutList.querySelector(`ul > li:nth-child(${listLength})`);
@@ -398,6 +402,22 @@
         //Prefill workout builder with the selected workout
         prefillWorkoutBuilder(event.target.parentElement.parentElement.parentElement.parentElement);
 
+      } else if(event.target.id == "keepEditingWorkout" || event.target.id == "closeBuilderModal" || event.target.id == "closeBuilderModalImage") {
+        //Close modal
+        document.getElementById("confirmCloseBuilder").style.display = "none";
+
+      } else if(event.target.id == "dontSaveWorkout") {
+        /*
+        //Close modal
+        document.getElementById("confirmCloseBuilder").style.display = "none";
+        //Hide and clear workout builder
+        document.getElementById("workoutBuilderPage").style.display = "none";
+        //Show workout summary
+        document.getElementById("workoutSummaryPage").style.display = "block";
+
+        //Clear list
+        clearWorkoutExerciseList();
+        */
       } else {
         document.getElementById("filterMenu").style.display = "none";
       }
@@ -434,9 +454,12 @@
         'cmsfilter',
         async (filterInstances) => {
           // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
-          const [filterInstance] = filterInstances;
+          
+          //Get muscle related filters
+          const filterInstance = filterInstances[1];
           await filterInstance.resetFilters(filterKeys=["exercisename"], null);
-          await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null)
+          await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
+
         },
       ]);
     }
@@ -686,6 +709,65 @@
         workoutItem.querySelector("#moveUp").style.display = "block";
         saveWorkout.style.display = "block";
       }
+
+    }
+
+    function checkAndClearWorkouts(destinationScreen) {
+      resetGeneralFilters();
+      //Check if list size is > 1
+      const workoutList = document.getElementById("workoutList").children;
+      const workoutTitle = document.getElementById("workoutName").innerText;
+      const workoutDuration = document.getElementById("estTime").value;
+      const workoutFocusArea = document.getElementById("workoutFocusArea").value;
+      const workoutDescription = document.getElementById("workoutDescription").value;
+      console.log("Result is", workoutDuration, workoutFocusArea, workoutDescription)
+      if (workoutList.length > 1 ) { //TODO: Not just when an exercise has been added, but if title, duration, focus area, or description have a value
+        var closeBuilderModal = document.getElementById("confirmCloseBuilder");
+        //Set flex styling:
+        closeBuilderModal.style.display = "flex";
+        closeBuilderModal.style.flexDirection = "column";
+        closeBuilderModal.style.justifyContent = "center";
+        closeBuilderModal.style.alignItems = "center";
+        //Show modal:
+        closeBuilderModal.display = "block";
+
+        //Navigate to selected page
+        document.getElementById("dontSaveWorkout").onclick = function() {
+          //Close modal
+          document.getElementById("confirmCloseBuilder").style.display = "none";
+          //Hide and clear workout builder
+          document.getElementById("workoutBuilderPage").style.display = "none";
+          //Show workout summary
+          document.getElementById(destinationScreen).style.display = "block";
+          
+          //Hide exercise list
+          //Show SVG man
+          //Clear list
+          clearWorkoutExerciseList();
+        }
+
+      } else {
+        workoutBuilderPage.style.display = "none";
+        
+        document.getElementById(destinationScreen).style.display = "block";
+        //workoutSummaryPage.style.display = "block";
+      }
+    }
+
+    function clearWorkoutExerciseList() {
+      const workoutList = document.getElementById("workoutList").children;
+      const firstElement = workoutList[0]
+      while(firstElement.nextSibling != null) {
+        firstElement.nextSibling.remove()
+      }
+      //Show first exercise placeholder
+      document.getElementById("firstExercisePlaceholder").style.display = "block";
+      //Hide submit button
+      document.getElementById("saveWorkout").style.display = "none";
+      //Hide list
+      document.getElementById("guideListParent").style.display = "none";
+      //Show svg man
+      document.getElementById("ajaxContent").style.display = "block";
 
     }
 
