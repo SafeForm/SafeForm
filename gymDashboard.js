@@ -440,6 +440,7 @@ window.onload = (event) => {
       document.getElementById("confirmCloseBuilder").style.display = "none";
 
     } else {
+
       document.getElementById("filterMenu").style.display = "none";
     }
   }, false);
@@ -455,12 +456,21 @@ window.onload = (event) => {
       document.getElementById("focusArea").style.border = "";
       document.getElementById("focusAreaRequired").style.display = "none";
     } else if (event.target.type) {
+      console.log(event.target.type == "checkbox");
       checkCheckboxFilters().then(res => { 
         //Check if the amount of active filters is more than 0
         if(res > 0) {
           document.getElementById("clearExperienceExercise").style.display = "block";
+          if(event.target.id.includes("exercise-checkbox")) {
+            svgPerson.style.display = 'none';
+            guideList.style.display = 'block';
+          }
         } else {
           document.getElementById("clearExperienceExercise").style.display = "none";
+          if(event.target.id.includes("exercise-checkbox")) {
+            svgPerson.style.display = 'block';
+            guideList.style.display = 'none';
+          }
         }
 
       });
