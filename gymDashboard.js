@@ -598,9 +598,19 @@ window.onload = (event) => {
     //Copy guide template and replace all values with exercise from workout
     for(var i = 0; i < workout.exercises.length; i++) {
       var copyOfGuide = document.getElementById("individualGuide").cloneNode(true);
-
       copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
-      copyOfGuide.querySelector("#exerciseThumbnail").src = workout.exercises[i].exerciseThumbnailURL;
+      var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
+      //Check if there are multiple thumbails, randomly select one if so
+      if(thumbnailSplit.length > 1) {
+        var randomNumber = Math.random();
+        if(randomNumber < 0.5) {
+          copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[1];
+        } else {
+          copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[0];
+        }
+      } else {
+        copyOfGuide.querySelector(".exerciseThumbnail").src = workout.exercises[i].exerciseThumbnailURL
+      }
       copyOfGuide.querySelector("#exerciseMuscleImage").src = workout.exercises[i].exerciseMuscleImage;
 
       addExerciseToWorkoutList(copyOfGuide, workout.exercises[i]);
