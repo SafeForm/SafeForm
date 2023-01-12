@@ -347,13 +347,15 @@ window.onload = (event) => {
         previousExercise = event.target.parentElement.parentElement.parentElement.previousSibling.querySelector("#guidePlaceHolder");
       }
 
-      
-      var temp = currentExercise.removeChild(currentExercise.firstChild);
-      currentExercise.appendChild(previousExercise.removeChild(previousExercise.firstChild));
-      previousExercise.appendChild(temp);       
+      console.log(currentExercise.firstChild);
+      var temp = currentExercise.removeChild(currentExercise.querySelector("#individualGuide"));
+      console.log(temp);
+      currentExercise.appendChild(previousExercise.removeChild(previousExercise.querySelector("#individualGuide")));
+      previousExercise.appendChild(temp);    
+      console.log(event.target.id);   
 
     } else if(event.target.id == "moveDown" || event.target.id == "moveDownLink") {
-      console.log(event.target.id);
+
       var currentExercise = null;
       var previousExercise = null;
 
@@ -364,11 +366,13 @@ window.onload = (event) => {
         currentExercise = event.target.parentElement.nextSibling.querySelector("#guidePlaceHolder");
         nextExercise = event.target.parentElement.parentElement.nextSibling.querySelector("#guidePlaceHolder");
       }
-
-      var temp = currentExercise.removeChild(currentExercise.firstChild);
-      currentExercise.appendChild(nextExercise.removeChild(nextExercise.firstChild));
+      console.log(currentExercise)
+      console.log(currentExercise.firstChild);
+      var temp = currentExercise.removeChild(currentExercise.querySelector("#individualGuide"));
+      console.log(temp);
+      currentExercise.appendChild(nextExercise.removeChild(nextExercise.querySelector("#individualGuide")));
       nextExercise.appendChild(temp);  
-      console.log(nextExercise);
+      console.log(event.target.id);
 
     } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText") {
 
@@ -738,6 +742,7 @@ window.onload = (event) => {
     
     //Add guide to workout exercise template
     workoutItem.querySelector("#guidePlaceHolder").append(copyOfGuide);
+
     
     workoutItem.style.display = "block";
     
