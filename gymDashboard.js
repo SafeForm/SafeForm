@@ -334,20 +334,42 @@ window.onload = (event) => {
             lastElement.querySelector("#moveDown").style.display = "none";
         }
       }
-    } else if(event.target.id == "moveUp") {
-      const currentExercise = event.target.parentElement.nextSibling.querySelector("#guidePlaceHolder");
-      const previousExercise = event.target.parentElement.parentElement.parentElement.previousSibling.querySelector("#guidePlaceHolder");
+    } else if(event.target.id == "moveUp" || event.target.id == "moveUpLink") {
+
+      var currentExercise = null;
+      var previousExercise = null;
+
+      if(event.target.id == "moveUp") {
+        currentExercise = event.target.parentElement.parentElement.nextSibling.querySelector("#guidePlaceHolder");
+        previousExercise = event.target.parentElement.parentElement.parentElement.parentElement.previousSibling.querySelector("#guidePlaceHolder");
+      } else {
+        currentExercise = event.target.parentElement.nextSibling.querySelector("#guidePlaceHolder");
+        previousExercise = event.target.parentElement.parentElement.parentElement.previousSibling.querySelector("#guidePlaceHolder");
+      }
+
       
       var temp = currentExercise.removeChild(currentExercise.firstChild);
       currentExercise.appendChild(previousExercise.removeChild(previousExercise.firstChild));
       previousExercise.appendChild(temp);       
-    } else if(event.target.id == "moveDown") {
 
-      const currentExercise = event.target.parentElement.nextSibling.querySelector("#guidePlaceHolder");
-      const nextExercise = event.target.parentElement.parentElement.parentElement.nextSibling.querySelector("#guidePlaceHolder");
+    } else if(event.target.id == "moveDown" || event.target.id == "moveDownLink") {
+      console.log(event.target.id);
+      var currentExercise = null;
+      var previousExercise = null;
+
+      if(event.target.id == "moveDown") {
+        currentExercise = event.target.parentElement.parentElement.nextSibling.querySelector("#guidePlaceHolder");
+        nextExercise = event.target.parentElement.parentElement.parentElement.parentElement.nextSibling.querySelector("#guidePlaceHolder");
+      } else {
+        currentExercise = event.target.parentElement.nextSibling.querySelector("#guidePlaceHolder");
+        nextExercise = event.target.parentElement.parentElement.nextSibling.querySelector("#guidePlaceHolder");
+      }
+
       var temp = currentExercise.removeChild(currentExercise.firstChild);
       currentExercise.appendChild(nextExercise.removeChild(nextExercise.firstChild));
       nextExercise.appendChild(temp);  
+      console.log(nextExercise);
+
     } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText") {
 
       //Set create workout flag
@@ -440,7 +462,7 @@ window.onload = (event) => {
       document.getElementById("confirmCloseBuilder").style.display = "none";
 
     } else {
-
+      console.log(event.target)
       document.getElementById("filterMenu").style.display = "none";
     }
   }, false);
