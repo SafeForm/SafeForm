@@ -756,6 +756,9 @@ window.onload = (event) => {
     //Add to 'workouts' list
     workoutList.appendChild(workoutItem);
 
+    //Scroll list to bottom to show user
+    workoutList.scrollIntoView({behavior: "smooth", block: "end"});
+
     //Check if experience label needs to be updated i.e intermediate or advanced
     const exerciseDifficulty = workoutItem.querySelector("#exerciseDifficulty").innerText;
     var currentDifficulty = document.getElementById("experience");
