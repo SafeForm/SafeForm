@@ -465,6 +465,9 @@ window.onload = (event) => {
       //Close modal
       document.getElementById("confirmCloseBuilder").style.display = "none";
 
+    } else if(event.target.id == "clearExperienceExerciseFilters") {
+      resetGeneralFilters();
+      
     } else {
       console.log(event.target)
       document.getElementById("filterMenu").style.display = "none";
@@ -486,13 +489,13 @@ window.onload = (event) => {
       checkCheckboxFilters().then(res => { 
         //Check if the amount of active filters is more than 0
         if(res > 0) {
-          document.getElementById("clearExperienceExercise").style.display = "block";
+          document.getElementById("clearExperienceExerciseFilters").style.display = "block";
           if(event.target.id.includes("exercise-checkbox")) {
             svgPerson.style.display = 'none';
             guideList.style.display = 'block';
           }
         } else {
-          document.getElementById("clearExperienceExercise").style.display = "none";
+          document.getElementById("clearExperienceExerciseFilters").style.display = "none";
           if(event.target.id.includes("exercise-checkbox")) {
             svgPerson.style.display = 'block';
             guideList.style.display = 'none';
@@ -752,6 +755,9 @@ window.onload = (event) => {
 
     //Add to 'workouts' list
     workoutList.appendChild(workoutItem);
+
+    //Scroll list to bottom to show user
+    workoutList.scrollIntoView({behavior: "smooth", block: "end"});
 
     //Check if experience label needs to be updated i.e intermediate or advanced
     const exerciseDifficulty = workoutItem.querySelector("#exerciseDifficulty").innerText;
