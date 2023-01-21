@@ -177,18 +177,24 @@ window.onload = (event) => {
   })
 
   /*
+    - First check if workout summary list has children
     - Iterate through workout summaries and show the 'workout of the week' icon if set
   */
-  const workoutSummaryList = document.getElementById("workoutSummaryList").children;
-
-  for(let i = 0; i < workoutSummaryList.length; i++) {
+  const workoutSummary = document.getElementById("workoutSummaryList");
+  var workoutSummaryList = null;
+  if(workoutSummary) {
+    workoutSummaryList = workoutSummary.children;
+    for(let i = 0; i < workoutSummaryList.length; i++) {
     
-    const isWorkoutOfTheWeek = workoutSummaryList[i].querySelector("#isWorkoutOfTheWeek").innerText;
-    if(isWorkoutOfTheWeek == "true") {
-      workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
-      break;
+      const isWorkoutOfTheWeek = workoutSummaryList[i].querySelector("#isWorkoutOfTheWeek").innerText;
+      if(isWorkoutOfTheWeek == "true") {
+        workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
+        break;
+      }
     }
   }
+
+
   
   //Object for saving removed guides in case they need to be added later
   var selectdGuides = {};
@@ -434,7 +440,7 @@ window.onload = (event) => {
       
       //Note that this is editing a workout
       sessionStorage.setItem('editWorkout', 'true');
-
+      sessionStorage.setItem("viewingEditFirstTime", 'true');
       //Prefill workout builder with the selected workout
       prefillWorkoutBuilder(event.target);
 
@@ -442,7 +448,7 @@ window.onload = (event) => {
 
       //Note that this is editing a workout
       sessionStorage.setItem('editWorkout', 'true');
-
+      sessionStorage.setItem("viewingEditFirstTime", 'true');
       //Prefill workout builder with the selected workout
       prefillWorkoutBuilder(event.target.parentElement);
 
@@ -450,7 +456,7 @@ window.onload = (event) => {
       
       //Note that this is editing a workout
       sessionStorage.setItem('editWorkout', 'true');
-
+      sessionStorage.setItem("viewingEditFirstTime", 'true');
       //Prefill workout builder with the selected workout
       prefillWorkoutBuilder(event.target.parentElement.parentElement);
 
@@ -469,7 +475,6 @@ window.onload = (event) => {
       resetGeneralFilters();
       
     } else {
-      console.log(event.target)
       document.getElementById("filterMenu").style.display = "none";
     }
   }, false);
@@ -485,7 +490,6 @@ window.onload = (event) => {
       document.getElementById("focusArea").style.border = "";
       document.getElementById("focusAreaRequired").style.display = "none";
     } else if (event.target.type) {
-      console.log(event.target.type == "checkbox");
       checkCheckboxFilters().then(res => { 
         //Check if the amount of active filters is more than 0
         if(res > 0) {
@@ -642,7 +646,7 @@ window.onload = (event) => {
       }
       copyOfGuide.querySelector("#exerciseMuscleImage").src = workout.exercises[i].exerciseMuscleImage;
 
-      addExerciseToWorkoutList(copyOfGuide, workout.exercises[i]);
+      addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true);
 
     } 
   }
@@ -710,7 +714,7 @@ window.onload = (event) => {
     return workout;
   }
 
-  function addExerciseToWorkoutList(copyOfGuide, exerciseInformation=null) {
+  function addExerciseToWorkoutList(copyOfGuide, exerciseInformation=null, prefill=null) {
 
     //Get current guide and add to workout list
     const workoutList = document.getElementById("workoutList");
@@ -757,7 +761,14 @@ window.onload = (event) => {
     workoutList.appendChild(workoutItem);
 
     //Scroll list to bottom to show user
-    workoutList.scrollIntoView({behavior: "smooth", block: "end"});
+    //Ensure when user is editing workout it does not scroll initially
+    console.log(sessionStorage.getItem("viewingEditFirstTime"));
+    if (sessionStorage.getItem("viewingEditFirstTime") == "false" && !prefill) {
+      workoutList.scrollIntoView({behavior: "smooth", block: "end"});
+    } else {
+      sessionStorage.setItem("viewingEditFirstTime", 'false');
+    }
+    
 
     //Check if experience label needs to be updated i.e intermediate or advanced
     const exerciseDifficulty = workoutItem.querySelector("#exerciseDifficulty").innerText;
