@@ -495,14 +495,14 @@ window.onload = (event) => {
         if(res > 0) {
           document.getElementById("clearExperienceExerciseFilters").style.display = "block";
           if(event.target.id.includes("exercise-checkbox")) {
-            svgPerson.style.display = 'none';
-            guideList.style.display = 'block';
+            //svgPerson.style.display = 'none';
+            //guideList.style.display = 'block';
           }
         } else {
           document.getElementById("clearExperienceExerciseFilters").style.display = "none";
           if(event.target.id.includes("exercise-checkbox")) {
-            svgPerson.style.display = 'block';
-            guideList.style.display = 'none';
+            //svgPerson.style.display = 'block';
+            //guideList.style.display = 'none';
           }
         }
 
