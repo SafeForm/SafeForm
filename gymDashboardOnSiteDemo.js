@@ -120,6 +120,7 @@ window.onload = (event) => {
   
   const svgPerson = document.getElementById("ajaxContent");
   const guideList = document.getElementById("guideListParent");
+  const clickExerciseText = document.getElementById("clickExerciseText");
   
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
@@ -127,9 +128,11 @@ window.onload = (event) => {
     if(searchBox.value != "") {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
+      clickExerciseText.style.display = 'block';
     } else {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
+      clickExerciseText.style.display = 'none';
     }
   }
 
@@ -142,6 +145,8 @@ window.onload = (event) => {
       hoverDiv.alignItems = "center";
       hoverDiv.justifyContent = "center";
       hoverDiv.flexDirection = "row";
+      //Underline text
+      event.target.style.textDecoration = "underline";
     } else if (event.target.id == "thumbnailAndMuscleDiv") {
       var hoverDiv = event.target.style;
       hoverDiv.display = "flex";
@@ -170,6 +175,8 @@ window.onload = (event) => {
 
     if(event.target.id == "workoutExercisename") {
       event.target.parentElement.parentElement.parentElement.parentElement.querySelector("#thumbnailAndMuscleDiv").style.display = "none";
+      //Underline text
+      event.target.style.textDecoration = "none";
     } else if (event.target.id == "thumbnailAndMuscleDiv") {
       event.target.style.display = "none";
     }
@@ -283,6 +290,8 @@ window.onload = (event) => {
       // hide SVG man:
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
+      clickExerciseText.style.display = 'block';
+
 
       // Get stored muscle value from svg man, then find the related radio button and select
       var muscleFilter = sessionStorage.getItem("muscleFilter");
@@ -324,6 +333,7 @@ window.onload = (event) => {
     } else if(event.target.id == "clearText") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
+      clickExerciseText.style.display = 'none';
       resetFilters();
 
     } else if(event.target.id == "removeExercise") {
@@ -885,6 +895,10 @@ window.onload = (event) => {
     workoutItem.querySelector("#setRepInfo").remove();
     workoutItem.querySelector("#workoutExerciseFullName").remove();
     workoutItem.querySelector("#workoutExerciseItemID").remove();
+
+    //Make svg person smaller
+    svgPerson[0].style.width = "80%";
+    thumbnail[0].style.width = "100%";
   
     //Add thumbnail and svg person to hover div
     $(workoutItem).find("#thumbnailAndMuscleDiv").append(thumbnail);
@@ -968,6 +982,14 @@ window.onload = (event) => {
     const workoutFocusArea = document.getElementById("focusArea").value;
     const workoutDescription = document.getElementById("workoutDescription").value;
     if (workoutList.length > 1 || workoutTitle != "" || workoutDuration != "Duration" || workoutFocusArea != "Focus Area" || workoutDescription != "") {
+
+      if (workoutTitle != "") {
+        //Set workout name text in modal
+        document.getElementById("closingText").innerText = `Do you want to save the changes to your workout \"${workoutTitle}\"?`;
+      } else {
+        document.getElementById("closingText").innerText = "Do you want to save the changes to your workout?";
+      }
+
       var closeBuilderModal = document.getElementById("confirmCloseBuilder");
       //Set flex styling:
       closeBuilderModal.style.display = "flex";
