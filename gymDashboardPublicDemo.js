@@ -74,7 +74,7 @@ function cloneAndAddElement(valueArr, elementToClone, containerElement, tagEleme
 
 }
 
-window.onload = (event) => {
+document.addEventListener('DOMContentLoaded', (event) => {
 
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -771,4 +771,4 @@ window.onload = (event) => {
   $("#focusArea").attr("required", true);
   $("#estTime").attr("required", true);
   
-};
+});
