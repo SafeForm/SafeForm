@@ -89,7 +89,8 @@ if (url.searchParams.has('showPage')) {
 }
 
 
-window.onload = (event) => {
+document.addEventListener('DOMContentLoaded', (event) => {
+
   //Grab main page elements to set hiding/showing appropriately
   const equipmentBody = document.getElementById("equipmentBody");
   const dashboardBody = document.getElementById("dashboardBody");
@@ -1107,4 +1108,4 @@ window.onload = (event) => {
   $("#focusArea").attr("required", true);
   $("#estTime").attr("required", true);
   
-};
+});
