@@ -100,7 +100,7 @@ if (url.searchParams.has('showPage')) {
   document.getElementById("workoutSummaryPage").style.display = "block";
 }
 
-window.onload = (event) => {
+document.addEventListener('DOMContentLoaded', (event) => {
   
   MemberStack.onReady.then(function(member) {  
     var membership = member.membership  
@@ -1125,4 +1125,4 @@ window.onload = (event) => {
   $("#focusArea").attr("required", true);
   $("#estTime").attr("required", true);
   
-};
+});
