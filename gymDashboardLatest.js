@@ -101,9 +101,11 @@ if (url.searchParams.has('showPage')) {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
+  console.log("Outer func loaded");
   window.onload = (event) => {
+    console.log("inner func loaded");
     MemberStack.onReady.then(async function(member) {  
-
+      console.log("memberstack func loaded");
       var membership = member.membership  
       var memberID = member["id"];
       var equipmentStatus = member["equipment-upload-complete"];
