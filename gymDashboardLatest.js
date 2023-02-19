@@ -100,81 +100,115 @@ if (url.searchParams.has('showPage')) {
   document.getElementById("workoutSummaryPage").style.display = "block";
 }
 
-window.onload = (event) => {
+document.addEventListener('DOMContentLoaded', (event) => {
+  window.onload = (event) => {
+    MemberStack.onReady.then(async function(member) {  
+
+      var membership = member.membership  
+      var memberID = member["id"];
+      var equipmentStatus = member["equipment-upload-complete"];
+      console.log(equipmentStatus);
+      const baseURL = window.location.origin;
+      //set link to dashboard page
+      const path = window.location.pathname;
   
-  MemberStack.onReady.then(function(member) {  
-    var membership = member.membership  
-    var memberID = member["id"];
-    var equipmentStatus = member["equipment-upload-complete"];
-    const baseURL = window.location.origin;
-    //set link to dashboard page
-    const path = window.location.pathname;
+      const urlID = path.split("/")[2];	
+  
+      if(equipmentStatus == "complete") {
+        const equipmentBody = document.getElementById("equipmentBody");
+        const dashboardBody = document.getElementById("dashboardBody");
+        const settingsBody = document.getElementById("settingsBody");
+        const workoutBuilderPage = document.getElementById("workoutBuilderPage");
+        const workoutSummaryPage = document.getElementById("workoutSummaryPage");
+  
+        document.getElementById("equipmentListContainer").style.display = 'block';
+        document.getElementById("equipmentPage").onclick = function() {
+          //equipmentBody.style.display = "block";
+          dashboardBody.style.display = "none";
+          settingsBody.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          checkAndClearWorkouts("equipmentBody")
+        };
+  
+        document.getElementById("dashboardPage").onclick = function() {
+          //dashboardBody.style.display = "block";
+          equipmentBody.style.display = "none";
+          settingsBody.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          checkAndClearWorkouts("dashboardBody")
+        };
+  
+        document.getElementById("settingsPage").onclick = function() {
+          //settingsBody.style.display = "block";
+          equipmentBody.style.display = "none";
+          dashboardBody.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          checkAndClearWorkouts("settingsBody")
+        };
+        
+        document.getElementById("workoutsPage").onclick = function() {
+          //Reset filters on workout summary page
+          //workoutSummaryPage.style.display = "block";
+          //workoutBuilderPage.style.display = "none";
+          settingsBody.style.display = "none";
+          equipmentBody.style.display = "none";
+          dashboardBody.style.display = "none";
+  
+          // Check if there are any exercises in the list 
+          // If there is, prompt user to confirm removing list 
+  
+          // If they confirm remove items from list and clear filters and hide exercise list
+          checkAndClearWorkouts("workoutSummaryPage");
+  
+        };
+  
+      } else if(equipmentStatus == "skipped") {
+        var gymName = member["gym-name"];
+        var gymLocation = member["gym-location"];
+        var dashboardID = member["webflow-dashboard-id"];
+        var equipmentID = member["webflow-equipment-id"];
+        var email = member["email"];
+        var hashedGym = "";
 
-    const urlID = path.split("/")[2];
-
-    if(equipmentStatus == "complete") {
-      const equipmentBody = document.getElementById("equipmentBody");
-      const dashboardBody = document.getElementById("dashboardBody");
-      const settingsBody = document.getElementById("settingsBody");
-      const workoutBuilderPage = document.getElementById("workoutBuilderPage");
-      const workoutSummaryPage = document.getElementById("workoutSummaryPage");
-
-      document.getElementById("equipmentListContainer").style.display = 'block';
-      document.getElementById("equipmentPage").onclick = function() {
-        //equipmentBody.style.display = "block";
-        dashboardBody.style.display = "none";
-        settingsBody.style.display = "none";
-        //workoutBuilderPage.style.display = "none";
-        workoutSummaryPage.style.display = "none";
-        //Reset filters on workout summary page
-        checkAndClearWorkouts("equipmentBody")
-      };
-
-      document.getElementById("dashboardPage").onclick = function() {
-        //dashboardBody.style.display = "block";
-        equipmentBody.style.display = "none";
-        settingsBody.style.display = "none";
-        //workoutBuilderPage.style.display = "none";
-        workoutSummaryPage.style.display = "none";
-        //Reset filters on workout summary page
-        checkAndClearWorkouts("dashboardBody")
-      };
-
-      document.getElementById("settingsPage").onclick = function() {
-        //settingsBody.style.display = "block";
-        equipmentBody.style.display = "none";
-        dashboardBody.style.display = "none";
-        //workoutBuilderPage.style.display = "none";
-        workoutSummaryPage.style.display = "none";
-        //Reset filters on workout summary page
-        checkAndClearWorkouts("settingsBody")
-      };
+        async function digestMessage(message) {
+          const msgUint8 = new TextEncoder().encode(message);                           // encode as (utf-8) Uint8Array
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);           // hash the message
+          const hashArray = Array.from(new Uint8Array(hashBuffer));                     // convert buffer to byte array
+          const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+          return hashHex;
+        }
+    
+        await digestMessage(`${gymName} - ${gymLocation}`.toLowerCase())
+          .then((digestBuffer) => hashedGym = digestBuffer);
+        
+        const prefillParameters = `?prefill_Location=${gymLocation}&hide_Location=true&prefill_GymNameHash=${hashedGym}&hide_GymNameHash=true&prefill_Account+Name=${gymName}&hide_Account+Name=true&prefill_Memberstack+ID=${memberID}&hide_Memberstack+ID=true&prefill_Dashboard+ID=${dashboardID}&hide_Dashboard+ID=true&prefill_Equipment+ID=${equipmentID}&hide_Equipment+ID=true&prefill_Site+Email=${email}&hide_Site+Email=true`
+        const airtableForm = "https://airtable.com/shr6SXGXG0eqbfeJV" + prefillParameters;
+        
+        const upload = document.getElementById("uploadList");
+        upload.href = airtableForm;
+  
+        //Show upload content
+        document.getElementById("equipmentUploadDiv").style.display = "block";
+      }
       
-      document.getElementById("workoutsPage").onclick = function() {
-        //Reset filters on workout summary page
-        //workoutSummaryPage.style.display = "block";
-        //workoutBuilderPage.style.display = "none";
-        settingsBody.style.display = "none";
-        equipmentBody.style.display = "none";
-        dashboardBody.style.display = "none";
-        sessionStorage.setItem('editWorkout', 'false');
-        sessionStorage.setItem('duplicateWorkout', 'false');
-        sessionStorage.setItem('createWorkout', 'false');
+      else {
+        document.getElementById("equipmentListContainer").style.display = 'none';
+        document.getElementById("notUploaded").style.display = "block";
+      }
+  
+    })
+  };
+  
 
-        // Check if there are any exercises in the list 
-        // If there is, prompt user to confirm removing list 
-
-        // If they confirm remove items from list and clear filters and hide exercise list
-        checkAndClearWorkouts("workoutSummaryPage");
-
-      };
-
-    } else {
-      document.getElementById("equipmentListContainer").style.display = 'none';
-      document.getElementById("notUploaded").style.display = "block";
-    }
-
-  })
+  //Object to keep track of the guide -> exercise workout mapping
+  //Object with guide ID as the key and array of guide divs as values
+  var guideToWorkoutObj = {};
 
   /*
     - First check if workout summary list has children
@@ -193,14 +227,10 @@ window.onload = (event) => {
       }
     }
   }
-
-
-  
-  //Object for saving removed guides in case they need to be added later
-  var selectdGuides = {};
   
   const svgPerson = document.getElementById("ajaxContent");
   const guideList = document.getElementById("guideListParent");
+  const clickExerciseText = document.getElementById("clickExerciseText");
   
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
@@ -208,11 +238,61 @@ window.onload = (event) => {
     if(searchBox.value != "") {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
+      clickExerciseText.style.display = 'block';
     } else {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
+      clickExerciseText.style.display = 'none';
     }
   }
+
+  //Catching mouse over and out events for showing the thumbnail and svg person
+  document.addEventListener('mouseover', function (event) {
+
+    if(event.target.id == "workoutExercisename") {
+        
+      var hoverDiv = event.target.parentElement.parentElement.parentElement.parentElement.querySelector("#thumbnailAndMuscleDiv").style;
+      hoverDiv.display = "flex";
+      hoverDiv.alignItems = "center";
+      hoverDiv.justifyContent = "center";
+      hoverDiv.flexDirection = "row";
+      //Underline text
+      event.target.style.textDecoration = "underline";
+    } else if (event.target.id == "thumbnailAndMuscleDiv") {
+      var hoverDiv = event.target.style;
+      hoverDiv.display = "flex";
+      hoverDiv.alignItems = "center";
+      hoverDiv.justifyContent = "center";
+      hoverDiv.flexDirection = "row";
+    } else if ((event.target.id == "exerciseThumbnail" || event.target.id == "exerciseInfoRight") && (event.target.parentElement.id == "thumbnailAndMuscleDiv")) {
+
+      var hoverDiv = event.target.parentElement.style;
+      hoverDiv.display = "flex";
+      hoverDiv.alignItems = "center";
+      hoverDiv.justifyContent = "center";
+      hoverDiv.flexDirection = "row";
+      //Ensure we only check items in workout list
+    } else if(event.target.className == "exerciseThumbnail" && event.target.parentElement.id == "exerciseThumbnail" && event.target.parentElement.parentElement.id == "thumbnailAndMuscleDiv") {
+      var hoverDiv = event.target.parentElement.parentElement.style;
+      hoverDiv.display = "flex";
+      hoverDiv.alignItems = "center";
+      hoverDiv.justifyContent = "center";
+      hoverDiv.flexDirection = "row";
+    }
+
+  }, false);
+
+  document.addEventListener('mouseout', function (event) {
+
+    if(event.target.id == "workoutExercisename") {
+      event.target.parentElement.parentElement.parentElement.parentElement.querySelector("#thumbnailAndMuscleDiv").style.display = "none";
+      //Underline text
+      event.target.style.textDecoration = "none";
+    } else if (event.target.id == "thumbnailAndMuscleDiv") {
+      event.target.style.display = "none";
+    }
+
+  }, false);
 
   document.getElementById("workoutBuilderForm").onsubmit = function() {
 
@@ -266,6 +346,40 @@ window.onload = (event) => {
     }
   }
 
+  //Add workout
+  //Setting onclick events for adding guides to workout
+  var guideExercises = document.querySelectorAll("#individualGuide");
+  for (let i = 0; i < guideExercises.length; i++) {
+    
+    guideExercises[i].onclick = (event) => {
+      //Make sure when info button is clicked the exercise isnt added to the list
+      if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
+        var copyOfGuide = '';
+        copyOfGuide = guideExercises[i].cloneNode(true);
+  
+        //Remove info button
+        copyOfGuide.querySelector("#guideLinkInfo").remove();
+  
+        //Copy thumbnail and svg person into a separate div
+        var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+        var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+
+        //Change ID of exercise name
+        copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+  
+        //Ensure copy border colour is SF blue
+        copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+
+        addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+  
+        createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideExercises[i]);
+
+      }
+
+    }
+
+  }
+
   //Listen for click events:
   document.addEventListener('click', function (event) {
 
@@ -273,6 +387,7 @@ window.onload = (event) => {
       // hide SVG man:
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
+      clickExerciseText.style.display = 'block';
 
       // Get stored muscle value from svg man, then find the related radio button and select
       var muscleFilter = sessionStorage.getItem("muscleFilter");
@@ -282,29 +397,23 @@ window.onload = (event) => {
       //Populate search box
       document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
 
-    //Adding workout exercise to list
-    } else if(event.target.id == "selectWorkoutImage" || event.target.id == "selectWorkout") {
-
-      //Get Guide next to pressed button
-      var copyOfGuide = '';
-      if (event.target.nodeName == "A") {
-        copyOfGuide = event.target.previousSibling.cloneNode(true);
-      } else {
-        copyOfGuide = event.target.parentElement.previousSibling.cloneNode(true);
-      }
-
-      addExerciseToWorkoutList(copyOfGuide);
-      
-
     } else if(event.target.id == "clearText") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       resetFilters();
 
+    } else if(event.target.id == "submitWorkout") {
+
+      //Hide confirm close modal
+      document.getElementById("confirmCloseBuilder").style.display = "none";
+
+      //Attempt to submit workout 
+      document.getElementById("saveWorkout").click();
+
     } else if(event.target.id == "removeExercise") {
 
       const workoutList = document.getElementById("workoutList");
-      workoutList.removeChild(event.target.parentElement.parentElement.parentElement.parentElement);
+      const removedElement = workoutList.removeChild(event.target.parentElement.parentElement.parentElement.parentElement);
       
       const listLength = workoutList.childNodes.length;
       const saveWorkout = document.getElementById("saveWorkout");
@@ -340,6 +449,14 @@ window.onload = (event) => {
             lastElement.querySelector("#moveDown").style.display = "none";
         }
       }
+
+      var workoutExerciseItemId = removedElement.querySelector("#itemID").innerText;
+
+      //Check if the guide exercise is still in the list, if not then turn border back to SF blue
+      var result = checkIfLastExerciseInList(workoutExerciseItemId);
+      if(result) {
+        result.style.borderColor = "rgb(12, 8, 213)"
+      }
     } else if(event.target.id == "moveUp" || event.target.id == "moveUpLink") {
 
       var currentExercise = null;
@@ -372,13 +489,11 @@ window.onload = (event) => {
         currentExercise = event.target.parentElement.nextSibling.querySelector("#guidePlaceHolder");
         nextExercise = event.target.parentElement.parentElement.nextSibling.querySelector("#guidePlaceHolder");
       }
-      console.log(currentExercise)
-      console.log(currentExercise.firstChild);
+
       var temp = currentExercise.removeChild(currentExercise.querySelector("#individualGuide"));
-      console.log(temp);
+
       currentExercise.appendChild(nextExercise.removeChild(nextExercise.querySelector("#individualGuide")));
       nextExercise.appendChild(temp);  
-      console.log(event.target.id);
 
     } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText") {
 
@@ -479,7 +594,7 @@ window.onload = (event) => {
     }
   }, false);
 
-  //Listen for click events:
+  //Listen for change events:
   document.addEventListener('change', function (event) {
     if(event.target.id == "estTime") {
       document.getElementById("estTimeDiv").style.borderRadius = "0px";
@@ -494,16 +609,9 @@ window.onload = (event) => {
         //Check if the amount of active filters is more than 0
         if(res > 0) {
           document.getElementById("clearExperienceExerciseFilters").style.display = "block";
-          if(event.target.id.includes("exercise-checkbox")) {
-            //svgPerson.style.display = 'none';
-            //guideList.style.display = 'block';
-          }
         } else {
           document.getElementById("clearExperienceExerciseFilters").style.display = "none";
-          if(event.target.id.includes("exercise-checkbox")) {
-            //svgPerson.style.display = 'block';
-            //guideList.style.display = 'none';
-          }
+
         }
 
       });
@@ -580,7 +688,7 @@ window.onload = (event) => {
         sessionStorage.setItem('editWorkout', 'false');
         location.href = `${location.href}?showPage=workoutSummaryPage`;
         location.reload();
-        
+
       });
 
     } else if(duplicateWorkout == "true" || createWorkout == "true") {
@@ -611,6 +719,61 @@ window.onload = (event) => {
     });
   }
 
+  function addWorkoutListEntry(listOfGuideIDs) {
+
+    //Iterate through all guides
+    var listOfGuides = document.getElementById("guideList").children;
+    
+    for(let i = 0; i < listOfGuides.length; i++) {
+      if(listOfGuideIDs.includes(listOfGuides[i].querySelector("#itemID").innerText)) {
+        //Add entry in guide to workout mapping
+        createWorkoutListEntry(listOfGuides[i].querySelector("#itemID").innerText, listOfGuides[i].firstElementChild);
+      }
+
+    }
+  }
+
+  function clearWorkoutListEntry() {
+    //Iterate through object and make sure each guide has its border colour changed back
+    for (var guide in guideToWorkoutObj) {
+      //Check if entry has values in it
+      if(guideToWorkoutObj[guide].length > 0) {
+        guideToWorkoutObj[guide][0].style.borderColor = "rgb(12, 8, 213)";
+      }
+
+    }
+    //Clear object
+    guideToWorkoutObj = {}
+  }
+
+  function createWorkoutListEntry(workoutExerciseID, guideExercise) {
+
+    const exerciseObj = {};
+    exerciseObj[workoutExerciseID] = guideExercise
+
+    //Check if guide is already in list, if it as add to array, if it is not then create new array entry
+    if (guideToWorkoutObj[workoutExerciseID] != null) {
+      guideToWorkoutObj[workoutExerciseID].push(guideExercise);
+    } else {
+      guideToWorkoutObj[workoutExerciseID] = [];
+      guideToWorkoutObj[workoutExerciseID].push(guideExercise);
+    }
+    guideExercise.style.borderColor = "rgb(8, 213, 139)";
+  }
+
+  function checkIfLastExerciseInList(workoutKeyID) {
+    console.log(workoutKeyID)
+    //Remove an entry from guide to workout object
+    var guideDiv = guideToWorkoutObj[workoutKeyID].pop();
+
+    if(guideToWorkoutObj[workoutKeyID].length == 0) {
+      return guideDiv;
+    }
+
+    return false;
+
+  }
+
   function prefillWorkoutBuilder(workoutSummary) {
     //Get all necessary values from row selected
     var workout = getWorkoutExerciseInformation(workoutSummary);
@@ -628,8 +791,13 @@ window.onload = (event) => {
     document.getElementById("workoutSummaryID").innerText = workout.workoutSummaryID;
     document.getElementById("workoutSummaryFullName").innerText = workout.workoutFullName;
 
+    var listOfGuideIDs = [];
     //Copy guide template and replace all values with exercise from workout
     for(var i = 0; i < workout.exercises.length; i++) {
+
+      //Add guide ID to list
+      listOfGuideIDs.push(workout.exercises[i].exerciseGuideID);
+
       var copyOfGuide = document.getElementById("individualGuide").cloneNode(true);
       copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
       var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
@@ -646,9 +814,26 @@ window.onload = (event) => {
       }
       copyOfGuide.querySelector("#exerciseMuscleImage").src = workout.exercises[i].exerciseMuscleImage;
 
-      addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true);
+      //Change ID of exercise name
+      copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+
+      //Ensure proper guide ID is set
+      copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
+
+      //Remove info button
+      copyOfGuide.querySelector("#guideLinkInfo").remove();
+
+      //Copy thumbnail and svg person into a separate div
+      var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+      var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+
+      addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true, exerciseThumbnail, svgPersonDiv);
 
     } 
+    //Add workout entry for green border colour
+    addWorkoutListEntry(listOfGuideIDs);
+    console.log(guideToWorkoutObj);
+
   }
 
   //Given a row of a workout, extract all data points within each
@@ -703,6 +888,8 @@ window.onload = (event) => {
       exercise["exerciseItemID"] = workoutDetails.querySelector("#exerciseItemID").innerText;
       // Exercise Full Name
       exercise["exerciseFullName"] = workoutDetails.querySelector("#exerciseFullName").innerText;
+      //Exercise Guide ID
+      exercise["exerciseGuideID"] = workoutDetails.querySelector("#exerciseGuideID").innerText;
       
       //Add exercise object to exercises list
       exercises.push(exercise);
@@ -714,7 +901,7 @@ window.onload = (event) => {
     return workout;
   }
 
-  function addExerciseToWorkoutList(copyOfGuide, exerciseInformation=null, prefill=null) {
+  function addExerciseToWorkoutList(copyOfGuide, exerciseInformation=null, prefill=null, thumbnail=null, svgPerson=null) {
 
     //Get current guide and add to workout list
     const workoutList = document.getElementById("workoutList");
@@ -727,18 +914,27 @@ window.onload = (event) => {
     const setRepInfo = workoutItem.querySelector("#setRepInfo").cloneNode(true);
     copyOfGuide.append(setRepInfo);
 
+    //Add workout Exercise ID and Name into guide template as well
+    var workoutExerciseItemID = workoutItem.querySelector("#workoutExerciseItemID").cloneNode(true);
+    copyOfGuide.append(workoutExerciseItemID);
+
+    var workoutExerciseFullName = workoutItem.querySelector("#workoutExerciseFullName").cloneNode(true);
+    copyOfGuide.append(workoutExerciseFullName);
+
+    //Add guide to workout exercise template
+    workoutItem.querySelector("#guidePlaceHolder").append(copyOfGuide);
+
     //If extra information is provided fill in fields
     if(exerciseInformation != null) {
-
       setRepInfo.querySelector("#reps").value = exerciseInformation.exerciseReps;
       setRepInfo.querySelector("#sets").value = exerciseInformation.exerciseSets;
       setRepInfo.querySelector("#exerciseRestMinutes").value = exerciseInformation.exerciseRestMins;
       setRepInfo.querySelector("#exerciseRestSeconds").value = exerciseInformation.exerciseRestSecs;
       workoutItem.querySelector("#restBetweenExerciseMinutes").value = exerciseInformation.exerciseRestBetweenMins;
       workoutItem.querySelector("#restBetweenExerciseSeconds").value = exerciseInformation.exerciseRestBetweenSecs;
-      workoutItem.querySelector("#workoutExerciseItemID").innerText = exerciseInformation.exerciseItemID;
-      workoutItem.querySelector("#workoutExerciseFullName").innerText = exerciseInformation.exerciseFullName;
-
+      workoutExerciseItemID.innerText = exerciseInformation.exerciseItemID;
+      workoutExerciseFullName.innerText = exerciseInformation.exerciseFullName;
+      
     }
     
     //Remove link to guide:
@@ -746,15 +942,21 @@ window.onload = (event) => {
     
     //Remove old template
     workoutItem.querySelector("#setRepInfo").remove();
+    workoutItem.querySelector("#workoutExerciseFullName").remove();
+    workoutItem.querySelector("#workoutExerciseItemID").remove();
     
-    //Add guide to workout exercise template
-    workoutItem.querySelector("#guidePlaceHolder").append(copyOfGuide);
+    //Make svg person smaller
+    svgPerson[0].style.width = "80%";
+    thumbnail[0].style.width = "100%";
 
+    //Add thumbnail and svg person to hover div
+    $(workoutItem).find("#thumbnailAndMuscleDiv").append(thumbnail);
+    $(workoutItem).find("#thumbnailAndMuscleDiv").append(svgPerson);
     
     workoutItem.style.display = "block";
     
     //Reduce headers font size:
-    workoutItem.querySelector("#guideName").style.fontSize = "20px";
+    workoutItem.querySelector("#workoutExercisename").style.fontSize = "16px";
     workoutItem.querySelector("#exerciseDifficultyParent").style.display = "none";
 
     //Add to 'workouts' list
@@ -762,7 +964,6 @@ window.onload = (event) => {
 
     //Scroll list to bottom to show user
     //Ensure when user is editing workout it does not scroll initially
-    console.log(sessionStorage.getItem("viewingEditFirstTime"));
     if (sessionStorage.getItem("viewingEditFirstTime") == "false" && !prefill) {
       workoutList.scrollIntoView({behavior: "smooth", block: "end"});
     } else {
@@ -830,6 +1031,15 @@ window.onload = (event) => {
     const workoutFocusArea = document.getElementById("focusArea").value;
     const workoutDescription = document.getElementById("workoutDescription").value;
     if (workoutList.length > 1 || workoutTitle != "" || workoutDuration != "Duration" || workoutFocusArea != "Focus Area" || workoutDescription != "") {
+
+      if (workoutTitle != "") {
+        //Set workout name text in modal
+        document.getElementById("closingText").innerText = `Do you want to save the changes to your workout \"${workoutTitle}\"?`;
+      } else {
+        document.getElementById("closingText").innerText = "Do you want to save the changes to your workout?";
+      }
+
+
       var closeBuilderModal = document.getElementById("confirmCloseBuilder");
       //Set flex styling:
       closeBuilderModal.style.display = "flex";
@@ -848,6 +1058,14 @@ window.onload = (event) => {
         //Show selected page
         document.getElementById(destinationScreen).style.display = "block";
 
+        //Clear session storage
+        sessionStorage.setItem('editWorkout', 'false');
+        sessionStorage.setItem('duplicateWorkout', 'false');
+        sessionStorage.setItem('createWorkout', 'false');
+
+        //Clear workout to guide list mapping
+        clearWorkoutListEntry();
+
         clearWorkoutExerciseList();
       }
 
@@ -855,7 +1073,15 @@ window.onload = (event) => {
       workoutBuilderPage.style.display = "none";
       
       document.getElementById(destinationScreen).style.display = "block";
-      //workoutSummaryPage.style.display = "block";
+
+      //Clear session storage
+      sessionStorage.setItem('editWorkout', 'false');
+      sessionStorage.setItem('duplicateWorkout', 'false');
+      sessionStorage.setItem('createWorkout', 'false');
+
+      //Clear workout to guide list mapping
+      clearWorkoutListEntry();
+
     }
 
     //Ensure svg man is shown and exercise list is hidden
@@ -904,6 +1130,7 @@ window.onload = (event) => {
   });
   $("#exerciseRestMinutes").attr({
     "min" : 0,
+    "max" : 9,
     "value": 1
   });
   $("#exerciseRestSeconds").attr({
@@ -931,4 +1158,4 @@ window.onload = (event) => {
   $("#focusArea").attr("required", true);
   $("#estTime").attr("required", true);
   
-};
+});
