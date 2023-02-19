@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
       var membership = member.membership  
       var memberID = member["id"];
       var equipmentStatus = member["equipment-upload-complete"];
-      
+      console.log(equipmentStatus);
       const baseURL = window.location.origin;
       //set link to dashboard page
       const path = window.location.pathname;
