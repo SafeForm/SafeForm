@@ -101,77 +101,110 @@ if (url.searchParams.has('showPage')) {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
-  
-  MemberStack.onReady.then(function(member) {  
-    var membership = member.membership  
-    var memberID = member["id"];
-    var equipmentStatus = member["equipment-upload-complete"];
-    const baseURL = window.location.origin;
-    //set link to dashboard page
-    const path = window.location.pathname;
+  window.onload = (event) => {
+    MemberStack.onReady.then(async function(member) {  
 
-    const urlID = path.split("/")[2];
-
-    if(equipmentStatus == "complete") {
-      const equipmentBody = document.getElementById("equipmentBody");
-      const dashboardBody = document.getElementById("dashboardBody");
-      const settingsBody = document.getElementById("settingsBody");
-      const workoutBuilderPage = document.getElementById("workoutBuilderPage");
-      const workoutSummaryPage = document.getElementById("workoutSummaryPage");
-
-      document.getElementById("equipmentListContainer").style.display = 'block';
-      document.getElementById("equipmentPage").onclick = function() {
-        //equipmentBody.style.display = "block";
-        dashboardBody.style.display = "none";
-        settingsBody.style.display = "none";
-        //workoutBuilderPage.style.display = "none";
-        workoutSummaryPage.style.display = "none";
-        //Reset filters on workout summary page
-        checkAndClearWorkouts("equipmentBody")
-      };
-
-      document.getElementById("dashboardPage").onclick = function() {
-        //dashboardBody.style.display = "block";
-        equipmentBody.style.display = "none";
-        settingsBody.style.display = "none";
-        //workoutBuilderPage.style.display = "none";
-        workoutSummaryPage.style.display = "none";
-        //Reset filters on workout summary page
-        checkAndClearWorkouts("dashboardBody")
-      };
-
-      document.getElementById("settingsPage").onclick = function() {
-        //settingsBody.style.display = "block";
-        equipmentBody.style.display = "none";
-        dashboardBody.style.display = "none";
-        //workoutBuilderPage.style.display = "none";
-        workoutSummaryPage.style.display = "none";
-        //Reset filters on workout summary page
-        checkAndClearWorkouts("settingsBody")
-      };
+      var membership = member.membership  
+      var memberID = member["id"];
+      var equipmentStatus = member["equipment-upload-complete"];
       
-      document.getElementById("workoutsPage").onclick = function() {
-        //Reset filters on workout summary page
-        //workoutSummaryPage.style.display = "block";
-        //workoutBuilderPage.style.display = "none";
-        settingsBody.style.display = "none";
-        equipmentBody.style.display = "none";
-        dashboardBody.style.display = "none";
+      const baseURL = window.location.origin;
+      //set link to dashboard page
+      const path = window.location.pathname;
+  
+      const urlID = path.split("/")[2];	
+  
+      if(equipmentStatus == "complete") {
+        const equipmentBody = document.getElementById("equipmentBody");
+        const dashboardBody = document.getElementById("dashboardBody");
+        const settingsBody = document.getElementById("settingsBody");
+        const workoutBuilderPage = document.getElementById("workoutBuilderPage");
+        const workoutSummaryPage = document.getElementById("workoutSummaryPage");
+  
+        document.getElementById("equipmentListContainer").style.display = 'block';
+        document.getElementById("equipmentPage").onclick = function() {
+          //equipmentBody.style.display = "block";
+          dashboardBody.style.display = "none";
+          settingsBody.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          checkAndClearWorkouts("equipmentBody")
+        };
+  
+        document.getElementById("dashboardPage").onclick = function() {
+          //dashboardBody.style.display = "block";
+          equipmentBody.style.display = "none";
+          settingsBody.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          checkAndClearWorkouts("dashboardBody")
+        };
+  
+        document.getElementById("settingsPage").onclick = function() {
+          //settingsBody.style.display = "block";
+          equipmentBody.style.display = "none";
+          dashboardBody.style.display = "none";
+          //workoutBuilderPage.style.display = "none";
+          workoutSummaryPage.style.display = "none";
+          //Reset filters on workout summary page
+          checkAndClearWorkouts("settingsBody")
+        };
+        
+        document.getElementById("workoutsPage").onclick = function() {
+          //Reset filters on workout summary page
+          //workoutSummaryPage.style.display = "block";
+          //workoutBuilderPage.style.display = "none";
+          settingsBody.style.display = "none";
+          equipmentBody.style.display = "none";
+          dashboardBody.style.display = "none";
+  
+          // Check if there are any exercises in the list 
+          // If there is, prompt user to confirm removing list 
+  
+          // If they confirm remove items from list and clear filters and hide exercise list
+          checkAndClearWorkouts("workoutSummaryPage");
+  
+        };
+  
+      } else if(equipmentStatus == "skipped") {
+        var gymName = member["gym-name"];
+        var gymLocation = member["gym-location"];
+        var dashboardID = member["webflow-dashboard-id"];
+        var equipmentID = member["webflow-equipment-id"];
+        var email = member["email"];
+        var hashedGym = "";
 
-        // Check if there are any exercises in the list 
-        // If there is, prompt user to confirm removing list 
-
-        // If they confirm remove items from list and clear filters and hide exercise list
-        checkAndClearWorkouts("workoutSummaryPage");
-
-      };
-
-    } else {
-      document.getElementById("equipmentListContainer").style.display = 'none';
-      document.getElementById("notUploaded").style.display = "block";
-    }
-
-  })
+        async function digestMessage(message) {
+          const msgUint8 = new TextEncoder().encode(message);                           // encode as (utf-8) Uint8Array
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);           // hash the message
+          const hashArray = Array.from(new Uint8Array(hashBuffer));                     // convert buffer to byte array
+          const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+          return hashHex;
+        }
+    
+        await digestMessage(`${gymName} - ${gymLocation}`.toLowerCase())
+          .then((digestBuffer) => hashedGym = digestBuffer);
+        
+        const prefillParameters = `?prefill_Location=${gymLocation}&hide_Location=true&prefill_GymNameHash=${hashedGym}&hide_GymNameHash=true&prefill_Account+Name=${gymName}&hide_Account+Name=true&prefill_Memberstack+ID=${memberID}&hide_Memberstack+ID=true&prefill_Dashboard+ID=${dashboardID}&hide_Dashboard+ID=true&prefill_Equipment+ID=${equipmentID}&hide_Equipment+ID=true&prefill_Site+Email=${email}&hide_Site+Email=true`
+        const airtableForm = "https://airtable.com/shr6SXGXG0eqbfeJV" + prefillParameters;
+        
+        const upload = document.getElementById("uploadList");
+        upload.href = airtableForm;
+  
+        //Show upload content
+        document.getElementById("equipmentUploadDiv").style.display = "block";
+      }
+      
+      else {
+        document.getElementById("equipmentListContainer").style.display = 'none';
+        document.getElementById("notUploaded").style.display = "block";
+      }
+  
+    })
+  };
+  
 
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
