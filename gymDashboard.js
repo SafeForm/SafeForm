@@ -455,9 +455,9 @@ window.addEventListener('load', (event) => {
         previousExercise = event.target.parentElement.parentElement.parentElement.previousSibling.querySelector("#guidePlaceHolder");
       }
 
-      console.log(currentExercise.firstChild);
+
       var temp = currentExercise.removeChild(currentExercise.querySelector("#individualGuide"));
-      console.log(temp);
+
       currentExercise.appendChild(previousExercise.removeChild(previousExercise.querySelector("#individualGuide")));
       previousExercise.appendChild(temp);    
       console.log(event.target.id);   
@@ -506,6 +506,37 @@ window.addEventListener('load', (event) => {
         document.getElementById("estTime").innerText = event.target.innerText;
         document.getElementById("durationDropdown").style.display = "none";
       }
+    } else if(event.target.id == "deleteWorkout") {
+      //Get row of clicked element:
+      var currentWorkoutRow = event.target.parentElement.parentElement.parentElement.parentElement;
+
+      //Hide it
+      currentWorkoutRow.style.display = "none";
+
+      //Build object to send to make
+      var workout = {};
+
+      //Workout summary ID
+      workout["workoutSummaryID"] = currentWorkoutRow.querySelector("#workoutID").innerText;
+
+      //Gym dashboard ID
+      workout["gymdashboardID"] = document.getElementById("gymID").innerText;
+
+      //Initialise array to store exercise IDs
+      workout["workoutExercises"] = [];
+
+      //Loop through the workout exercises list to get each ID
+      var exerciseList = currentWorkoutRow.querySelector("#workoutExerciseList").children;
+      for(var i = 0; i < exerciseList.length; i++) {
+        workout["workoutExercises"].push(exerciseList[i].querySelector("#exerciseItemID").innerText);
+      }
+
+      console.log(workout);
+      
+      //Send to make to delete workout
+      deleteWorkout(workout);
+
+
     } else if(event.target.id == "makeWorkoutOfTheWeek") {
 
       //Object for storing new workout of the week
@@ -703,6 +734,20 @@ window.addEventListener('load', (event) => {
       console.log("Workout of the week updated")
     });
   }
+
+  //Delete chosen workout and all of its exercises related to it
+  async function deleteWorkout(workout) {
+    console.log("sending");
+    fetch("https://hook.us1.make.com/eh9374j99jisjiba83t4tl7vulv7c74u", {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify(workout)
+    }).then(res => {
+      console.log("Workout deleted")
+    });
+  }
+
+  
 
   function addWorkoutListEntry(listOfGuideIDs) {
 
