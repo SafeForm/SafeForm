@@ -89,7 +89,7 @@ if (url.searchParams.has('showPage')) {
 }
 
 
-document.addEventListener('DOMContentLoaded', (event) => {
+window.addEventListener('load', (event) => {
 
   //Grab main page elements to set hiding/showing appropriately
   const equipmentBody = document.getElementById("equipmentBody");
