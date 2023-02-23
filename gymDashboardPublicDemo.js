@@ -74,7 +74,7 @@ function cloneAndAddElement(valueArr, elementToClone, containerElement, tagEleme
 
 }
 
-document.addEventListener('DOMContentLoaded', (event) => {
+window.addEventListener('load', (event) => {
 
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
