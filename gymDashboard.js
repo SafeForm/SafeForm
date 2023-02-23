@@ -995,7 +995,7 @@ window.addEventListener('load', (event) => {
     //Scroll list to bottom to show user
     //Ensure when user is editing workout it does not scroll initially
     if (sessionStorage.getItem("viewingEditFirstTime") == "false" && !prefill) {
-      workoutList.scrollIntoView({behavior: "smooth", block: "end"});
+      workoutList.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
     } else {
       sessionStorage.setItem("viewingEditFirstTime", 'false');
     }
