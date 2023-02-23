@@ -744,13 +744,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
   $("#exerciseRestMinutes").attr({
     "min" : 0,
     "max" : 9,
-    "value": 1
+    "value": 3
   });
   $("#exerciseRestSeconds").attr({
     "min" : 0,
     "max": 45,
     "step": 15,
-    "value": 30
+    "value": 0
   });
   $("#restBetweenExerciseSeconds").attr({
     "min" : 0,
@@ -760,7 +760,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   });
   $("#restBetweenExerciseMinutes").attr({
     "min" : 0,
-    "value": 1
+    "value": 3
   });
   $('#focusArea').each( function () {
     $(this).children('option:first').attr("disabled", "disabled");
