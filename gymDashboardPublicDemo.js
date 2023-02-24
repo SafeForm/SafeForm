@@ -74,7 +74,7 @@ function cloneAndAddElement(valueArr, elementToClone, containerElement, tagEleme
 
 }
 
-window.addEventListener('load', (event) => {
+window.onload = (event) => {
 
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -306,6 +306,12 @@ window.addEventListener('load', (event) => {
 
       //Deal with this somehow
 
+    } else if(event.target.id == "shareWorkout") {
+
+      document.getElementById("linkCopiedText").style.display = "block";
+      navigator.clipboard.writeText(sessionStorage.getItem("workoutLink"));
+      
+
     } else if(event.target.id == "removeExercise") {
 
       const workoutList = document.getElementById("workoutList");
@@ -509,6 +515,8 @@ window.addEventListener('load', (event) => {
 
         //Generate QR Code
         generateQRCode(data);
+
+        sessionStorage.setItem("workoutLink", data);
         
       })
       .catch((error) => {
@@ -744,13 +752,13 @@ window.addEventListener('load', (event) => {
   $("#exerciseRestMinutes").attr({
     "min" : 0,
     "max" : 9,
-    "value": 3
+    "value": 1
   });
   $("#exerciseRestSeconds").attr({
     "min" : 0,
     "max": 45,
     "step": 15,
-    "value": 0
+    "value": 30
   });
   $("#restBetweenExerciseSeconds").attr({
     "min" : 0,
@@ -760,7 +768,7 @@ window.addEventListener('load', (event) => {
   });
   $("#restBetweenExerciseMinutes").attr({
     "min" : 0,
-    "value": 3
+    "value": 1
   });
   $('#focusArea').each( function () {
     $(this).children('option:first').attr("disabled", "disabled");
@@ -771,4 +779,4 @@ window.addEventListener('load', (event) => {
   $("#focusArea").attr("required", true);
   $("#estTime").attr("required", true);
   
-});
+};
