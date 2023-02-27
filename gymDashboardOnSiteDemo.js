@@ -1,13 +1,11 @@
 var muscleMapping = {
   "pectoralis-major":"Chest",
   "quadriceps":"Quads",
-  "pyramidalis":"Abs",
+  "rectus-abdominis":"Abs",
   "biceps-brachii":"Biceps",
   "triceps-brachii":"Triceps",
   "deltoids":"Shoulders",
-  "epigastrium":"Abs",
   "obliques":"Obliques",
-  "adductors":"Inner Thigh",
   "trapezius":"Traps",
   "latissimus-dorsi":"Lats",
   "palmaris-longus":"Forearms",
@@ -288,19 +286,22 @@ window.addEventListener('load', (event) => {
   //Listen for click events:
   document.addEventListener('click', function (event) {
     if (event.target.nodeName == "path") {
-      // hide SVG man:
-      svgPerson.style.display = 'none';
-      guideList.style.display = 'block';
-      clickExerciseText.style.display = 'block';
-
-
-      // Get stored muscle value from svg man, then find the related radio button and select
       var muscleFilter = sessionStorage.getItem("muscleFilter");
-      muscleFilter = muscleFilter.replaceAll(" ", "-")
-      document.querySelector(`.${muscleFilter}-filter`).click();
+      
+      //Ensure muscle filter exists
+      if(muscleFilter && muscleFilter != "") {
+        muscleFilter = muscleFilter.replaceAll(" ", "-");
+        document.querySelector(`.${muscleFilter}-filter`).click();
+        // hide SVG man:
+        svgPerson.style.display = 'none';
+        guideList.style.display = 'block';
+        clickExerciseText.style.display = 'block';
 
-      //Populate search box
-      document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
+        //Populate search box
+        document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
+      }
+      //Reset storage filter for next click
+      sessionStorage.setItem("muscleFilter", "");
 
     } else if(event.target.id == "equipmentPage" || event.target.id == "equipmentPageIcon") {
       dashboardBody.style.display = "none";
@@ -334,6 +335,7 @@ window.addEventListener('load', (event) => {
     } else if(event.target.id == "clearText") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
+      
       clickExerciseText.style.display = 'none';
       resetFilters();
 
@@ -562,10 +564,10 @@ window.addEventListener('load', (event) => {
       'cmsfilter',
       async (filterInstances) => {
         // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
-        
+        document.getElementById("exerciseSearch").value = "";
         //Get muscle related filters
         const filterInstance = filterInstances[1];
-        await filterInstance.resetFilters(filterKeys=["exercisename"], null);
+        await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null);
         await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
       },
