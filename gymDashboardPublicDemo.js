@@ -1,13 +1,11 @@
 var muscleMapping = {
   "pectoralis-major":"Chest",
   "quadriceps":"Quads",
-  "pyramidalis":"Abs",
+  "rectus-abdominis":"Abs",
   "biceps-brachii":"Biceps",
   "triceps-brachii":"Triceps",
   "deltoids":"Shoulders",
-  "epigastrium":"Abs",
   "obliques":"Obliques",
-  "adductors":"Inner Thigh",
   "trapezius":"Traps",
   "latissimus-dorsi":"Lats",
   "palmaris-longus":"Forearms",
@@ -74,7 +72,7 @@ function cloneAndAddElement(valueArr, elementToClone, containerElement, tagEleme
 
 }
 
-window.onload = (event) => {
+window.addEventListener('load', (event) => {
 
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -84,13 +82,16 @@ window.onload = (event) => {
   const guideList = document.getElementById("guideListParent");
   const clickExerciseText = document.getElementById("clickExerciseText");
   
-  
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
   searchBox.oninput = function() {
     if(searchBox.value != "") {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
+      guideList = document.getElementById("guideListParent");
+      console.log(guideList.scrollTop);
+      console.log(guideList.firstChild.scrollTop);
+      //guideList.firstChild.scrollTop = 0;
       clickExerciseText.style.display = 'block';
     } else {
       svgPerson.style.display = 'block';
@@ -213,11 +214,7 @@ window.onload = (event) => {
           document.getElementById("focusAreaRequired").style.display = "block";
         }
       }
-    } else if (event.target.id == "collectEmailForm") {
-      //Unblur image
-      let qr_code_img = document.querySelector(".qr-code img");
-      qr_code_img.style.filter = "blur(0px)";
-    } 
+    }
   }, false);
 
 
@@ -261,22 +258,30 @@ window.onload = (event) => {
   //Listen for click events:
   document.addEventListener('click', function (event) {
     if (event.target.nodeName == "path") {
-      // hide SVG man:
-      svgPerson.style.display = 'none';
-      guideList.style.display = 'block';
-      clickExerciseText.style.display = 'block';
 
       // Get stored muscle value from svg man, then find the related radio button and select
       var muscleFilter = sessionStorage.getItem("muscleFilter");
-      muscleFilter = muscleFilter.replaceAll(" ", "-")
-      document.querySelector(`.${muscleFilter}-filter`).click();
+      
+      //Ensure muscle filter exists
+      if(muscleFilter && muscleFilter != "") {
+        muscleFilter = muscleFilter.replaceAll(" ", "-");
+        document.querySelector(`.${muscleFilter}-filter`).click();
+        // hide SVG man:
+        svgPerson.style.display = 'none';
+        guideList.style.display = 'block';
+        clickExerciseText.style.display = 'block';
 
-      //Populate search box
-      document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
+        //Populate search box
+        document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
+      }
+      //Reset storage filter for next click
+      sessionStorage.setItem("muscleFilter", "");
 
     } else if(event.target.id == "clearText") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
+      guideList.parentElement.offsetTop = 0;
+      guideList.parentElement.parentElement.offsetTop = 0;
       clickExerciseText.style.display = 'none';
       resetFilters();
 
@@ -308,9 +313,8 @@ window.onload = (event) => {
 
     } else if(event.target.id == "shareWorkout") {
 
-      document.getElementById("linkCopiedText").style.display = "block";
       navigator.clipboard.writeText(sessionStorage.getItem("workoutLink"));
-      
+      document.getElementById("linkCopiedText").style.display = "block";
 
     } else if(event.target.id == "removeExercise") {
 
@@ -459,10 +463,10 @@ window.onload = (event) => {
       'cmsfilter',
       async (filterInstances) => {
         // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
-        
+        document.getElementById("exerciseSearch").value = "";
         //Get muscle related filters
         const filterInstance = filterInstances[0];
-        await filterInstance.resetFilters(filterKeys=["exercisename"], null);
+        await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null);
         await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
       },
@@ -513,10 +517,11 @@ window.onload = (event) => {
       })
       .then((data) => {
 
+        var workoutLink = data + "?fromDemo=true"
         //Generate QR Code
-        generateQRCode(data);
+        generateQRCode(workoutLink);
 
-        sessionStorage.setItem("workoutLink", data);
+        sessionStorage.setItem("workoutLink", workoutLink);
         
       })
       .catch((error) => {
@@ -779,4 +784,4 @@ window.onload = (event) => {
   $("#focusArea").attr("required", true);
   $("#estTime").attr("required", true);
   
-};
+});
