@@ -214,6 +214,7 @@ window.addEventListener('load', (event) => {
   const svgPerson = document.getElementById("ajaxContent");
   const guideList = document.getElementById("guideListParent");
   const clickExerciseText = document.getElementById("clickExerciseText");
+  const backButton = document.getElementById("clearText");
   
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
@@ -222,10 +223,12 @@ window.addEventListener('load', (event) => {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
       clickExerciseText.style.display = 'block';
+      backButton.style.display = 'block';
     } else {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       clickExerciseText.style.display = 'none';
+      backButton.style.display = 'none';
     }
   }
 
@@ -377,17 +380,19 @@ window.addEventListener('load', (event) => {
         svgPerson.style.display = 'none';
         guideList.style.display = 'block';
         clickExerciseText.style.display = 'block';
+        backButton.style.display = 'block';
 
         //Populate search box
         document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
       }
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
-
-    } else if(event.target.id == "clearText" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
+      
+    } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       clickExerciseText.style.display = 'none';
+      backButton.style.display = 'none';
       resetFilters();
 
     } else if(event.target.id == "submitWorkout") {
@@ -657,7 +662,7 @@ window.addEventListener('load', (event) => {
         // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
         document.getElementById("exerciseSearch").value = "";
         //Get muscle related filters
-        const filterInstance = filterInstances[1];
+        const [filterInstance] = filterInstances;
         await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null);
         await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
@@ -684,7 +689,7 @@ window.addEventListener('load', (event) => {
       'cmsfilter',
     ])
     return window.fsAttributes.cmsfilter.loading.then(res => {
-      var filterInstance = res[1].filtersData;
+      var filterInstance = res[0].filtersData;
       filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
       return filtersTotalSize;
     });
