@@ -384,7 +384,7 @@ window.addEventListener('load', (event) => {
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
 
-    } else if(event.target.id == "clearText") {
+    } else if(event.target.id == "clearText" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       clickExerciseText.style.display = 'none';
