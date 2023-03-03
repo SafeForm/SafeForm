@@ -120,6 +120,7 @@ window.addEventListener('load', (event) => {
   const svgPerson = document.getElementById("ajaxContent");
   const guideList = document.getElementById("guideListParent");
   const clickExerciseText = document.getElementById("clickExerciseText");
+  const backButton = document.getElementById("clearText");
   
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
@@ -128,10 +129,12 @@ window.addEventListener('load', (event) => {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
       clickExerciseText.style.display = 'block';
+      backButton.style.display = 'block';
     } else {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       clickExerciseText.style.display = 'none';
+      backButton.style.display = 'none';
     }
   }
 
@@ -296,6 +299,7 @@ window.addEventListener('load', (event) => {
         svgPerson.style.display = 'none';
         guideList.style.display = 'block';
         clickExerciseText.style.display = 'block';
+        backButton.style.display = 'block';
 
         //Populate search box
         document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
@@ -332,10 +336,10 @@ window.addEventListener('load', (event) => {
       //Attempt to submit workout 
       document.getElementById("saveWorkout").click();
 
-    } else if(event.target.id == "clearText") {
+    } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
-      
+      backButton.style.display = 'none';
       clickExerciseText.style.display = 'none';
       resetFilters();
 
