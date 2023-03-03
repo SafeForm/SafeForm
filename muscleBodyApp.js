@@ -1,4 +1,5 @@
-window.addEventListener('DOMContentLoaded', (event) => {
+window.addEventListener('load', (event) => {
+
   var muscleMapping = {
     "pectoralis-major":"Chest",
     "quadriceps":"Quads",
