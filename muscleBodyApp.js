@@ -1,4 +1,12 @@
-window.addEventListener('load', (event) => {
+if (document.readyState !== 'loading') {
+  main();
+} else {
+  document.addEventListener('DOMContentLoaded', function () {
+      main();
+  });
+}
+
+function main() {
 
   var muscleMapping = {
     "pectoralis-major":"Chest",
@@ -17,14 +25,14 @@ window.addEventListener('load', (event) => {
     "erector-spinae":"Lower Back"
   }
 
-	//Get utm campaign and store in storage
+  //Get utm campaign and store in storage
   const gymName = document.getElementById("utm_campaign").innerText;
 
   const savedGymName = localStorage.getItem("fromGym");
-  
+
   //Check if there is no gym filter
   if (gymName == '') {
-  	//Switch off gym filter
+    //Switch off gym filter
     document.getElementById("utm_campaign").click();
   } else {
     localStorage.setItem("fromGym",gymName);
@@ -34,16 +42,16 @@ window.addEventListener('load', (event) => {
       exerciseLinks[i].href += `?utm_campaign=${gymName}`;
     }
   }
- 
+
   const muscleGroups = ["quadriceps", "gluteusmaximus", "tricepsbrachii", "pectoralismajor", "palmarislongus", "epigastrium","pyramidalis","bicepsbrachii","deltoids","gastrocnemius","trapezius","latissimusdorsi","hamstrings","obliques","adductors"];
-	const muscles = document.querySelectorAll(".svg-parent")[0].getElementsByTagName('path');
-  
+  const muscles = document.querySelectorAll(".svg-parent")[0].getElementsByTagName('path');
+
   const svgPerson = document.getElementById("ajaxContent");
   const guideList = document.getElementById("guideListParent");
   const infoText = document.getElementById("clickForMoreInfoText");
   const backDiv = document.getElementById("backDiv");
   const backButton = document.getElementById("clearText");
-  
+
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
   searchBox.oninput = function() {
@@ -53,24 +61,23 @@ window.addEventListener('load', (event) => {
       infoText.style.display = 'block';
       //Check if ipad and below
       if(screen.width <= 950) {
-      	backDiv.style.display = 'block';
+        backDiv.style.display = 'block';
       } else {
-      	backButton.style.display = 'block';
+        backButton.style.display = 'block';
       }
       
     } else {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
-      
       infoText.style.display = 'none';
       if(screen.width <= 950) {
-      	backDiv.style.display = 'none';
+        backDiv.style.display = 'none';
       } else {
-      	backButton.style.display = 'none';
+        backButton.style.display = 'none';
       }
     }
   }
-  
+
   //Listen for click events:
   document.addEventListener('click', function (event) {
     if (event.target.nodeName == "path") {
@@ -102,19 +109,20 @@ window.addEventListener('load', (event) => {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       if(screen.width <= 950) {
-      	backDiv.style.display = 'none';
+        backDiv.style.display = 'none';
       } else {
-      	backButton.style.display = 'none';
+        backButton.style.display = 'none';
       }
       infoText.style.display = 'none';
       resetFilters();
     } else if(event.target.id == "prev") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
+
       if(screen.width <= 950) {
-      	backDiv.style.display = 'none';
+        backDiv.style.display = 'none';
       } else {
-      	backButton.style.display = 'none';
+        backButton.style.display = 'none';
       }
       infoText.style.display = 'none';
       resetFilters();
@@ -128,7 +136,7 @@ window.addEventListener('load', (event) => {
       resetFilters();
     } else if (event.target.id == "showFiltersBtn") {
     
-    	//Show page cover divs
+      //Show page cover divs
       document.getElementById("pageCoverDiv").style.display = "block";
       document.getElementById("pageCoverDivLowerHalf").style.display = "block";
       
@@ -143,7 +151,7 @@ window.addEventListener('load', (event) => {
 
   //Listen for change events:
   document.addEventListener('change', function (event) {
-		if (event.target.type) {
+    if (event.target.type) {
       checkCheckboxFilters().then(res => { 
         //Check if the amount of active filters is more than 0
         if(res > 0) {
@@ -157,29 +165,29 @@ window.addEventListener('load', (event) => {
       });
     }
   }, false);
-  
+
   //Splitting gym name text to ensure filtering works correctly
   //Iterate through list
   var exerciseList = document.getElementById("guideList").children;
   for(let i = 0; i < exerciseList.length; i++) {
-		
+    
     //Obtain the gym text exerciseList
     var gymElement = exerciseList[i].querySelector("#gymField");
     var muscleElement = exerciseList[i].querySelector("#scientificPrimaryMuscle");
-		
+    
     if(gymElement) {
-    	
+      
       //Split the gym field by comma
       var gymElementArr = gymElement.innerText.split(',');
-			
+      
       //Obtain the original dv
       var exerciseInfoDiv = exerciseList[i];
-			
+      
       if (gymElementArr.length > 1) {
-      	//Clone the gym text field and split it into their own text block
+        //Clone the gym text field and split it into their own text block
         cloneAndAddElement(gymElementArr, gymElement, exerciseInfoDiv, "div", "gymName", "gymfilter");
       }
-  	}
+    }
     
     if (muscleElement) {
 
@@ -193,10 +201,10 @@ window.addEventListener('load', (event) => {
         //Clone the muscle text field and split it into their own text block
         cloneAndAddElement(muscleElementArr, muscleElement, exerciseInfoDiv, "div", "scientificPrimaryMuscle", "muscleNameFilter");
       }
-  	}
-  
+    }
+
   }
-  
+
   //Check if list is empty:
   window.fsAttributes = window.fsAttributes || [];
   window.fsAttributes.push([
@@ -207,16 +215,16 @@ window.addEventListener('load', (event) => {
       const [filterInstance] = filterInstances;
       
       let filterData = filterInstance.filtersData;
-			
+      
       // The `renderitems` event runs whenever the list renders items after filtering.
       filterInstance.listInstance.on('renderitems', (renderedItems) => {
-				if(renderedItems.length == 0) {
+        if(renderedItems.length == 0) {
           infoText.style.display = "none";
         }
       });
     },
   ]);
-  
+
   function cloneAndAddElement(valueArr, elementToClone, containerElement, tagElement, newID, customID=null) {
 
     var parentElement = elementToClone.parentElement;
@@ -224,9 +232,9 @@ window.addEventListener('load', (event) => {
     //Iterate through array and create eleme
     //Then append to container div
     for(let i = 0; i < valueArr.length; i++) {
-			
+      
       if (tagElement != "div") {
-      	var clonedElement = parentElement.cloneNode(true);
+        var clonedElement = parentElement.cloneNode(true);
       } else {
         var clonedElement = elementToClone.cloneNode(true);
       }
@@ -234,25 +242,25 @@ window.addEventListener('load', (event) => {
       clonedElement.id = `${newID}`;
       customID ? clonedElement.setAttribute('fs-cmsfilter-field', customID) : null;
       if(tagElement == "div") {
-      	clonedElement.innerText = valueArr[i].trim();
+        clonedElement.innerText = valueArr[i].trim();
       } else {
-      	clonedElement.querySelector(tagElement).innerText = valueArr[i].trim();
+        clonedElement.querySelector(tagElement).innerText = valueArr[i].trim();
       }
       containerElement.append(clonedElement);
 
     }
     
     //Remove original parent
-		elementToClone.remove();
+    elementToClone.remove();
 
   }
-  
+
   async function resetFilters() {
     window.fsAttributes = window.fsAttributes || [];
     window.fsAttributes.push([
       'cmsfilter',
       async (filterInstances) => {
-        				
+                
         //Clear Text
         document.getElementById("exerciseSearch").value = "";
         // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
@@ -275,7 +283,7 @@ window.addEventListener('load', (event) => {
       return filtersTotalSize;
     });
   }
-  
+
   async function resetGeneralFilters() {
 
     const checkboxes = document.getElementsByClassName('filter-checkbox');
@@ -286,4 +294,4 @@ window.addEventListener('load', (event) => {
     }
 
   }
-});
+}
