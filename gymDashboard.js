@@ -229,6 +229,7 @@ window.addEventListener('load', (event) => {
       guideList.style.display = 'none';
       clickExerciseText.style.display = 'none';
       backButton.style.display = 'none';
+      resetFilters(true);
     }
   }
 
@@ -654,7 +655,7 @@ window.addEventListener('load', (event) => {
     }
   }, false);
   
-  async function resetFilters() {
+  async function resetFilters(onlyCheckboxes=false) {
     window.fsAttributes = window.fsAttributes || [];
     window.fsAttributes.push([
       'cmsfilter',
@@ -663,7 +664,7 @@ window.addEventListener('load', (event) => {
         document.getElementById("exerciseSearch").value = "";
         //Get muscle related filters
         const [filterInstance] = filterInstances;
-        await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null);
+        !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
         await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
       },
@@ -1181,7 +1182,7 @@ window.addEventListener('load', (event) => {
     "min" : 0,
     "max": 45,
     "step": 15,
-    "value": 30
+    "value": 0
   });
   $("#restBetweenExerciseMinutes").attr({
     "min" : 0,
