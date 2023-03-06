@@ -98,6 +98,7 @@ window.addEventListener('load', (event) => {
       guideList.style.display = 'none';
       clickExerciseText.style.display = 'none';
       backButton.style.display = 'none';
+      resetFilters(true);
     }
   }
 
@@ -280,6 +281,7 @@ window.addEventListener('load', (event) => {
       sessionStorage.setItem("muscleFilter", "");
 
     } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
+      window.scrollTo(0,0); 
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       guideList.parentElement.offsetTop = 0;
@@ -460,7 +462,7 @@ window.addEventListener('load', (event) => {
     }
   }, false);
   
-  async function resetFilters() {
+  async function resetFilters(onlyCheckboxes=false) {
     window.fsAttributes = window.fsAttributes || [];
     window.fsAttributes.push([
       'cmsfilter',
@@ -469,7 +471,7 @@ window.addEventListener('load', (event) => {
         document.getElementById("exerciseSearch").value = "";
         //Get muscle related filters
         const filterInstance = filterInstances[0];
-        await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null);
+        !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
         await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
       },
@@ -760,23 +762,23 @@ window.addEventListener('load', (event) => {
   $("#exerciseRestMinutes").attr({
     "min" : 0,
     "max" : 9,
-    "value": 1
+    "value": 3
   });
   $("#exerciseRestSeconds").attr({
     "min" : 0,
     "max": 45,
     "step": 15,
-    "value": 30
+    "value": 0
   });
   $("#restBetweenExerciseSeconds").attr({
     "min" : 0,
     "max": 45,
     "step": 15,
-    "value": 30
+    "value": 0
   });
   $("#restBetweenExerciseMinutes").attr({
     "min" : 0,
-    "value": 1
+    "value": 3
   });
   $('#focusArea').each( function () {
     $(this).children('option:first').attr("disabled", "disabled");
