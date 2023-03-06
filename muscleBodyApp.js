@@ -75,6 +75,7 @@ function main() {
       } else {
         backButton.style.display = 'none';
       }
+      resetFilters(true);
     }
   }
 
@@ -255,7 +256,7 @@ function main() {
 
   }
 
-  async function resetFilters() {
+  async function resetFilters(onlyCheckboxes=false) {
     window.fsAttributes = window.fsAttributes || [];
     window.fsAttributes.push([
       'cmsfilter',
@@ -265,7 +266,7 @@ function main() {
         document.getElementById("exerciseSearch").value = "";
         // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
         const [filterInstance] = filterInstances;
-        await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null);
+        !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
         await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
       },
     ]);
