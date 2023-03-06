@@ -89,9 +89,7 @@ window.addEventListener('load', (event) => {
     if(searchBox.value != "") {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
-      guideList = document.getElementById("guideListParent");
       backButton.style.display = 'block';
-      //guideList.firstChild.scrollTop = 0;
       clickExerciseText.style.display = 'block';
     } else {
       svgPerson.style.display = 'block';
