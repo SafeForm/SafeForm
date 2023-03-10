@@ -29,17 +29,21 @@ function main() {
   const gymName = document.getElementById("utm_campaign").innerText;
 
   const savedGymName = localStorage.getItem("fromGym");
-
+  var exerciseLinks = document.getElementById("guideList").querySelectorAll("a");
   //Check if there is no gym filter
   if (gymName == '') {
     //Switch off gym filter
     document.getElementById("utm_campaign").click();
+
+    for(var i = 0; i < exerciseLinks.length; i++) {
+      exerciseLinks[i].href += `?fromLibrary=true`;
+    }
   } else {
     localStorage.setItem("fromGym",gymName);
     //Ensure utm campaign parameter is passed to all other links
-    var exerciseLinks = document.getElementById("guideList").querySelectorAll("a");
+    
     for(var i = 0; i < exerciseLinks.length; i++) {
-      exerciseLinks[i].href += `?utm_campaign=${gymName}`;
+      exerciseLinks[i].href += `?utm_campaign=${gymName}&fromLibrary=true`;
     }
   }
 
