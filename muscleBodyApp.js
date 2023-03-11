@@ -37,14 +37,16 @@ function main() {
     document.getElementById("utm_campaign").click();
 
     for(var i = 0; i < linksOnPage.length; i++) {
-      linksOnPage[i].href += `?fromLibrary=true`;
+      if(linksOnPage.id != "clearExperienceExerciseFilters")
+        linksOnPage[i].href += `?fromLibrary=true`;
     }
   } else {
     localStorage.setItem("fromGym",gymName);
     //Ensure utm campaign parameter is passed to all other links
     
     for(var i = 0; i < linksOnPage.length; i++) {
-      linksOnPage[i].href += `?utm_campaign=${gymName}&fromLibrary=true`;
+      if(linksOnPage.id != "clearExperienceExerciseFilters")
+        linksOnPage[i].href += `?utm_campaign=${gymName}&fromLibrary=true`;
     }
   }
 
