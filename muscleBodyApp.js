@@ -24,7 +24,7 @@ function main() {
     "gastrocnemius":"Calves",
     "erector-spinae":"Lower Back"
   }
-  
+
   if (URLSearchParams_wb.has("utm_content")) {
     const utm_content = URLSearchParams_wb.get("utm_content");
     if(utm_content == "cable") {
@@ -51,11 +51,11 @@ function main() {
       }
     }
   } else {
-    localStorage.setItem("fromGym",gymName);
+    localStorage.setItem("fromGym", gymName);
     //Ensure utm campaign parameter is passed to all other links
     
     for(var i = 0; i < linksOnPage.length; i++) {
-      console.log(linksOnPage[i])
+
       if(linksOnPage[i].id != "clearExperienceExerciseFilters") {
         linksOnPage[i].href += `?utm_campaign=${gymName}&fromLibrary=true`;
       }
