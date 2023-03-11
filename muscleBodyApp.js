@@ -24,15 +24,15 @@ function main() {
     "gastrocnemius":"Calves",
     "erector-spinae":"Lower Back"
   }
-  console.log(document.querySelector("#dumbbellFilter"));
+  console.log(document.querySelector(".dumbbell-filter"));
   if (URLSearchParams_wb.has("utm_content")) {
     const utm_content = URLSearchParams_wb.get("utm_content");
     if(utm_content == "cable") {
-      document.querySelector("#cableFilter").click();
+      document.querySelector(".cable-filter").click();
     } else if (utm_content == "dumbbell") {
       console.log("Filtering dumbbell");
       
-      document.querySelector("#dumbbellFilter").click();
+      document.querySelector(".dumbbell-filter").click();
     } 
   }
 
