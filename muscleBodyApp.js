@@ -24,6 +24,15 @@ function main() {
     "gastrocnemius":"Calves",
     "erector-spinae":"Lower Back"
   }
+  
+  if (URLSearchParams_wb.has("utm_content")) {
+    const utm_content = URLSearchParams_wb.get("utm_content");
+    if(utm_content == "cable") {
+      document.getElementById("cableFilter").click();
+    } else if (utm_content == "dumbbell") {
+      document.getElementById("dumbbellFilter").click();
+    } 
+  }
 
   //Get utm campaign and store in storage
   const gymName = document.getElementById("utm_campaign").innerText;
