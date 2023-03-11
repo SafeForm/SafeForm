@@ -24,9 +24,11 @@ function main() {
     "gastrocnemius":"Calves",
     "erector-spinae":"Lower Back"
   }
-
+  console.log(URLSearchParams_wb)
+  console.log(URLSearchParams_wb.keys())
   if (URLSearchParams_wb.has("utm_content")) {
     const utm_content = URLSearchParams_wb.get("utm_content");
+    console.log(utm_content);
     if(utm_content == "cable") {
       document.getElementById("cableFilter").click();
     } else if (utm_content == "dumbbell") {
