@@ -329,6 +329,18 @@ window.addEventListener('load', (event) => {
       // If they confirm remove items from list and clear filters and hide exercise list
       checkAndClearWorkouts("workoutSummaryPage");
     
+    } else if( event.target.id == "qrImg") {
+      //Get link from hidden field
+      const workoutLink = event.target.parentElement.parentElement.querySelector("#workoutLink").href;
+
+      //Produce QR code and add it to div
+      generateQRCode(workoutLink);
+      
+
+    } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
+      //Remove QR code
+      document.querySelector(".qr-code img").remove();
+
     } else if(event.target.id == "submitWorkout") {
 
       //Hide confirm close modal
@@ -525,6 +537,8 @@ window.addEventListener('load', (event) => {
       
     } else {
       document.getElementById("filterMenu").style.display = "none";
+      //Remove QR code
+      document.querySelector(".qr-code img").remove();
     }
   }, false);
 
@@ -729,6 +743,19 @@ window.addEventListener('load', (event) => {
     }
 
     return false;
+
+  }
+
+  function generateQRCode(link) {
+
+    var qrcode = new QRCode(document.querySelector(".qr-code"), {
+      text: `${link}`,
+      width: 300, //default 128
+      height: 300,
+      colorDark : "#0C08D5",
+      colorLight : "#FFFFFF",
+      correctLevel : QRCode.CorrectLevel.H
+    });
 
   }
 
