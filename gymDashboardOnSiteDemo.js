@@ -332,9 +332,14 @@ window.addEventListener('load', (event) => {
     } else if( event.target.id == "qrImg") {
       //Get link from hidden field
       const workoutLink = event.target.parentElement.parentElement.querySelector("#workoutLink").href;
-
+      const workoutName = event.target.parentElement.parentElement.querySelector("#workoutSummaryName").innerText
+      //Insert workout name
+      document.getElementById("scanWorkoutName").innerHTML = workoutName;
       //Produce QR code and add it to div
       generateQRCode(workoutLink);
+
+
+
       
 
     } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
