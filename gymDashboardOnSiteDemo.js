@@ -543,7 +543,9 @@ window.addEventListener('load', (event) => {
     } else {
       document.getElementById("filterMenu").style.display = "none";
       //Remove QR code
-      document.querySelector(".qr-code img").remove();
+      if(document.querySelector(".qr-code img")) {
+        document.querySelector(".qr-code img").remove()
+      };
     }
   }, false);
 
