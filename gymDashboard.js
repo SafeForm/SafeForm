@@ -290,7 +290,7 @@ window.addEventListener('load', (event) => {
     workout["length"] = document.getElementById("estTime").value;
     workout["description"] = document.getElementById("workoutDescription").value;
     workout["focusArea"] = document.getElementById("focusArea").value;
-    workout["gymName"] = document.getElementById("gymField").innerText;
+    workout["gymName"] = document.getElementById("gymFullName").innerText;
     workout["gymID"] = document.getElementById("gymID").innerText;
     workout["experience"] = document.getElementById("experience").innerText;
     workout["workoutID"] = document.getElementById("workoutSummaryID").innerText;
@@ -384,11 +384,25 @@ window.addEventListener('load', (event) => {
         backButton.style.display = 'block';
 
         //Populate search box
-        document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
+        if(muscleMapping[muscleFilter] !== undefined)
+          document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
       }
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
       
+    }  else if( event.target.id == "qrImg") {
+      //Get link from hidden field
+      const workoutLink = event.target.parentElement.parentElement.querySelector("#workoutLink").href;
+      const workoutName = event.target.parentElement.parentElement.querySelector("#workoutSummaryName").innerText
+      //Insert workout name
+      document.getElementById("scanWorkoutName").innerHTML = workoutName;
+      //Produce QR code and add it to div
+      generateQRCode(workoutLink);
+
+    } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
+      //Remove QR code
+      document.querySelector(".qr-code img").remove();
+
     } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
@@ -810,6 +824,19 @@ window.addEventListener('load', (event) => {
     }
 
     return false;
+
+  }
+
+  function generateQRCode(link) {
+
+    var qrcode = new QRCode(document.querySelector(".qr-code"), {
+      text: `${link}`,
+      width: 300, //default 128
+      height: 300,
+      colorDark : "#0C08D5",
+      colorLight : "#FFFFFF",
+      correctLevel : QRCode.CorrectLevel.H
+    });
 
   }
 
