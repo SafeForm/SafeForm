@@ -401,7 +401,16 @@ window.addEventListener('load', (event) => {
 
     } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
       //Remove QR code
-      document.querySelector(".qr-code img").remove();
+      if(document.querySelector(".qr-code img") != null) {
+        document.querySelector(".qr-code img").remove();
+      }
+      
+      document.getElementById("linkCopiedText").style.display = "none";
+      if(event.target.id == "modalWrapper") {
+        document.getElementById("modalWrapper").style.display = "none";
+        document.getElementById("submitIssueDiv").style.display = "none";
+        document.getElementById("workoutQRDiv").style.display = "none";
+      }
 
     } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
