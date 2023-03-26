@@ -418,6 +418,11 @@ window.addEventListener('load', (event) => {
       //Attempt to submit workout 
       document.getElementById("saveWorkout").click();
 
+    } else if(event.target.id == "shareWorkout") {
+
+      navigator.clipboard.writeText(sessionStorage.getItem("workoutLink"));
+      document.getElementById("linkCopiedText").style.display = "block";
+      
     } else if(event.target.id == "removeExercise") {
 
       const workoutList = document.getElementById("workoutList");
@@ -838,6 +843,9 @@ window.addEventListener('load', (event) => {
       colorLight : "#FFFFFF",
       correctLevel : QRCode.CorrectLevel.H
     });
+
+    //Set link in session storage
+    sessionStorage.setItem("workoutLink", link);
 
   }
 
