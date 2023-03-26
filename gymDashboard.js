@@ -634,7 +634,7 @@ window.addEventListener('load', (event) => {
       resetGeneralFilters();
       
     } else {
-      document.getElementById("filterMenu").style.display = "none";
+      //document.getElementById("filterMenu").style.display = "none";
     }
   }, false);
 
