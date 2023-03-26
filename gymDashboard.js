@@ -535,8 +535,8 @@ function main() {
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
       } else if(event.target.id == "reset-filters") {
-        resetGeneralFilters();
-      } else if (event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" || 
+        resetGeneralFilters(true);
+      } else if (event.target.id == "arrowImg" || event.target.id == "filterOn" || event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" || 
         event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
         || event.target.classList.contains('filter-checkbox') || event.target.classList.contains('clear-filter') || (event.target.tagName == "INPUT" &&  event.target.id != "workoutSearch" && !(event.target.id.includes("radio"))) || event.target.classList.contains('clear-container') || event.target.classList.contains('clear-filters')) {
         document.getElementById("filterMenu").style.display = "block";
@@ -653,12 +653,23 @@ function main() {
         resetGeneralFilters();
         
       } else {
-        //document.getElementById("filterMenu").style.display = "none";
+
+        //Close filter menu:
+        //Hide filter menu if open:
+        if(document.getElementById("filterBody").style.display == "flex" && !event.target.classList.value.includes("checkbox-field")) {
+          document.getElementById("filterBody").style.display = "none";
+
+          //Rotate arrow back:
+          document.getElementById("arrowWrapper").style.transform = 'rotate(0deg)';
+          document.getElementById("filterButton").click();
+        }
+
       }
     }, false);
 
     //Listen for change events:
     document.addEventListener('change', function (event) {
+
       if(event.target.id == "estTime") {
         document.getElementById("estTimeDiv").style.borderRadius = "0px";
         document.getElementById("estTimeDiv").style.border = "";
@@ -670,9 +681,10 @@ function main() {
       } else if (event.target.type) {
         checkCheckboxFilters().then(res => { 
           //Check if the amount of active filters is more than 0
-          if(res > 0) {
-            document.getElementById("clearExperienceExerciseFilters").style.display = "block";
+          if(res[0] > 0) {
             document.getElementById("filterOn").style.display = "block";
+          } else if (res[1] > 0) {
+            document.getElementById("clearExperienceExerciseFilters").style.display = "block";
           } else {
             document.getElementById("clearExperienceExerciseFilters").style.display = "none";
             document.getElementById("filterOn").style.display = "none";
@@ -702,7 +714,7 @@ function main() {
           // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
-          const [filterInstance] = filterInstances;
+          const [summaryFilters, filterInstance] = filterInstances;
           !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
           await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
@@ -710,13 +722,39 @@ function main() {
       ]);
     }
 
-    async function resetGeneralFilters() {
+    async function resetGeneralFilters(clearButton=false) {
 
       const checkboxes = document.getElementsByClassName('filter-checkbox');
       for (let i = 0; i < checkboxes.length; i++) { 
         if(checkboxes[i].classList.value.includes('w--redirected-checked')) {
           checkboxes[i].click();
         }
+      }
+      //Clear textbox filter value:
+      document.getElementById("workoutSearch").value = "";
+      window.fsAttributes = window.fsAttributes || [];
+      window.fsAttributes.push([
+        'cmsfilter',
+        async (filterInstances) => {
+          // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
+          document.getElementById("exerciseSearch").value = "";
+          //Get muscle related filters
+          const [summaryFilters, filterInstance] = filterInstances;
+          await summaryFilters.resetFilters(filterKeys=["workoutname-2"], null);
+
+        },
+      ]);
+
+      var filterDiv = document.getElementById("filterBody").style.display;
+
+      if(filterDiv == "flex" && !clearButton) {
+
+        //Hide filter menu if open:
+        document.getElementById("filterBody").style.display = "none";
+
+        //Rotate arrow back:
+        document.getElementById("arrowWrapper").style.transform = 'rotate(0deg)';
+        document.getElementById("filterButton").click();
       }
 
     }
@@ -731,7 +769,9 @@ function main() {
       return window.fsAttributes.cmsfilter.loading.then(res => {
         var filterInstance = res[0].filtersData;
         filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
-        return filtersTotalSize;
+        var filterInstance2 = res[1].filtersData;
+        filtersTotalSize2 = filterInstance2[1].values.size + filterInstance2[2].values.size;
+        return [filtersTotalSize, filtersTotalSize2];
       });
 
     }
@@ -866,6 +906,22 @@ function main() {
       //Set link in session storage
       sessionStorage.setItem("workoutLink", link);
 
+    }
+
+    function showFilters() {
+      window.fsAttributes = window.fsAttributes || [];
+      window.fsAttributes.push([
+        'cmsfilter',
+        async (filterInstances) => {
+          // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
+
+          //Get muscle related filters
+          const [filterInstance] = filterInstances;
+          console.log(filterInstance);
+          
+
+        },
+      ]);
     }
 
     function prefillWorkoutBuilder(workoutSummary) {
@@ -1118,6 +1174,7 @@ function main() {
 
     function checkAndClearWorkouts(destinationScreen) {
       resetGeneralFilters();
+
       //Check if list size is > 1 and obtain values for workout summary inputs to check if they are empty or not
       const workoutList = document.getElementById("workoutList").children;
       const workoutTitle = document.getElementById("workoutName").value;
