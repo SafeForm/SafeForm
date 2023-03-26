@@ -648,9 +648,10 @@ window.addEventListener('load', (event) => {
         //Check if the amount of active filters is more than 0
         if(res > 0) {
           document.getElementById("clearExperienceExerciseFilters").style.display = "block";
+          document.getElementById("filterOn").style.display = "block";
         } else {
           document.getElementById("clearExperienceExerciseFilters").style.display = "none";
-
+          document.getElementById("filterOn").style.display = "none";
         }
 
       });
