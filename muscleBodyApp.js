@@ -7,7 +7,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   var muscleMapping = {
     "pectoralis-major":"Chest",
     "quadriceps":"Quads",
@@ -25,12 +24,23 @@ function main() {
     "erector-spinae":"Lower Back"
   }
 
-  if (URLSearchParams_wb.has("utm_content")) {
-    const utm_content = URLSearchParams_wb.get("utm_content");
+  url = new URL(window.location.href);
+  if (url.searchParams.has("utm_content")) {
+    const utm_content = url.searchParams.get("utm_content");
     if(utm_content == "cable") {
+
       document.getElementById("cableFilter").click();
+      document.getElementById("mobileCableFilter").click();
+
+      document.getElementById("cableFilter").previousSibling.classList.add("w--redirected-checked");
+      document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
+
+
     } else if (utm_content == "dumbbell") {
       document.getElementById("dumbbellFilter").click();
+      document.getElementById("mobileDumbbellFilter").click();
+      document.getElementById("dumbbellFilter").previousSibling.classList.add("w--redirected-checked");
+      document.getElementById("mobileDumbbellFilter").previousSibling.classList.add("w--redirected-checked");
     } 
   }
 
@@ -46,7 +56,7 @@ function main() {
     document.getElementById("utm_campaign").click();
 
     for(var i = 0; i < linksOnPage.length; i++) {
-      if(linksOnPage[i].id != "clearExperienceExerciseFilters") {
+      if(linksOnPage[i].id != "clearExperienceExerciseFilters" && linksOnPage[i].id != "showFiltersBtn") {
         linksOnPage[i].href += `?fromLibrary=true`;
       }
     }
@@ -56,7 +66,7 @@ function main() {
     
     for(var i = 0; i < linksOnPage.length; i++) {
 
-      if(linksOnPage[i].id != "clearExperienceExerciseFilters") {
+      if(linksOnPage[i].id != "clearExperienceExerciseFilters" && linksOnPage[i].id != "showFiltersBtn") {
         linksOnPage[i].href += `?utm_campaign=${gymName}&fromLibrary=true`;
       }
     }
@@ -84,7 +94,8 @@ function main() {
       } else {
         backButton.style.display = 'block';
       }
-      
+      //Show filters button
+      document.getElementById("showFiltersBtn").style.display = "block";
     } else {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
@@ -95,6 +106,8 @@ function main() {
         backButton.style.display = 'none';
       }
       resetFilters(true);
+      //Hide filters button
+      document.getElementById("showFiltersBtn").style.display = "none";
     }
   }
 
@@ -117,13 +130,14 @@ function main() {
           backButton.style.display = 'block';
         }
 
+        //Show filters button
+        document.getElementById("showFiltersBtn").style.display = "block";
+
         //Populate search box
         document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
       }
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
-      //Populate search box
-      document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
 
     } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
@@ -134,6 +148,9 @@ function main() {
         backButton.style.display = 'none';
       }
       infoText.style.display = 'none';
+
+      //Hide filters button
+      document.getElementById("showFiltersBtn").style.display = "none";
       resetFilters();
     } else if(event.target.id == "prev") {
       svgPerson.style.display = 'block';
@@ -145,6 +162,8 @@ function main() {
         backButton.style.display = 'none';
       }
       infoText.style.display = 'none';
+      //Hide filters button
+      document.getElementById("showFiltersBtn").style.display = "none";
       resetFilters();
     } else if(event.target.id == "clearExperienceExerciseFilters") {
       resetGeneralFilters();
