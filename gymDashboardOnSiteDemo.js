@@ -15,6 +15,123 @@ var muscleMapping = {
   "erector-spinae":"Lower Back"
 }
 
+var HTML5 = HTML5 || {};
+
+HTML5.DnD = function() {
+    //private members
+    var dragSrcEl = null,
+        draggables = null,
+
+        init = function(selector) {
+
+            draggables = document.querySelectorAll(selector);
+
+            //Set listeners
+            [].forEach.call(draggables, function(elem) {
+                elem.addEventListener("dragstart", dragStart, false);
+                elem.addEventListener("drag", drag, false);
+                elem.addEventListener("dragenter", dragEnter, false);
+                elem.addEventListener("dragover", dragOver, false);
+                elem.addEventListener("dragleave", dragLeave, false);
+                elem.addEventListener("drop", drop, false);
+                elem.addEventListener("dragend", dragEnd, false);
+            });
+
+        },
+        dragStart = function(e) {
+            e.dataTransfer.effectAllowed = 'move';
+            //e.dataTransfer.setData('text/html', this.innerHTML);
+            e.dataTransfer.setData('text', this.innerHTML);
+            dragSrcEl = this;
+            this.className = this.className.replace("target", "");
+
+        },
+        drag = function(e) {
+            this.className += ' moving';
+            
+        },
+        dragOver = function(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
+            e.dataTransfer.dropEffect = 'move';
+            this.className += " over";
+            
+
+        },
+        dragEnter = function() {
+            this.className += " over";
+        },
+        dragLeave = function() {
+            this.className = "";
+        },
+        drop = function(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            if (dragSrcEl != this) {
+
+                //this.innerHTML = e.dataTransfer.getData('text/html');
+                //this.innerHTML = e.dataTransfer.getData('text');
+                const sourceElement = dragSrcEl;
+                const destinationElement = this;
+
+              /*
+                //swap elements
+                var sourceTemp = this.cloneNode();
+                this.innerHTML = dragSrcEl.innerHTML;
+                console.log('OVERWEITING:')
+                console.log(dragSrcEl);
+                dragSrcEl.innerHTML = sourceTemp.innerHTML;
+              */
+                // console.log(previousSibling);
+                // console.log(previousSibling.previousSibling);
+                // console.log(previousSibling.previousSibling.previousSibling);
+                // console.log(sourceElement)
+
+                const originalSourceChild = sourceElement.cloneNode();
+              console.log(originalSourceChild.innerHTML)
+                //Iterate between all elements of 'this' and 'dragSrcEl' and shift them up one
+                var currentChild = destinationElement;
+                var temp = "";
+                while (currentChild.innerHTML != sourceElement.innerHTML) {
+
+                  //Save details of original previous element
+                  temp = currentChild.previousSibling;
+                  
+                  // currentChild.previousSibling.innerHTML = currentChild.innerHTML;
+                  // currentChild = temp;
+
+                  //Overwrite previous element with the current element
+                  currentChild.previousSibling.innerHTML = currentChild.innerHTML;
+
+                  currentChild = temp;
+                  console.log(currentChild);
+                  
+                  // console.log("Saving:");
+                  // console.log(temp);
+                  // console.log("Moving:");
+                  // console.log(currentChild);
+                }
+
+
+            }
+
+            return false;
+        },
+        dragEnd = function() {[].forEach.call(draggables, function(elem) {
+                elem.className = "";
+            });
+            
+        };
+
+    return {
+        init: init
+    }
+}();
+HTML5.DnD.init('div div[draggable=true]');
+
 /*
   Splitting up if there is multiple gym & muscle values to make sure we are filtering each
 */
@@ -289,6 +406,7 @@ window.addEventListener('load', (event) => {
 
   //Listen for click events:
   document.addEventListener('click', function (event) {
+    showFilters();
     if (event.target.nodeName == "path") {
       var muscleFilter = sessionStorage.getItem("muscleFilter");
       
@@ -338,14 +456,20 @@ window.addEventListener('load', (event) => {
       //Produce QR code and add it to div
       generateQRCode(workoutLink);
 
-
-
-      
-
     } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
       //Remove QR code
-      document.querySelector(".qr-code img").remove();
-
+      if(document.querySelector(".qr-code img") != null) {
+        document.querySelector(".qr-code img").remove();
+      }
+      
+      document.getElementById("linkCopiedText").style.display = "none";
+      if(event.target.id == "modalWrapper") {
+        document.getElementById("modalWrapper").style.display = "none";
+        document.getElementById("submitIssueDiv").style.display = "none";
+        document.getElementById("workoutQRDiv").style.display = "none";
+        
+        
+      }
     } else if(event.target.id == "submitWorkout") {
 
       //Hide confirm close modal
@@ -354,6 +478,12 @@ window.addEventListener('load', (event) => {
       //Attempt to submit workout 
       document.getElementById("saveWorkout").click();
 
+    } else if(event.target.id == "shareWorkout") {
+      //event.preventDefault();
+      event.preventDefault();
+      navigator.clipboard.writeText(sessionStorage.getItem("workoutLink"));
+      document.getElementById("linkCopiedText").style.display = "block";
+      
     } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
@@ -458,7 +588,7 @@ window.addEventListener('load', (event) => {
     } else if (event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" || 
       event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
       || event.target.classList.contains('filter-checkbox') || event.target.classList.contains('clear-filter') || (event.target.tagName == "INPUT" &&  event.target.id != "workoutSearch" && !(event.target.id.includes("radio"))) || event.target.classList.contains('clear-container') || event.target.classList.contains('clear-filters')) {
-      document.getElementById("filterMenu").style.display = "block";
+      //document.getElementById("filterMenu").style.display = "block";
     } else if(event.target.id == "exit-menu" ) {
       document.getElementById("filterMenu").style.display = "none";
 
@@ -596,6 +726,10 @@ window.addEventListener('load', (event) => {
         !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
         await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
+        //Clear focus area filters:
+        document.getElementById("allFilter").click();
+        document.getElementById("allFilter").focus();
+
       },
     ]);
   }
@@ -608,6 +742,10 @@ window.addEventListener('load', (event) => {
         checkboxes[i].click();
       }
     }
+
+            //Clear focus area filters:
+            document.getElementById("allFilter").click();
+                        document.getElementById("allFilter").focus();
 
   }
 
@@ -680,6 +818,22 @@ window.addEventListener('load', (event) => {
       
     }
 
+  }
+  showFilters();
+  function showFilters() {
+    window.fsAttributes = window.fsAttributes || [];
+    window.fsAttributes.push([
+      'cmsfilter',
+      async (filterInstances) => {
+        // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
+
+        //Get muscle related filters
+        const [filterInstance] = filterInstances;
+        console.log(filterInstance);
+        
+
+      },
+    ]);
   }
 
   //Send new selected workout of the week to make to update webflow cms
@@ -763,6 +917,10 @@ window.addEventListener('load', (event) => {
       colorLight : "#FFFFFF",
       correctLevel : QRCode.CorrectLevel.H
     });
+
+
+    //Set link in session storage
+    sessionStorage.setItem("workoutLink", link);
 
   }
 
