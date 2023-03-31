@@ -376,7 +376,7 @@ window.addEventListener('load', (event) => {
   for (let i = 0; i < guideExercises.length; i++) {
     
     guideExercises[i].onclick = (event) => {
-      console.log(event.target.id);
+
       //Make sure when info button is clicked the exercise isnt added to the list
       if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
         var copyOfGuide = '';
@@ -406,7 +406,7 @@ window.addEventListener('load', (event) => {
 
   //Listen for click events:
   document.addEventListener('click', function (event) {
-    showFilters();
+
     if (event.target.nodeName == "path") {
       var muscleFilter = sessionStorage.getItem("muscleFilter");
       
@@ -681,6 +681,7 @@ window.addEventListener('load', (event) => {
 
   //Listen for change events:
   document.addEventListener('change', function (event) {
+    console.log(event.target)
     if(event.target.id == "estTime") {
       document.getElementById("estTimeDiv").style.borderRadius = "0px";
       document.getElementById("estTimeDiv").style.border = "";
@@ -689,6 +690,30 @@ window.addEventListener('load', (event) => {
       document.getElementById("focusArea").style.borderRadius = "0px";
       document.getElementById("focusArea").style.border = "";
       document.getElementById("focusAreaRequired").style.display = "none";
+    } else if (event.target.type == "radio") {
+      const filters = document.getElementsByName('workoutFocusArea');
+      let isAnyRadioButtonChecked = false;
+
+      for (let i = 0; i < filters.length; i++) {
+        if (filters[i].checked) {
+          isAnyRadioButtonChecked = true;
+          break;
+        }
+      }
+      var allFilterStyle = document.getElementById("allFilter").style;
+      if(!isAnyRadioButtonChecked) {
+        //Colour the 'all filter'
+        allFilterStyle.color = "white";
+        allFilterStyle.backgroundColor = "#0C08D5";
+        allFilterStyle.border = "0px";
+        allFilterStyle.borderRadius = "8px";
+        
+      } else {
+        //Reset the 'all filter'
+        allFilterStyle.backgroundColor = "transparent";
+        allFilterStyle.color = "black";
+      }
+
     } else if (event.target.type) {
       checkCheckboxFilters().then(res => { 
         //Check if the amount of active filters is more than 0
@@ -819,7 +844,7 @@ window.addEventListener('load', (event) => {
     }
 
   }
-  showFilters();
+
   function showFilters() {
     window.fsAttributes = window.fsAttributes || [];
     window.fsAttributes.push([
