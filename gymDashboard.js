@@ -676,6 +676,30 @@ function main() {
         document.getElementById("focusArea").style.borderRadius = "0px";
         document.getElementById("focusArea").style.border = "";
         document.getElementById("focusAreaRequired").style.display = "none";
+      } else if (event.target.type == "radio") {
+        const filters = document.getElementsByName('workoutFocusArea');
+        let isAnyRadioButtonChecked = false;
+  
+        for (let i = 0; i < filters.length; i++) {
+          if (filters[i].checked) {
+            isAnyRadioButtonChecked = true;
+            break;
+          }
+        }
+        var allFilterStyle = document.getElementById("allFilter").style;
+        if(!isAnyRadioButtonChecked) {
+          //Colour the 'all filter'
+          allFilterStyle.color = "white";
+          allFilterStyle.backgroundColor = "#0C08D5";
+          allFilterStyle.border = "0px";
+          allFilterStyle.borderRadius = "8px";
+          
+        } else {
+          //Reset the 'all filter'
+          allFilterStyle.backgroundColor = "";
+          allFilterStyle.color = "black";
+        }
+  
       } else if (event.target.type) {
         checkCheckboxFilters().then(res => { 
           //Check if the amount of active filters is more than 0
