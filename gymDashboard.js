@@ -113,7 +113,7 @@ function main() {
       var membership = member.membership  
       var memberID = member["id"];
       var equipmentStatus = member["equipment-upload-complete"];
-      console.log(equipmentStatus);
+
       const baseURL = window.location.origin;
       //set link to dashboard page
       const path = window.location.pathname;
@@ -507,7 +507,7 @@ function main() {
 
         currentExercise.appendChild(previousExercise.removeChild(previousExercise.querySelector("#individualGuide")));
         previousExercise.appendChild(temp);    
-        console.log(event.target.id);   
+
 
       } else if(event.target.id == "moveDown" || event.target.id == "moveDownLink") {
 
@@ -577,8 +577,6 @@ function main() {
         for(var i = 0; i < exerciseList.length; i++) {
           workout["workoutExercises"].push(exerciseList[i].querySelector("#exerciseItemID").innerText);
         }
-
-        console.log(workout);
         
         //Send to make to delete workout
         deleteWorkout(workout);
@@ -718,6 +716,10 @@ function main() {
           !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
           await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
 
+          //Clear focus area filters:
+          document.getElementById("allFilter").click();
+          document.getElementById("allFilter").focus();
+
         },
       ]);
     }
@@ -730,6 +732,11 @@ function main() {
           checkboxes[i].click();
         }
       }
+
+      //Clear focus area filters:
+      document.getElementById("allFilter").click();
+      document.getElementById("allFilter").focus();
+
       //Clear textbox filter value:
       document.getElementById("workoutSearch").value = "";
       window.fsAttributes = window.fsAttributes || [];
@@ -880,7 +887,7 @@ function main() {
     }
 
     function checkIfLastExerciseInList(workoutKeyID) {
-      console.log(workoutKeyID)
+
       //Remove an entry from guide to workout object
       var guideDiv = guideToWorkoutObj[workoutKeyID].pop();
 
@@ -917,7 +924,7 @@ function main() {
 
           //Get muscle related filters
           const [filterInstance] = filterInstances;
-          console.log(filterInstance);
+
           
 
         },
@@ -982,7 +989,6 @@ function main() {
       } 
       //Add workout entry for green border colour
       addWorkoutListEntry(listOfGuideIDs);
-      console.log(guideToWorkoutObj);
 
     }
 
