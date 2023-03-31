@@ -696,7 +696,7 @@ function main() {
           
         } else {
           //Reset the 'all filter'
-          allFilterStyle.backgroundColor = "";
+          allFilterStyle.backgroundColor = "transparent";
           allFilterStyle.color = "black";
         }
   
