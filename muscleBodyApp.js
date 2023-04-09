@@ -42,7 +42,7 @@ function main() {
       document.getElementById("mobileDumbbellFilter").click();
       document.getElementById("dumbbellFilter").previousSibling.classList.add("w--redirected-checked");
       document.getElementById("mobileDumbbellFilter").previousSibling.classList.add("w--redirected-checked");
-    } else if (utm_content == "single cable") {
+    } else if (utm_content == "single-cable") {
 
       //Set Filters
       document.getElementById("mechanismVariation").click();
