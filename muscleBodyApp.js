@@ -25,8 +25,10 @@ function main() {
   }
 
   url = new URL(window.location.href);
+  var singleCablePressed = false;
   if (url.searchParams.has("utm_content")) {
     const utm_content = url.searchParams.get("utm_content");
+
     if(utm_content == "cable") {
 
       document.getElementById("cableFilter").click();
@@ -35,14 +37,28 @@ function main() {
       document.getElementById("cableFilter").previousSibling.classList.add("w--redirected-checked");
       document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
 
-
     } else if (utm_content == "dumbbell") {
       document.getElementById("dumbbellFilter").click();
       document.getElementById("mobileDumbbellFilter").click();
       document.getElementById("dumbbellFilter").previousSibling.classList.add("w--redirected-checked");
       document.getElementById("mobileDumbbellFilter").previousSibling.classList.add("w--redirected-checked");
-    } 
+    } else if (utm_content == "single cable") {
+
+      //Set Filters
+      document.getElementById("mechanismVariation").click();
+      document.getElementById("mobileMechanismVariation").click();
+
+      document.getElementById("cableFilter").click();
+      document.getElementById("mobileCableFilter").click();
+
+      document.getElementById("cableFilter").previousSibling.classList.add("w--redirected-checked");
+      document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
+      singleCablePressed = true;
+
+    }
   }
+
+
 
   //Get utm campaign and store in storage
   const gymName = document.getElementById("utm_campaign").innerText;
@@ -144,6 +160,14 @@ function main() {
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
 
+    } else if(event.target.id == "cableFilterText" || event.target.id == "cableFilter" || event.target.id == "cableFilterDiv" || event.target.id == "mobileCableFilterText" || event.target.id == "mobileCableFilter" || event.target.id == "mobileCableFilterDiv") {
+      if(singleCablePressed) {
+        //Remove single cable filter
+        document.getElementById("mechanismVariation").click();
+        document.getElementById("mobileMechanismVariation").click();
+        singleCablePressed = false;
+      }
+    
     } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
