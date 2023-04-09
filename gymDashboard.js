@@ -387,6 +387,11 @@ function main() {
         if(muscleFilter && muscleFilter != "") {
           muscleFilter = muscleFilter.replaceAll(" ", "-");
           document.querySelector(`.${muscleFilter}-filter`).click();
+          //Click ab/adductors if quads are selected
+          if(muscleFilter == "quadriceps") {
+            document.querySelector(".adductors-filter").click();
+            document.querySelector(".abductors-filter").click();
+          }
           // hide SVG man:
           svgPerson.style.display = 'none';
           guideList.style.display = 'block';
@@ -737,8 +742,14 @@ function main() {
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
           const [summaryFilters, filterInstance] = filterInstances;
-          !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
-          await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
+          if(filterInstances.length > 1) { 
+            !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
+            await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
+          } else {
+            !onlyCheckboxes ? await summaryFilters.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
+            await summaryFilters.resetFilters(filterKeys=["musclenamefilter"], null);
+          }
+
 
           //Clear focus area filters:
           document.getElementById("allFilter").click();
@@ -800,8 +811,13 @@ function main() {
       return window.fsAttributes.cmsfilter.loading.then(res => {
         var filterInstance = res[0].filtersData;
         filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
-        var filterInstance2 = res[1].filtersData;
-        filtersTotalSize2 = filterInstance2[1].values.size + filterInstance2[2].values.size;
+        if(res.length > 1) {
+          var filterInstance2 = res[1].filtersData;
+          filtersTotalSize2 = filterInstance2[1].values.size + filterInstance2[2].values.size;
+        } else {
+          filtersTotalSize2 = 0;
+        }
+
         return [filtersTotalSize, filtersTotalSize2];
       });
 
