@@ -414,6 +414,11 @@ window.addEventListener('load', (event) => {
       if(muscleFilter && muscleFilter != "") {
         muscleFilter = muscleFilter.replaceAll(" ", "-");
         document.querySelector(`.${muscleFilter}-filter`).click();
+        //Click ab/adductors if quads are selected
+        if(muscleFilter == "quadriceps") {
+          document.querySelector(".adductors-filter").click();
+          document.querySelector(".abductors-filter").click();
+        }
         // hide SVG man:
         svgPerson.style.display = 'none';
         guideList.style.display = 'block';
@@ -768,9 +773,9 @@ window.addEventListener('load', (event) => {
       }
     }
 
-            //Clear focus area filters:
-            document.getElementById("allFilter").click();
-                        document.getElementById("allFilter").focus();
+    //Clear focus area filters:
+    document.getElementById("allFilter").click();
+    document.getElementById("allFilter").focus();
 
   }
 
