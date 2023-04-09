@@ -89,7 +89,9 @@ window.addEventListener('load', (event) => {
     if(searchBox.value != "") {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
+      guideList = document.getElementById("guideListParent");
       backButton.style.display = 'block';
+      //guideList.firstChild.scrollTop = 0;
       clickExerciseText.style.display = 'block';
     } else {
       svgPerson.style.display = 'block';
@@ -266,6 +268,11 @@ window.addEventListener('load', (event) => {
       if(muscleFilter && muscleFilter != "") {
         muscleFilter = muscleFilter.replaceAll(" ", "-");
         document.querySelector(`.${muscleFilter}-filter`).click();
+        //Click ab/adductors if quads are selected
+        if(muscleFilter == "quadriceps") {
+          document.querySelector(".adductors-filter").click();
+          document.querySelector(".abductors-filter").click();
+        }
         // hide SVG man:
         svgPerson.style.display = 'none';
         guideList.style.display = 'block';
