@@ -55,6 +55,12 @@ function main() {
       document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
       singleCablePressed = true;
 
+    } else if (utm_content == "smith") {
+      document.getElementById("smithFilter").click();
+      document.getElementById("mobileSmithFilter").click();
+
+      document.getElementById("smithFilter").previousSibling.classList.add("w--redirected-checked");
+      document.getElementById("mobileSmithFilter").previousSibling.classList.add("w--redirected-checked");
     }
   }
 
@@ -225,9 +231,11 @@ function main() {
         if(res > 0) {
           document.getElementById("clearExperienceExerciseFilters").style.display = "block";
           document.getElementById("menu-clearExperienceExerciseFilters").style.display = "block";
+          document.getElementById("showFiltersBtn").style.borderColor = "#08D58B";
         } else {
           document.getElementById("clearExperienceExerciseFilters").style.display = "none";
           document.getElementById("menu-clearExperienceExerciseFilters").style.display = "none";
+          document.getElementById("showFiltersBtn").style.borderColor = "#0C08D5";
         }
 
       });
