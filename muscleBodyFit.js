@@ -24,16 +24,45 @@ function main() {
     "erector-spinae":"Lower Back"
   }	
   
-  var exerciseLinks = document.getElementById("guideList").querySelectorAll("a");
-  for(var i = 0; i < exerciseLinks.length; i++) {
-    exerciseLinks[i].href += `?fromLibrary=true`;
-  }
-  
   const svgPerson = document.getElementById("ajaxContent");
   const guideList = document.getElementById("guideListParent");
   const infoText = document.getElementById("clickForMoreInfoText");
   const backDiv = document.getElementById("backDiv");
   const backButton = document.getElementById("clearText");
+
+  url = new URL(window.location.href);
+
+  var tempMuscleFilter = sessionStorage.getItem("savedMuscleFilter");
+  //Go back to where user was browsing if coming back from guides
+  if(url.searchParams.get("backLink") && tempMuscleFilter != "" && tempMuscleFilter) {
+    
+    svgPerson.style.display = 'none';
+    guideList.style.display = 'block';
+    infoText.style.display = 'block';
+    //Check if ipad and below
+    if(screen.width <= 950) {
+      backDiv.style.display = 'block';
+    } else {
+      backButton.style.display = 'block';
+    }
+
+    //Show filters button
+    document.getElementById("showFiltersBtn").style.display = "block";
+
+    //Populate search box
+    document.getElementById("exerciseSearch").value = muscleMapping[tempMuscleFilter];
+
+    //Filter
+    tempMuscleFilter = tempMuscleFilter.replaceAll(" ", "-");
+    document.querySelector(`.${tempMuscleFilter}-filter`).click();
+
+    
+  }
+  
+  var exerciseLinks = document.getElementById("guideList").querySelectorAll("a");
+  for(var i = 0; i < exerciseLinks.length; i++) {
+    exerciseLinks[i].href += `?fromLibrary=true`;
+  }
   
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
@@ -98,6 +127,7 @@ function main() {
       }
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
+      sessionStorage.setItem("savedMuscleFilter", muscleFilter);
 
     } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
       svgPerson.style.display = 'block';
