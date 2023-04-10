@@ -109,10 +109,11 @@ function main() {
     }
 
   }
-
+  
+  var tempMuscleFilter = sessionStorage.getItem("savedMuscleFilter");
   //Go back to where user was browsing if coming back from guides
-  if(url.searchParams.get("backLink") && sessionStorage.getItem("savedMuscleFilter") != "") {
-    var tempMuscleFilter = sessionStorage.getItem("savedMuscleFilter");
+  if(url.searchParams.get("backLink") && tempMuscleFilter != "" && tempMuscleFilter) {
+    
     svgPerson.style.display = 'none';
     guideList.style.display = 'block';
     infoText.style.display = 'block';
