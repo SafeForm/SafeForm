@@ -411,8 +411,11 @@ function main() {
         const workoutName = event.target.parentElement.parentElement.querySelector("#workoutSummaryName").innerText
         //Insert workout name
         document.getElementById("scanWorkoutName").innerHTML = workoutName;
+
+        //Get gym name to pass through
+        var qrGymName = document.getElementById("gymFullName").innerText;
         //Produce QR code and add it to div
-        generateQRCode(workoutLink);
+        generateQRCode(workoutLink, qrGymName.toLowerCase());
 
       } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
         //Remove QR code
@@ -939,10 +942,10 @@ function main() {
 
     }
 
-    function generateQRCode(link) {
+    function generateQRCode(link, gymName) {
 
       var qrcode = new QRCode(document.querySelector(".qr-code"), {
-        text: `${link}`,
+        text: `${link}?utm_campaign=${gymName}`,
         width: 300, //default 128
         height: 300,
         colorDark : "#0C08D5",
@@ -951,7 +954,7 @@ function main() {
       });
 
       //Set link in session storage
-      sessionStorage.setItem("workoutLink", link);
+      sessionStorage.setItem("workoutLink", `${link}?utm_campaign=${gymName}`);
 
     }
 
