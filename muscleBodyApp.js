@@ -24,6 +24,12 @@ function main() {
     "erector-spinae":"Lower Back"
   }
 
+  const svgPerson = document.getElementById("ajaxContent");
+  const guideList = document.getElementById("guideListParent");
+  const infoText = document.getElementById("clickForMoreInfoText");
+  const backDiv = document.getElementById("backDiv");
+  const backButton = document.getElementById("clearText");
+
   url = new URL(window.location.href);
   var singleCablePressed = false;
   if (url.searchParams.has("utm_content")) {
@@ -36,6 +42,16 @@ function main() {
 
       document.getElementById("cableFilter").previousSibling.classList.add("w--redirected-checked");
       document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
+
+      svgPerson.style.display = 'none';
+      guideList.style.display = 'block';
+      infoText.style.display = 'block';
+      //Check if ipad and below
+      if(screen.width <= 950) {
+        backDiv.style.display = 'block';
+      } else {
+        backButton.style.display = 'block';
+      }
 
     } else if (utm_content == "dumbbell") {
       document.getElementById("dumbbellFilter").click();
@@ -53,6 +69,17 @@ function main() {
 
       document.getElementById("cableFilter").previousSibling.classList.add("w--redirected-checked");
       document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
+
+      svgPerson.style.display = 'none';
+      guideList.style.display = 'block';
+      infoText.style.display = 'block';
+
+      //Check if ipad and below
+      if(screen.width <= 950) {
+        backDiv.style.display = 'block';
+      } else {
+        backButton.style.display = 'block';
+      }
       singleCablePressed = true;
 
     } else if (utm_content == "smith") {
@@ -61,7 +88,36 @@ function main() {
 
       document.getElementById("smithFilter").previousSibling.classList.add("w--redirected-checked");
       document.getElementById("mobileSmithFilter").previousSibling.classList.add("w--redirected-checked");
+
+      svgPerson.style.display = 'none';
+      guideList.style.display = 'block';
+      infoText.style.display = 'block';
+      //Check if ipad and below
+      if(screen.width <= 950) {
+        backDiv.style.display = 'block';
+      } else {
+        backButton.style.display = 'block';
+      }
     }
+
+  }
+
+  //Go back to where user was browsing if coming back from guides
+  if(url.searchParams.get("backLink") && sessionStorage.getItem("savedMuscleFilter") != "") {
+
+    svgPerson.style.display = 'none';
+    guideList.style.display = 'block';
+    infoText.style.display = 'block';
+    //Check if ipad and below
+    if(screen.width <= 950) {
+      backDiv.style.display = 'block';
+    } else {
+      backButton.style.display = 'block';
+    }
+
+    //Filter
+    var tempMuscleFilter = sessionStorage.getItem("savedMuscleFilter").replaceAll(" ", "-");
+    document.querySelector(`.${tempMuscleFilter}-filter`).click();
   }
 
 
@@ -97,11 +153,6 @@ function main() {
   const muscleGroups = ["quadriceps", "gluteusmaximus", "tricepsbrachii", "pectoralismajor", "palmarislongus", "epigastrium","pyramidalis","bicepsbrachii","deltoids","gastrocnemius","trapezius","latissimusdorsi","hamstrings","obliques","adductors"];
   const muscles = document.querySelectorAll(".svg-parent")[0].getElementsByTagName('path');
 
-  const svgPerson = document.getElementById("ajaxContent");
-  const guideList = document.getElementById("guideListParent");
-  const infoText = document.getElementById("clickForMoreInfoText");
-  const backDiv = document.getElementById("backDiv");
-  const backButton = document.getElementById("clearText");
 
   //If search box changes, show list and hide svg man:
   const searchBox = document.getElementById("exerciseSearch");
@@ -165,6 +216,7 @@ function main() {
       }
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
+      sessionStorage.setItem("savedMuscleFilter", muscleFilter);
 
     } else if(event.target.id == "cableFilterText" || event.target.id == "cableFilter" || event.target.id == "cableFilterDiv" || event.target.id == "mobileCableFilterText" || event.target.id == "mobileCableFilter" || event.target.id == "mobileCableFilterDiv") {
       if(singleCablePressed) {
