@@ -53,6 +53,9 @@ function main() {
         backButton.style.display = 'block';
       }
 
+      //Show filters button
+      document.getElementById("showFiltersBtn").style.display = "block";
+
     } else if (utm_content == "dumbbell") {
       document.getElementById("dumbbellFilter").click();
       document.getElementById("mobileDumbbellFilter").click();
@@ -80,6 +83,8 @@ function main() {
       } else {
         backButton.style.display = 'block';
       }
+      //Show filters button
+      document.getElementById("showFiltersBtn").style.display = "block";
       singleCablePressed = true;
 
     } else if (utm_content == "smith") {
@@ -98,13 +103,16 @@ function main() {
       } else {
         backButton.style.display = 'block';
       }
+
+      //Show filters button
+      document.getElementById("showFiltersBtn").style.display = "block";
     }
 
   }
 
   //Go back to where user was browsing if coming back from guides
   if(url.searchParams.get("backLink") && sessionStorage.getItem("savedMuscleFilter") != "") {
-
+    var tempMuscleFilter = sessionStorage.getItem("savedMuscleFilter");
     svgPerson.style.display = 'none';
     guideList.style.display = 'block';
     infoText.style.display = 'block';
@@ -115,9 +123,17 @@ function main() {
       backButton.style.display = 'block';
     }
 
+    //Show filters button
+    document.getElementById("showFiltersBtn").style.display = "block";
+
+    //Populate search box
+    document.getElementById("exerciseSearch").value = muscleMapping[tempMuscleFilter];
+
     //Filter
-    var tempMuscleFilter = sessionStorage.getItem("savedMuscleFilter").replaceAll(" ", "-");
+    tempMuscleFilter = tempMuscleFilter.replaceAll(" ", "-");
     document.querySelector(`.${tempMuscleFilter}-filter`).click();
+
+    
   }
 
 
