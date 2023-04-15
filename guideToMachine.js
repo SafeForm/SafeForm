@@ -573,7 +573,8 @@ function main() {
     })
     .then((data) => {
       
-      console.log("Success!")
+      alert("Sucessfully onboarded machine!");
+      location.reload()
 
       //Show sucess message saying to scan the next code
     })
