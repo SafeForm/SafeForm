@@ -405,7 +405,21 @@ function main() {
         //Reset storage filter for next click
         sessionStorage.setItem("muscleFilter", "");
         
-      }  else if( event.target.id == "qrImg") {
+      } else if(event.target.id == "ipadBackButton") {
+          //Reset filters on workout summary page
+          //workoutSummaryPage.style.display = "block";
+          //workoutBuilderPage.style.display = "none";
+          settingsBody.style.display = "none";
+          equipmentBody.style.display = "none";
+          dashboardBody.style.display = "none";
+
+          // Check if there are any exercises in the list 
+          // If there is, prompt user to confirm removing list 
+
+          // If they confirm remove items from list and clear filters and hide exercise list
+          checkAndClearWorkouts("workoutSummaryPage");
+
+      } else if( event.target.id == "qrImg") {
         //Get link from hidden field
         const workoutLink = event.target.parentElement.parentElement.querySelector("#workoutLink").href;
         const workoutName = event.target.parentElement.parentElement.querySelector("#workoutSummaryName").innerText
