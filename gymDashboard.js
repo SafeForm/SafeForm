@@ -431,6 +431,21 @@ function main() {
         //Produce QR code and add it to div
         generateQRCode(workoutLink, qrGymName.toLowerCase());
 
+        //Show modal
+        var modalStyle = document.getElementById("modalWrapper");
+
+        modalStyle.style.display = "flex";
+        modalStyle.style.flexDirection = "column";
+        modalStyle.style.justifyContent = "center";
+        modalStyle.style.alignItems = "center";
+
+        var workoutQRDiv = document.getElementById("workoutQRDiv");
+
+        workoutQRDiv.style.display = "flex";
+        workoutQRDiv.style.flexDirection = "column";
+        workoutQRDiv.style.justifyContent = "center";
+        workoutQRDiv.style.alignItems = "center";
+
       } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
         //Remove QR code
         if(document.querySelector(".qr-code img") != null) {
