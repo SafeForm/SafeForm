@@ -24,6 +24,9 @@ function main() {
     "gastrocnemius":"Calves",
     "erector-spinae":"Lower Back"
   }
+
+  //Populate gym name text box value
+  document.getElementById("gymNameTextBox").value = document.getElementById("gymFullName").innerText;
   /*
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
@@ -564,7 +567,8 @@ function main() {
         currentExercise.appendChild(nextExercise.removeChild(nextExercise.querySelector("#individualGuide")));
         nextExercise.appendChild(temp);  
 
-      } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText") {
+      } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText" ||
+      event.target.id == "createWorkoutTablet" || event.target.id == "createWorkoutImageTablet" || event.target.id == "createWorkoutTextTablet") {
 
         //Set create workout flag
         sessionStorage.setItem("createWorkout", true);
@@ -573,7 +577,7 @@ function main() {
         document.getElementById("workoutSummaryPage").style.display = "none";
       } else if(event.target.id == "reset-filters") {
         resetGeneralFilters(true);
-      } else if (event.target.id == "arrowImg" || event.target.id == "filterOn" || event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" || 
+      } else if (event.target.id == "arrowImg" || event.target.id == "filterOn" || event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" ||
         event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
         || event.target.classList.contains('filter-checkbox') || event.target.classList.contains('clear-filter') || (event.target.tagName == "INPUT" &&  event.target.id != "workoutSearch" && !(event.target.id.includes("radio"))) || event.target.classList.contains('clear-container') || event.target.classList.contains('clear-filters')) {
         document.getElementById("filterMenu").style.display = "block";
@@ -697,6 +701,10 @@ function main() {
           //Rotate arrow back:
           document.getElementById("arrowWrapper").style.transform = 'rotate(0deg)';
           document.getElementById("filterButton").click();
+
+        } else if(document.getElementById("filterBodyIpad").style.display == "flex" && !event.target.classList.value.includes("checkbox-field") && event.target.id != "arrowImgIpad" && event.target.id != "filtersTextIpad" && event.target.id != "filterButtonIpad" && event.target.id != "filtersImageIpad" && event.target.tagName != "SPAN") {
+
+          document.getElementById("filterButtonIpad").click();
         }
 
       }
@@ -744,9 +752,12 @@ function main() {
             document.getElementById("filterOn").style.display = "block";
           } else if (res[1] > 0) {
             document.getElementById("clearExperienceExerciseFilters").style.display = "block";
+            document.getElementById("filterOnIpad").style.display = "block";
+            
           } else {
             document.getElementById("clearExperienceExerciseFilters").style.display = "none";
             document.getElementById("filterOn").style.display = "none";
+            document.getElementById("filterOnIpad").style.display = "none";
           }
 
         });
