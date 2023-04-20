@@ -25,6 +25,8 @@ function main() {
     "erector-spinae":"Lower Back"
   }
 
+  var hasLoadedExercises = false;
+
   //Populate gym name text box value
   document.getElementById("gymNameTextBox").value = document.getElementById("gymFullName").innerText;
   /*
@@ -349,40 +351,61 @@ function main() {
     //Add workout
     //Setting onclick events for adding guides to workout
     var guideExercises = document.querySelectorAll("#individualGuide");
-    for (let i = 0; i < guideExercises.length; i++) {
-      
-      guideExercises[i].onclick = (event) => {
-        //Make sure when info button is clicked the exercise isnt added to the list
-        if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
-          var copyOfGuide = '';
-          copyOfGuide = guideExercises[i].cloneNode(true);
-    
-          //Remove info button
-          copyOfGuide.querySelector("#guideLinkInfo").remove();
-    
-          //Copy thumbnail and svg person into a separate div
-          var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-          var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+    window.fsAttributes = window.fsAttributes || [];
+    window.fsAttributes.push([
+      'cmsfilter',
+      (filterInstances) => {
 
-          //Change ID of exercise name
-          copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
-    
-          //Ensure copy border colour is SF blue
-          copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+        // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
+        const filterInstance = filterInstances;
 
-          addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
-    
-          createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideExercises[i]);
+        // The `renderitems` event runs whenever the list renders items after filtering.
+        filterInstance[1].listInstance.on('renderitems', (renderedItems) => {
 
-        }
+          if(!hasLoadedExercises) {
+            hasLoadedExercises = true;
+            var guideExercises = document.querySelectorAll("#individualGuide");
+            for (let i = 0; i < guideExercises.length; i++) {
+              
+              guideExercises[i].onclick = (event) => {
+                //Make sure when info button is clicked the exercise isnt added to the list
+                if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
+                  var copyOfGuide = '';
+                  copyOfGuide = guideExercises[i].cloneNode(true);
+            
+                  //Remove info button
+                  copyOfGuide.querySelector("#guideLinkInfo").remove();
+            
+                  //Copy thumbnail and svg person into a separate div
+                  var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+                  var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+        
+                  //Change ID of exercise name
+                  copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+            
+                  //Ensure copy border colour is SF blue
+                  copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+        
+                  addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+            
+                  createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideExercises[i]);
+        
+                }
+        
+              }
+        
+            }
+          }
+          
+        });
+      },
+    ]);
 
-      }
 
-    }
+ 
 
     //Listen for click events:
     document.addEventListener('click', function (event) {
-
       if (event.target.nodeName == "path") {
         var muscleFilter = sessionStorage.getItem("muscleFilter");
         
