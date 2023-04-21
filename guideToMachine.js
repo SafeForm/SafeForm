@@ -262,10 +262,13 @@ function main() {
       //Apply pin filter
       document.getElementById("pinCheckbox").click();
     } else if(event.target.id == "plateButton") {
-      //Apply pin filter
+      //Apply plate filter
       document.getElementById("plateCheckbox").click();
-    } else if(event.target.id == "cableButton") {
-      //Apply pin filter
+    } else if(event.target.id == "bodyButton") {
+      //Apply body filter
+      document.getElementById("bodyCheckbox").click();
+    }else if(event.target.id == "cableButton") {
+      //Apply cable filter
       document.getElementById("cableCheckbox").click();
     } else if(event.target.id == "smithMachine") {
       //Update machine name in modal text
