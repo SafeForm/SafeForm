@@ -385,6 +385,13 @@ function main() {
   //Splitting gym name text to ensure filtering works correctly
   //Iterate through list
   var exerciseList = document.getElementById("guideList").children;
+  parseOutMultipleCMSFields(exerciseList);
+  var exerciseList2 = document.getElementById("guideList2");
+
+  if(exerciseList2 != null) {
+    console.log("Going through 2");
+    parseOutMultipleCMSFields(exerciseList2.children);
+  }
   for(let i = 0; i < exerciseList.length; i++) {
     
     //Obtain the gym text exerciseList
@@ -497,6 +504,43 @@ function main() {
     }
 
   }
+  function parseOutMultipleCMSFields(exerciseList) {
+    for(let i = 0; i < exerciseList.length; i++) {
+    
+      //Obtain the gym text exerciseList
+      var gymElement = exerciseList[i].querySelector("#gymField");
+      var muscleElement = exerciseList[i].querySelector("#scientificPrimaryMuscle");
+      
+      if(gymElement) {
+        
+        //Split the gym field by comma
+        var gymElementArr = gymElement.innerText.split(',');
+        
+        //Obtain the original dv
+        var exerciseInfoDiv = exerciseList[i];
+        
+        if (gymElementArr.length > 1) {
+          //Clone the gym text field and split it into their own text block
+          cloneAndAddElement(gymElementArr, gymElement, exerciseInfoDiv, "div", "gymName", "gymfilter");
+        }
+      }
+      
+      if (muscleElement) {
+  
+        //Split the muscle field by comma
+        var muscleElementArr = muscleElement.innerText.split(',');
+  
+        //Obtain the original div
+        var exerciseInfoDiv = exerciseList[i];
+  
+        if (muscleElementArr.length > 1) {
+          //Clone the muscle text field and split it into their own text block
+          cloneAndAddElement(muscleElementArr, muscleElement, exerciseInfoDiv, "div", "scientificPrimaryMuscle", "muscleNameFilter");
+        }
+      }
+  
+    }
+  }
 
   async function sendDetailsToMake(machineOverride="") {
     var machineObj = {};
@@ -594,3 +638,5 @@ function main() {
   }
 
 }
+
+
