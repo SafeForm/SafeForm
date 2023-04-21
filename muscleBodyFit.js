@@ -197,7 +197,7 @@ function main() {
   
   //Splitting gym name text to ensure filtering works correctly
   //Iterate through list
-  var exerciseList = document.getElementById("guideList").children;
+  var exerciseList = document.querySelectorAll("#exerciseInfoDiv");
 
   for(let i = 0; i < exerciseList.length; i++) {
 		
