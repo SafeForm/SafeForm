@@ -29,6 +29,7 @@ function main() {
 
   //Populate gym name text box value
   document.getElementById("gymNameTextBox").value = document.getElementById("gymFullName").innerText;
+
   /*
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
@@ -483,6 +484,11 @@ function main() {
           document.getElementById("modalWrapper").style.display = "none";
           document.getElementById("submitIssueDiv").style.display = "none";
           document.getElementById("workoutQRDiv").style.display = "none";
+
+          //Update help icon
+          document.getElementById("helpDiv").style.backgroundColor = "";
+          document.getElementById("helpImage").style.display = "block";
+          document.getElementById("helpImageClicked").style.display = "none";
         }
 
       } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
