@@ -27,6 +27,7 @@ function main() {
   const svgPerson = document.getElementById("ajaxContent");
   const guideList = document.getElementById("guideListParent");
   const infoText = document.getElementById("clickForMoreInfoText");
+  const tapMuscleText = document.getElementById("tapMuscleText");
   const backDiv = document.getElementById("backDiv");
   const backButton = document.getElementById("clearText");
 
@@ -46,6 +47,7 @@ function main() {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
       infoText.style.display = 'block';
+      tapMuscleText.style.display = 'none';
       //Check if ipad and below
       if(screen.width <= 950) {
         backDiv.style.display = 'block';
@@ -76,6 +78,7 @@ function main() {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
       infoText.style.display = 'block';
+      tapMuscleText.style.display = 'none';
 
       //Check if ipad and below
       if(screen.width <= 950) {
@@ -97,6 +100,7 @@ function main() {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
       infoText.style.display = 'block';
+      tapMuscleText.style.display = 'none';
       //Check if ipad and below
       if(screen.width <= 950) {
         backDiv.style.display = 'block';
@@ -117,6 +121,7 @@ function main() {
     svgPerson.style.display = 'none';
     guideList.style.display = 'block';
     infoText.style.display = 'block';
+    tapMuscleText.style.display = 'none';
     //Check if ipad and below
     if(screen.width <= 950) {
       backDiv.style.display = 'block';
@@ -178,6 +183,7 @@ function main() {
       svgPerson.style.display = 'none';
       guideList.style.display = 'block';
       infoText.style.display = 'block';
+      tapMuscleText.style.display = 'none';
       //Check if ipad and below
       if(screen.width <= 950) {
         backDiv.style.display = 'block';
@@ -190,6 +196,7 @@ function main() {
       svgPerson.style.display = 'block';
       guideList.style.display = 'none';
       infoText.style.display = 'none';
+      tapMuscleText.style.display = 'block';
       if(screen.width <= 950) {
         backDiv.style.display = 'none';
       } else {
@@ -219,6 +226,7 @@ function main() {
         svgPerson.style.display = 'none';
         guideList.style.display = 'block';
         infoText.style.display = 'block';
+        tapMuscleText.style.display = 'none';
         if(screen.width <= 950) {
           backDiv.style.display = 'block';
         } else {
@@ -252,6 +260,7 @@ function main() {
         backButton.style.display = 'none';
       }
       infoText.style.display = 'none';
+      tapMuscleText.style.display = 'block';
 
       //Hide filters button
       document.getElementById("showFiltersBtn").style.display = "none";
@@ -266,6 +275,7 @@ function main() {
         backButton.style.display = 'none';
       }
       infoText.style.display = 'none';
+      tapMuscleText.style.display = 'block';
       //Hide filters button
       document.getElementById("showFiltersBtn").style.display = "none";
       resetFilters();
@@ -367,6 +377,7 @@ function main() {
       filterInstance.listInstance.on('renderitems', (renderedItems) => {
         if(renderedItems.length == 0) {
           infoText.style.display = "none";
+          tapMuscleText.style.display = 'none';
         }
       });
     },
