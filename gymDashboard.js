@@ -779,15 +779,15 @@ function main() {
           //Check if the amount of active filters is more than 0
           if(res[0] > 0) {
             document.getElementById("filterOn").style.display = "block";
-            document.getElementById("reset-filters-ipad").style.display = "block";
           } else if (res[1] > 0) {
             document.getElementById("clearExperienceExerciseFilters").style.display = "block";
             document.getElementById("filterOnIpad").style.display = "block";
-            
+            document.getElementById("reset-filters-ipad").style.display = "block";
           } else {
             document.getElementById("clearExperienceExerciseFilters").style.display = "none";
             document.getElementById("filterOn").style.display = "none";
             document.getElementById("filterOnIpad").style.display = "none";
+            document.getElementById("reset-filters-ipad").style.display = "none";
           }
 
         });
