@@ -604,7 +604,7 @@ function main() {
         //Go to workout builder
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
-      } else if(event.target.id == "reset-filters") {
+      } else if(event.target.id == "reset-filters" || event.target.id == "reset-filters-ipad") {
         resetGeneralFilters(true);
       } else if (event.target.id == "arrowImg" || event.target.id == "filterOn" || event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" ||
         event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
@@ -779,6 +779,7 @@ function main() {
           //Check if the amount of active filters is more than 0
           if(res[0] > 0) {
             document.getElementById("filterOn").style.display = "block";
+            document.getElementById("reset-filters-ipad").style.display = "block";
           } else if (res[1] > 0) {
             document.getElementById("clearExperienceExerciseFilters").style.display = "block";
             document.getElementById("filterOnIpad").style.display = "block";
