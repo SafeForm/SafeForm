@@ -19,6 +19,8 @@ function main() {
 
     document.getElementById("gymFilter").innerText = `${gymName} - ${gymLocation}`;
 
+    document.getElementById("gymName").innerText = `${gymName} - ${gymLocation}`;
+
   });
 
   url = new URL(window.location.href);
