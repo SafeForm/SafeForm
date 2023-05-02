@@ -71,6 +71,7 @@ function main() {
     }
   }
 
+
   function cloneAndAddElement(valueArr, elementToClone, containerElement, tagElement, newID, customID=null) {
 
     var parentElement = elementToClone.parentElement;
@@ -101,6 +102,63 @@ function main() {
     elementToClone.remove();
 
   }
+
+  //Add workout
+  //Setting onclick events for adding guides to workout
+  var guideExercises = document.querySelectorAll("#individualGuide");
+  console.log(guideExercises.length);
+    for (let i = 0; i < guideExercises.length; i++) {
+      
+      guideExercises[i].onclick = (event) => {
+        //Make sure when info button is clicked the exercise isnt added to the list
+        if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
+          var copyOfGuide = '';
+          copyOfGuide = guideExercises[i].cloneNode(true);
+    
+          //Remove info button
+          copyOfGuide.querySelector("#guideLinkInfo").remove();
+    
+          //Copy thumbnail and svg person into a separate div
+          var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+          var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+
+          //Change ID of exercise name
+          copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+    
+          //Ensure copy border colour is SF blue
+          copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+
+          addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+    
+          createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideExercises[i]);
+
+        }
+
+      }
+
+    }
+
+  /*
+  window.fsAttributes = window.fsAttributes || [];
+  window.fsAttributes.push([
+    'cmsfilter',
+    (filterInstances) => {
+
+      // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
+      const filterInstance = filterInstances;
+
+      // The `renderitems` event runs whenever the list renders items after filtering.
+      filterInstance[1].listInstance.on('renderitems', (renderedItems) => {
+
+        if(!hasLoadedExercises) {
+          hasLoadedExercises = true;
+          
+        }
+        
+      });
+    },
+  ]);
+  */
 
   /*
     - Check if specified parameters are in URL from workout builder submitting to show appropriate page
@@ -348,62 +406,6 @@ function main() {
         }
       }
     }
-
-    //Add workout
-    //Setting onclick events for adding guides to workout
-    var guideExercises = document.querySelectorAll("#individualGuide");
-    window.fsAttributes = window.fsAttributes || [];
-    window.fsAttributes.push([
-      'cmsfilter',
-      (filterInstances) => {
-
-        // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
-        const filterInstance = filterInstances;
-
-        // The `renderitems` event runs whenever the list renders items after filtering.
-        filterInstance[1].listInstance.on('renderitems', (renderedItems) => {
-
-          if(!hasLoadedExercises) {
-            hasLoadedExercises = true;
-            var guideExercises = document.querySelectorAll("#individualGuide");
-            for (let i = 0; i < guideExercises.length; i++) {
-              
-              guideExercises[i].onclick = (event) => {
-                //Make sure when info button is clicked the exercise isnt added to the list
-                if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
-                  var copyOfGuide = '';
-                  copyOfGuide = guideExercises[i].cloneNode(true);
-            
-                  //Remove info button
-                  copyOfGuide.querySelector("#guideLinkInfo").remove();
-            
-                  //Copy thumbnail and svg person into a separate div
-                  var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-                  var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-        
-                  //Change ID of exercise name
-                  copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
-            
-                  //Ensure copy border colour is SF blue
-                  copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
-        
-                  addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
-            
-                  createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideExercises[i]);
-        
-                }
-        
-              }
-        
-            }
-          }
-          
-        });
-      },
-    ]);
-
-
- 
 
     //Listen for click events:
     document.addEventListener('click', function (event) {
