@@ -1065,7 +1065,8 @@ function main() {
         headers: {'Content-Type': 'application/json'}, 
         body: JSON.stringify(workout)
       }).then(res => {
-        console.log("Workout deleted")
+        console.log("Workout deleted");
+        location.reload();
       });
     }
 
