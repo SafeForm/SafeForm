@@ -1,0 +1,173 @@
+	:root {
+    --fc-border-color: #FFFFFF;
+    --fc-bg-event-color: rgb(200, 0, 0);
+   --fc-today-bg-color: rgb(255, 255, 255);
+  }
+  .fc-day.fc-daygrid-day {
+    height: 130px;
+    min-height: 130px;
+  }
+  .fc .fc-daygrid-day-frame {
+      cursor: pointer;
+      height: 110px;
+      min-height: 110px;
+      margin-left: 5px;
+      margin-right: 5px;
+      border-radius: 8px;
+      padding: 3px;
+      background-color: #F0F0F0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+   }
+   .fc-col-header-cell-cushion {
+    font-family: "Manrope";
+    font-weight: normal;
+    text-decoration: none;
+    color: inherit;
+    cursor: default;
+   }
+   .fc-col-header-cell-cushion:hover {
+    color: inherit;
+   }
+
+   .buttons-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-family: "Manrope";
+    font-size: 18px;
+    color: "#6D6D6F";
+   }
+   .buttons-container div {
+    padding: 10px;
+   }
+   .copy-events-button {
+    height: 44px;
+    width: 43px;
+    padding: 10px
+  }
+   @media screen and (min-width: 1441px) {
+    .copy-events-button {
+      height: 46px;
+      width: 45px;
+      padding: 10px
+    }
+  }
+  .copy-events-button:hover {
+    cursor: pointer;
+    border-radius: 20%;
+    background-color: rgba(102, 106, 112, 0.25);
+  }
+  .delete-events-button {
+    height: 44px;
+    width: 43px;
+    padding: 10px
+  }
+  @media screen and (min-width: 1441px) {
+    .delete-events-button {
+      height: 46px;
+      width: 45px;
+      padding: 10px
+    }
+  } 
+
+  .delete-events-button:hover {
+    cursor: pointer;
+    border-radius: 20%;
+    background-color: rgba(102, 106, 112, 0.25);
+  }   
+  /* .fc button {
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+   } */
+  .delete-event-button {
+    position: absolute;
+    top: -7px;
+    left: 0;
+    display: none;
+    background-color: rgba(0, 0, 0, 0);
+    width: 44px;
+    height: 44px;
+    z-index: 15;
+
+  }
+  .delete-event-button img {
+    padding: 3px;
+  }
+  .delete-event-button:hover img {
+    cursor: pointer;
+    border-radius: 20%;
+    background-color: rgba(102, 106, 112, 0.25);
+  }
+  .fc-event {
+    background-color: white;
+    border-color: #0C08D5;
+    border-width: 2px;
+  }
+  .fc-day-grid .fc-row .fc-day {
+    height: 5px;
+  }
+  .fc-content {
+		color: black;
+    font-family: "Manrope";
+    font-size: 12px;
+    padding: 5px;
+  }
+  .fc-details {
+    color: #666a70;
+  }
+  .fc-title {
+ 		font-size: 14px;
+    padding-bottom: 5px;
+    z-index: 1;
+  }
+  *:focus {
+    outline: none;
+  }
+	input[type="radio"][name="workoutFocusArea"]:checked+span{ 
+  	background-color: #0C08D5; 
+    border: 0px;
+  	border-radius: 8px;
+    color: white;
+  } 
+	#experienceTag:hover + .tooltiptext {
+  	display: block;
+  }
+  #workoutSummaryDescription{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+  }
+  
+  #workoutSummaryName {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+  }
+  
+  input[type=number]::-webkit-inner-spin-button {
+    opacity: 1
+	}
+  #sets::-webkit-inner-spin-button {
+    -webkit-appearance: none; 
+    margin: 0; 
+  }
+
+  #reps::-webkit-inner-spin-button {
+    -webkit-appearance: none; 
+    margin: 0; 
+  }
+
+  #workoutSummary {
+  	cursor: pointer;
+ 	}
