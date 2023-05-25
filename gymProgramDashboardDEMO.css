@@ -1,7 +1,11 @@
 	:root {
     --fc-border-color: #FFFFFF;
     --fc-bg-event-color: rgb(200, 0, 0);
-   --fc-today-bg-color: rgb(255, 255, 255);
+    --fc-today-bg-color: rgb(255, 255, 255);
+    --fc-highlight-color: rgba(12, 8, 213, 0.40);
+  }
+  .fc-daygrid-day.fc-day.fc-event-dragging:hover {
+    background-color: red; /* Change this to the desired color */
   }
   .fc-day.fc-daygrid-day {
     height: 130px;
@@ -87,7 +91,7 @@
   .delete-event-button {
     position: absolute;
     top: -7px;
-    left: 0;
+    right: 0;
     display: none;
     background-color: rgba(0, 0, 0, 0);
     width: 44px;
@@ -95,10 +99,28 @@
     z-index: 15;
 
   }
+  .copy-event-button {
+    position: absolute;
+    top: -7px;
+    left: 0;
+    display: none;
+    background-color: rgba(0, 0, 0, 0);
+    width: 44px;
+    height: 44px;
+    z-index: 15;
+  }
+  .copy-event-button img {
+    padding: 3px;
+  }
   .delete-event-button img {
     padding: 3px;
   }
   .delete-event-button:hover img {
+    cursor: pointer;
+    border-radius: 20%;
+    background-color: rgba(102, 106, 112, 0.25);
+  }
+  .copy-event-button:hover img {
     cursor: pointer;
     border-radius: 20%;
     background-color: rgba(102, 106, 112, 0.25);
