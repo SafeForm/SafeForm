@@ -27,6 +27,7 @@ function main() {
   //Flag for checking if radio button was human clicked or programmatic
   var isProgrammaticClick = false;
   var isPasteState = false;
+  var isEventPasteState = false;
   var setFromPaste = false;
   var clickedCopyButton = "";
   
@@ -254,11 +255,10 @@ function main() {
         right: '',
       },
       dateClick: function(info) {
-
         // Do something when the user clicks on a date
 
         //Don't show workout modal if user is in paste state or delete / copy button is pressed
-        if(!isPasteState && info.jsEvent.target.tagName != "IMG") {
+        if(!(isPasteState || isEventPasteState) && info.jsEvent.target.tagName != "IMG") {
 
           //Check if day already has date in it
           var clickedDay = info.dayEl; // Get the DOM element of the clicked day
@@ -282,46 +282,81 @@ function main() {
           }
         } else if (setFromPaste) {
           isPasteState = false;
+          isEventPasteState = false;
           setFromPaste = false;
         }
-
- 
 
       },
       eventDidMount: function(info) {
         var eventEl = info.el;
         var eventElParent = eventEl.closest(".fc-daygrid-day-frame");
 
-        // Create a delete button element
+        // Create a copy and delete button element
         var deleteButtonEl = document.createElement('button');
+        var copyButtonEl = document.createElement('button');
+
+        copyButtonEl.className = 'copy-event-button';
         deleteButtonEl.className = 'delete-event-button';
+
         var originalCellDay = "";
         var originalCell = "";
 
         // Create an image element for the delete button
         var deleteImageEl = document.createElement('img');
         deleteImageEl.src = 'https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/6461eb594bc9d89c2d285060_trashIcon.webp';
+
+        // Create an image element for the delete button
+        var copyImageEl = document.createElement('img');
+        copyImageEl.src = 'https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp';
       
         // Append the image element to the delete button
         deleteButtonEl.appendChild(deleteImageEl);
+        copyButtonEl.appendChild(copyImageEl);
 
         // Append the delete button to the event element
         eventElParent.appendChild(deleteButtonEl);
+
+        eventElParent.appendChild(copyButtonEl);
       
         // Add a hover event listener to show/hide the delete button
         eventElParent.addEventListener('mouseenter', function() {
+          copyButtonEl.style.display = 'block';
           deleteButtonEl.style.display = 'block';
         });
       
         eventElParent.addEventListener('mouseleave', function() {
+          copyButtonEl.style.display = 'none';
           deleteButtonEl.style.display = 'none';
         });
       
         // Add a click event listener to remove the event
         deleteImageEl.addEventListener('click', function(event) {
           event.stopPropagation(); // Prevent event propagation to the parent elements
+
+          //Remove copy, delete buttons and event
+          event.target.parentElement.nextElementSibling.remove();
           info.event.remove();
           event.target.remove();
+        });
+
+        // Add a click event listener to copy the event
+        copyImageEl.addEventListener('click', function(event) {
+          event.stopPropagation(); // Prevent event propagation to the parent elements
+
+          // Get the event details
+          var eventDetails = {
+            allDay: info.event.allDay,
+            extendedProps: {
+              length: info.event.extendedProps.length,
+              targetArea: info.event.extendedProps.targetArea,
+              workoutID: info.event.extendedProps.workoutID
+            },
+            start: info.event.start,
+            title: info.event.title
+          };
+
+          sessionStorage.setItem('copiedEvent', JSON.stringify(eventDetails));
+          isEventPasteState = true;
         });
         
         // Add event listeners for event drag start and stop
@@ -339,9 +374,11 @@ function main() {
           if(originalCell) {
             // Find the corresponding delete button element in the original cell
             var originalDeleteButtonEl = originalCell.querySelector(".delete-event-button");
+            var originalCopyButtonEl = originalCell.querySelector(".copy-event-button");
             // Remove the delete button from the original cell
-            if (originalDeleteButtonEl && stoppedEventDay != originalCellDay) {
+            if ((originalDeleteButtonEl && originalCopyButtonEl) && stoppedEventDay != originalCellDay) {
               originalDeleteButtonEl.remove();
+              originalCopyButtonEl.remove()
             }
           }
 
@@ -375,9 +412,6 @@ function main() {
             var buttonsContainerHtml = '<div class="buttons-container">' + '<div>' + rowIndex + '</div>' + copyButtonHtml + deleteButtonHtml + '</div>';
             $(this).prepend(buttonsContainerHtml);
             
-            
-            
-            
           }
 
           index++;
@@ -385,7 +419,6 @@ function main() {
 
       },
       
-
     });
     
     calendar.render();
@@ -481,8 +514,6 @@ function main() {
       calendar.addEvent(newEvent);
     }
     
-
-  
     //Grab main page elements to set hiding/showing appropriately
     const equipmentBody = document.getElementById("equipmentBody");
     const dashboardBody = document.getElementById("dashboardBody");
@@ -536,9 +567,16 @@ function main() {
   
     document.addEventListener('mouseover', function (event) {
   
-      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events')) && isPasteState) {
+      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') ) && (isPasteState || isEventPasteState)) {
         var hoveredRow = event.target.closest('[role="row"]');
-        togglePasteStateCSS(hoveredRow, true);
+        var hoveredDay = event.target.closest('.fc-daygrid-day-frame');
+
+        if(isPasteState) {
+          toggleRowPasteStateCSS(hoveredRow, true);
+        } else {
+          toggleDayPasteStateCSS(hoveredDay, true);
+        }
+        
 
       } else if(event.target.id == "workoutExercisename") {
           
@@ -577,7 +615,7 @@ function main() {
   
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events'))) {
         var hoveredRow = event.target.closest('[role="row"]');
-        togglePasteStateCSS(hoveredRow, false);
+        toggleRowPasteStateCSS(hoveredRow, false);
 
       } else if(event.target.id == "workoutExercisename") {
         event.target.parentElement.parentElement.parentElement.parentElement.querySelector("#thumbnailAndMuscleDiv").style.display = "none";
@@ -730,66 +768,94 @@ function main() {
     document.addEventListener('click', function(event) {
 
       //Check if in paste state and anywhere in the row is clicked
-      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') || event.target.classList.contains('fc-daygrid-day-events')) && isPasteState) {
+      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') || event.target.classList.contains('fc-daygrid-day-events')) && (isPasteState || isEventPasteState)) {
 
         //Get entire row of paste button
         var weekRow = event.target.closest('[role="row"]');
-        if (weekRow) {
+        var dayCell = event.target.closest('.fc-daygrid-day-frame');
 
-          //Obtain saved copied events
-          var copiedEvents = JSON.parse(sessionStorage.getItem('copiedEvents'));
+        if(isPasteState) {
+          
+          if (weekRow) {
 
-          if (copiedEvents) {
+            //Obtain saved copied events
+            var copiedEvents = JSON.parse(sessionStorage.getItem('copiedEvents'));
 
-            //Get start time of entire week
-            var startTime = new Date(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
+            if (copiedEvents) {
 
-            copiedEvents.forEach(function(event) {
-              event.start = new Date(event.start);
-            
-              var millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+              //Get start time of entire week
+              var startTime = new Date(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
 
-              startTime.setHours(0, 0, 0, 0);
+              copiedEvents.forEach(function(event) {
+                event.start = new Date(event.start);
+              
+                var millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
 
-              // Calculate the start and end dates of the week of interest
-              var endOfWeek = new Date(startTime.getTime() + (7 * 24 * 60 * 60 * 1000));
-            
-              // Filter the events within the week of interest
-              var eventsInWeek = calendar.getEvents().filter(function(existingEvent) {
-                var existingEventStart = existingEvent.start;
-                return (
-                  existingEventStart >= startTime && existingEventStart <= endOfWeek
-                );
-              });
-            
-              // Calculate the difference between copied event and selected paste week
-              if (event.start.getTime() > startTime.getTime()) {
-                var difference = Math.floor((event.start.getTime() - startTime.getTime()) / millisecondsPerWeek);
-                event.start.setDate(event.start.getDate() - (difference * 7));
-              } else if (event.start.getTime() < startTime.getTime()) {
-                var difference = Math.ceil((startTime.getTime() - event.start.getTime()) / millisecondsPerWeek);
-                event.start.setDate(event.start.getDate() + (difference * 7));
-              }
+                startTime.setHours(0, 0, 0, 0);
 
-              // Check if there are any duplicate events within the week
-              var duplicateEventExists = eventsInWeek.some(function(existingEvent) {
-                return existingEvent.start.toDateString() === event.start.toDateString();
+                // Calculate the start and end dates of the week of interest
+                var endOfWeek = new Date(startTime.getTime() + (7 * 24 * 60 * 60 * 1000));
+              
+                // Filter the events within the week of interest
+                var eventsInWeek = calendar.getEvents().filter(function(existingEvent) {
+                  var existingEventStart = existingEvent.start;
+                  return (
+                    existingEventStart >= startTime && existingEventStart <= endOfWeek
+                  );
+                });
+              
+                // Calculate the difference between copied event and selected paste week
+                if (event.start.getTime() > startTime.getTime()) {
+                  var difference = Math.floor((event.start.getTime() - startTime.getTime()) / millisecondsPerWeek);
+                  event.start.setDate(event.start.getDate() - (difference * 7));
+                } else if (event.start.getTime() < startTime.getTime()) {
+                  var difference = Math.ceil((startTime.getTime() - event.start.getTime()) / millisecondsPerWeek);
+                  event.start.setDate(event.start.getDate() + (difference * 7));
+                }
+
+                // Check if there are any duplicate events within the week
+                var duplicateEventExists = eventsInWeek.some(function(existingEvent) {
+                  return existingEvent.start.toDateString() === event.start.toDateString();
+                });
+                
+                if(!duplicateEventExists) {
+                  // Add event to calendar
+                  calendar.addEvent(event);
+                }
+
               });
               
-              if(!duplicateEventExists) {
-                // Add event to calendar
-                calendar.addEvent(event);
-              }
-
-            });
-            
+            }
           }
-        }
-        togglePasteStateCSS(weekRow, false);
-        setFromPaste = true;
+        } else {
+          var copiedEvent = JSON.parse(sessionStorage.getItem('copiedEvent'));
+          var clickedDate = new Date(dayCell.parentElement.getAttribute("data-date"));
 
+          if ((copiedEvent && clickedDate)) {
+        
+            // Create a new event object with the copied event details
+            var newEvent = {
+              title: copiedEvent.title,
+              start: clickedDate,
+              end: clickedDate, // Set the end date as the same as start for all-day events
+              allDay: copiedEvent.allDay,
+              extendedProps: copiedEvent.extendedProps
+            };
+        
+            // Add the new event to the calendar
+            calendar.addEvent(newEvent);
+      
+          }
+
+        }
+
+        toggleRowPasteStateCSS(weekRow, false);
+        toggleDayPasteStateCSS(dayCell, false);
+
+        setFromPaste = true;
       } else {
         isPasteState = false;
+        isEventPasteState = false;
       }
 
     });
@@ -811,7 +877,6 @@ function main() {
 
         //Get entire row of copy button
         var weekRow = event.target.closest('[role="row"]');
-
         //Get first cell of that week
         var weekStart = new Date(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
         var weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000); // Add 7 days to get the end of the week
@@ -832,7 +897,7 @@ function main() {
 
         //Get entire row of copy button
         var weekRow = event.target.closest('[role="row"]');
-
+        var weekRowChildren = weekRow.children;
         //Get first cell of that week
         var weekStart = new Date(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
         var weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000); // Add 7 days to get the end of the week
@@ -849,8 +914,17 @@ function main() {
 
         // Remove the week events from the calendar
         weekEvents.forEach(function(event) {
+
           event.remove();
         });
+        for(var i = 1; i < weekRowChildren.length; i++) {
+          var copyButton = weekRowChildren[i].querySelector('.copy-event-button');
+          var deleteButton = weekRowChildren[i].querySelector('.delete-event-button');
+          if(copyButton && deleteButton) {
+            copyButton.remove();
+            deleteButton.remove();
+          }
+        }
 
 
       } else if(event.target.nodeName == "path") {
@@ -1263,7 +1337,7 @@ function main() {
       }
     }, false);
 
-    function togglePasteStateCSS(row, toggleState) {
+    function toggleRowPasteStateCSS(row, toggleState) {
       if(row && row.children) {
         var rowChildren = row.children;
         //Iterae through each day in the row and apply css
@@ -1275,8 +1349,18 @@ function main() {
           }
         }
       }
+    }
 
-      
+    function toggleDayPasteStateCSS(day, toggleState) {
+     
+      if(day) {
+        //Iterae through each day in the row and apply css
+        if(toggleState) {
+          day.style.backgroundColor = "rgba(12, 8, 213, 0.15)";
+        } else {
+          day.style.backgroundColor = "#F0F0F0";
+        }
+      }
     }
     
     async function resetFilters(onlyCheckboxes=false) {
