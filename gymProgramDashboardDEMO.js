@@ -30,6 +30,7 @@ function main() {
   var isEventPasteState = false;
   var setFromPaste = false;
   var clickedCopyButton = "";
+  var clickedEventCopyButton = "";
   
   var HTML5 = HTML5 || {};
   
@@ -222,20 +223,22 @@ function main() {
   
   window.addEventListener('load', (event) => {
 
+    //Update height of calendar:
+    //document.querySelector(".fc-view-harness-active").style.height = "100%"
+
     //Start workouts button clicked
     document.getElementById("workoutRadio").click();
     checkProgramWorkoutCheckBox();
 
     var selectedDate = "";
     var currentNumberOfWeeks = 4;
-    var calendarHeight = 500;
   
     var calendarEl = document.getElementById('calendar');
     
     var calendar = new FullCalendar.Calendar(calendarEl, {
       // Your calendar options here
       initialView: 'dayGridFourWeek',
-      contentHeight: `${calendarHeight}px`,
+      contentHeight: "90%",
       duration: { weeks: currentNumberOfWeeks},
       views: {
         dayGridFourWeek: {
@@ -324,9 +327,21 @@ function main() {
           deleteButtonEl.style.display = 'block';
         });
       
-        eventElParent.addEventListener('mouseleave', function() {
-          copyButtonEl.style.display = 'none';
-          deleteButtonEl.style.display = 'none';
+        eventElParent.addEventListener('mouseleave', function(event) {
+
+          //Get date of hovered date 
+          var hoveredEventDate = new Date(event.target.closest('.fc-daygrid-day-frame').parentElement.getAttribute("data-date"));
+          var copiedEventDate = new Date(JSON.parse(sessionStorage.getItem('copiedEvent')).start);
+          hoveredEventDate.setHours(hoveredEventDate.getHours() - 10);
+
+          if(isEventPasteState && (hoveredEventDate.getTime() == copiedEventDate.getTime())) {
+            copyButtonEl.style.display = 'block';
+            deleteButtonEl.style.display = 'block';
+          } else {
+            copyButtonEl.style.display = 'none';
+            deleteButtonEl.style.display = 'none';
+          }
+
         });
       
         // Add a click event listener to remove the event
@@ -341,8 +356,14 @@ function main() {
 
         // Add a click event listener to copy the event
         copyImageEl.addEventListener('click', function(event) {
+
           event.stopPropagation(); // Prevent event propagation to the parent elements
 
+          //Save the copy button
+          clickedEventCopyButton = event.target;
+
+          //Set image to pressed state
+          copyImageEl.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddeb5b0ba0c6aee88f383_copyPressedNew.webp";
           // Get the event details
           var eventDetails = {
             allDay: info.event.allDay,
@@ -869,6 +890,19 @@ function main() {
         clickedCopyButton = "";
       }
 
+      if(clickedEventCopyButton && clickedEventCopyButton.src != "") {
+
+        //Hide the copy and delete buttons, reset the image state to unclicked
+        clickedEventCopyButton.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/64660537b94dae417d693cce_copyButton.webp";
+        console.log(clickedEventCopyButton);
+        console.log(clickedEventCopyButton.parentElement);
+        console.log(clickedEventCopyButton.parentElement.previousSibling);
+
+        clickedEventCopyButton.parentElement.style.display = "none";
+        clickedEventCopyButton.parentElement.previousSibling.style.display = "none";
+        clickedEventCopyButton = "";
+      }
+
       if (event.target.classList.contains('copy-events-button')) {
         clickedCopyButton = event.target;
         event.target.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddeb5b0ba0c6aee88f383_copyPressedNew.webp"
@@ -1340,7 +1374,7 @@ function main() {
     function toggleRowPasteStateCSS(row, toggleState) {
       if(row && row.children) {
         var rowChildren = row.children;
-        //Iterae through each day in the row and apply css
+        //Iterate through each day in the row and apply css
         for(let i = 1; i < rowChildren.length; i++) {
           if(toggleState) {
             rowChildren[i].querySelector(".fc-daygrid-day-frame").style.backgroundColor = "rgba(12, 8, 213, 0.15)";
@@ -1614,7 +1648,7 @@ function main() {
       const events = eventsData.map(event => {
         const [day, month, year] = event["Start Date"].split("/");
         const startDate = new Date(`${year}-${month}-${day}`);
-
+      
         return {
           title: event.workoutName,
           extendedProps: {"length": event["Duration"], "targetArea": event["Target Area"], "workoutID": event["workoutID"]},
@@ -1622,7 +1656,24 @@ function main() {
           allDay: true
         };
       });
+      
+      // Extract and convert the "start" values into Date objects
+      const dates = events.map(obj => obj.start);
+      
+      // Sort the dates in ascending order
+      dates.sort((a, b) => a - b);
+      
+      // Calculate the number of weeks between the first and last dates
+      const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+      const firstDate = dates[0];
+      const lastDate = dates[dates.length - 1];
+      const weeks = Math.floor((lastDate - firstDate) / millisecondsPerWeek) - 1;
 
+      //Update calendar weeks if necessary
+      if(weeks > 4) {
+        updateCalendarWeeks(weeks);
+      }
+      
       //Populate calendar with events
       updateCalendar(events);
 
@@ -1658,11 +1709,17 @@ function main() {
 
     }
 
-    function updateCalendarWeeks() {
+    function updateCalendarWeeks(overrideWeeks=0) {
+
+      if(overrideWeeks != 0 && overrideWeeks >= 4) {
+
+        currentNumberOfWeeks = overrideWeeks;
       
-      //Increment current number of weeks
-      currentNumberOfWeeks += 1;
-      calendarHeight += 100;
+      } else {
+        //Increment current number of weeks
+        currentNumberOfWeeks += 1;
+      }
+
       calendar.setOption('duration', { weeks: currentNumberOfWeeks });
       
       // Re-render the calendar with the updated view
@@ -1671,11 +1728,13 @@ function main() {
 
       var eventCells = document.querySelectorAll(".fc-daygrid-day-frame");
       for(let i = 0; i < eventCells.length; i++) {
-        eventCells[i].style.height = "100px";
-        eventCells[i].style.minHeight = "100px";
+        eventCells[i].style.height = "110px";
+        eventCells[i].style.minHeight = "110px";
       }
-
-      document.querySelector('.fc-scrollgrid-sync-table').scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+      if(overrideWeeks == 0) {
+        document.querySelector('.fc-scrollgrid-sync-table').scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+      }
+      
       calendar.render();
     }
   
