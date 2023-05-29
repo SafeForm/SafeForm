@@ -4,27 +4,27 @@
     --fc-today-bg-color: rgb(255, 255, 255);
     --fc-highlight-color: rgba(12, 8, 213, 0.40);
   }
-  .fc-daygrid-day.fc-day.fc-event-dragging:hover {
-    background-color: red; /* Change this to the desired color */
-  }
+
   .fc-day.fc-daygrid-day {
-    height: 130px;
-    min-height: 130px;
+    height: 120px;
+    min-height: 120px;
   }
+
   .fc .fc-daygrid-day-frame {
-      cursor: pointer;
-      height: 110px;
-      min-height: 110px;
-      margin-left: 5px;
-      margin-right: 5px;
-      border-radius: 8px;
-      padding: 3px;
-      background-color: #F0F0F0;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+    cursor: pointer;
+    height: 110px;
+    min-height: 110px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-radius: 8px;
+    padding: 3px;
+    background-color: #F0F0F0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
    }
+
    .fc-col-header-cell-cushion {
     font-family: "Manrope";
     font-weight: normal;
@@ -35,7 +35,6 @@
    .fc-col-header-cell-cushion:hover {
     color: inherit;
    }
-
    .buttons-container {
     display: flex;
     flex-direction: row;
@@ -84,10 +83,7 @@
     border-radius: 20%;
     background-color: rgba(102, 106, 112, 0.25);
   }   
-  /* .fc button {
-    padding-left: 0.3em;
-    padding-right: 0.3em;
-   } */
+
   .delete-event-button {
     position: absolute;
     top: -7px;
@@ -143,7 +139,15 @@
     color: #666a70;
   }
   .fc-title {
- 		font-size: 14px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    max-height: 1.2em; 
+    line-height: 1.2em; 
+    white-space: normal; 
+    font-size: 14px;
     padding-bottom: 5px;
     z-index: 1;
   }
