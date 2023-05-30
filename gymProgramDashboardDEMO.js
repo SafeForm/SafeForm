@@ -331,7 +331,9 @@ function main() {
 
           //Get date of hovered date 
           var hoveredEventDate = new Date(event.target.closest('.fc-daygrid-day-frame').parentElement.getAttribute("data-date"));
-          var copiedEventDate = new Date(JSON.parse(sessionStorage.getItem('copiedEvent')).start);
+          if(sessionStorage.getItem('copiedEvent')) {
+            var copiedEventDate = new Date(JSON.parse(sessionStorage.getItem('copiedEvent')).start);
+          }
           hoveredEventDate.setHours(hoveredEventDate.getHours() - 10);
 
           if(isEventPasteState && (hoveredEventDate.getTime() == copiedEventDate.getTime())) {
