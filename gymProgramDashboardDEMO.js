@@ -334,6 +334,7 @@ function main() {
           if(sessionStorage.getItem('copiedEvent')) {
             var copiedEventDate = new Date(JSON.parse(sessionStorage.getItem('copiedEvent')).start);
           }
+          
           hoveredEventDate.setHours(hoveredEventDate.getHours() - 10);
 
           if(isEventPasteState && (hoveredEventDate.getTime() == copiedEventDate.getTime())) {
