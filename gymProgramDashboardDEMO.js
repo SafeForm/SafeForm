@@ -1503,9 +1503,9 @@ function main() {
     async function sendProgramToMake(program) {
 
       if(sessionStorage.getItem("editProgram") == "true") {
-        sendProgramRequestToMake("https://hook.us1.make.com/veoyc9tcw9fgywnffiero92julelacyb", program);
+        sendProgramRequestToMake("https://hook.us1.make.com/wf9x2wbqxt715r6ifot4y0fkp5qik2du", program);
 
-      } else if(sessionStorage.getItem("createWorkout") == true) {
+      } else if(sessionStorage.getItem("createProgram") == true) {
         sendProgramRequestToMake("https://hook.us1.make.com/veoyc9tcw9fgywnffiero92julelacyb", program);
       }
 
