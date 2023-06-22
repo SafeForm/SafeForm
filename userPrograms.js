@@ -89,9 +89,8 @@ function main() {
     if (currentWeek.length > 0) {
       endOfWeek = getEndOfWeek(currentWeek[0]['start']);
     }
-  
-    if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
-      console.log()
+
+    if (currentWeek.length === 0 || startDate.isBefore(moment(endOfWeek))) {
       currentWeek.push(workout);
     } else {
       weeks.push(currentWeek);
@@ -248,7 +247,6 @@ function main() {
       if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID) {
 
         var newElement = workoutElement.closest('.collection-item-7').cloneNode(true);
-        console.log(newElement)
         workoutList.appendChild(newElement);
 
       }
