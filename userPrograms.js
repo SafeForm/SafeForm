@@ -7,11 +7,12 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+//
 
   //Add utm to buttons
-  document.getElementById("exerciseLibrary").href += "?utm_campaign=safeform fitness - haymarket";
-  document.getElementById("workouts").href += "?utm_campaign=safeform fitness - haymarket";
-  document.getElementById("home").href += "?utm_campaign=safeform fitness - haymarket";
+  // document.getElementById("exerciseLibrary").href += "?utm_campaign=safeform fitness - haymarket";
+  // document.getElementById("workouts").href += "?utm_campaign=safeform fitness - haymarket";
+  // document.getElementById("home").href += "?utm_campaign=safeform fitness - haymarket";
 
   /*
   // Add buttons to horizontal div based on number of weeks
@@ -109,16 +110,17 @@ function main() {
 
   // Add event listeners to the buttons
   buttons.forEach((button, index) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (event) => {
       displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
+      $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
+      event.target.classList.remove("week-button");
+      event.target.classList.add("current-week");
     });
   });
 
   weekButton = document.getElementById("week-1");
 
   weekButton.click();
-  weekButton.focus();
-
 
 /*
   
