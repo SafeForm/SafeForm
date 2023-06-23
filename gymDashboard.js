@@ -14,9 +14,9 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
-  document.getElementsByClassName("form-block-20")[0].style.display = "block";
+  //document.getElementsByClassName("form-block-20")[0].style.display = "block";
   //document.getElementById("userPage").style.display = "flex";
-  document.getElementById("workoutsPage").click();
+  //document.getElementById("workoutsPage").click();
 
   var muscleMapping = {
     "pectoralis-major":"Chest",
