@@ -1423,9 +1423,14 @@ function main() {
           document.getElementById("programBuilderInfo").style.display = "none";
           document.getElementById("saveProgramDiv").style.display = "block";
 
+          document.getElementById("saveTrainingPlan").style.display = "flex";
+          document.getElementById("saveTrainingPlan").style.alignContent = "center";
+          document.getElementById("saveTrainingPlan").style.justifyContent = "center";
+
           checkSummaryTrainingCheckBox();
 
           refreshCalendarLayout();
+          updateCalendarWeeks(0, "userProgram");
 
           //Show week date ranges
           showOrHideWeekRange("block");
@@ -2526,8 +2531,6 @@ function main() {
 
       }
 
-      refreshCalendarLayout();
-
       if(weeks > 4) {
         //Update calendar weeks if necessary
         updateCalendarWeeks(weeks);
@@ -2541,6 +2544,8 @@ function main() {
       } else {
         showOrHideWeekRange("block");
       }
+
+      refreshCalendarLayout();
 
       //Show or hide the save training plan button
       // if(programType == "programSelect") {
@@ -2686,7 +2691,7 @@ function main() {
           }
         }
 
-        if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID /*&& (foundIndex % weeks.length) == index+1*/) {
+        if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID ) {
           var newElement = workoutElement.closest('.workout-item-template').cloneNode(true);
           newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout + selectedWeekWorkouts.length * weekIndex }.`;
           workoutList.appendChild(newElement);
@@ -2936,6 +2941,8 @@ function main() {
         //Navigate to selected page
         document.getElementById("dontSave").onclick = function() {
 
+          document.getElementById("saveTrainingPlan").style.display = "none";
+
           //Close modal
           document.getElementById("confirmCloseBuilder").style.display = "none";
           //Hide and clear program builder or program summary
@@ -2975,6 +2982,7 @@ function main() {
         }
 
       } else {
+        document.getElementById("saveTrainingPlan").style.display = "none";
         document.getElementById("programBuilder").style.display = "none";
         document.getElementById("programPage").style.display = "none";
 
