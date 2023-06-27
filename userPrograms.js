@@ -232,22 +232,28 @@ function main() {
 
     // Get the selected week's workouts from the JSON structure
     const selectedWeekWorkouts = weeks[weekIndex];
-
+    var addedWorkout = 1;
     // Iterate over the selected week's workouts
     selectedWeekWorkouts.forEach((workout) => {
       // Get the workout element based on the workout ID
       var workoutElement = null;
+      var foundIndex = "";
       for(var i = 0; i < workoutListWorkouts.length; i++) {
 
         const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
-        if(workoutListElement.innerText == workout.extendedProps.workoutID ) {
+        const workoutIndex = workoutListWorkouts[i].querySelector("#workoutNumber").innerText
+        if(workoutListElement.innerText == workout.extendedProps.workoutID /*&& `Workout ${i}.` == workoutIndex*/) {
+          foundIndex = i;
           workoutElement = workoutListElement;
         }
       }
+
       if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID) {
 
-        var newElement = workoutElement.closest('.collection-item-7').cloneNode(true);
+        var newElement = workoutElement.closest('.workoutprogramitem').cloneNode(true);
+        newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout + selectedWeekWorkouts.length * weekIndex }.`;
         workoutList.appendChild(newElement);
+        addedWorkout += 1;
 
       }
     });
