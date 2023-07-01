@@ -378,7 +378,7 @@ function main() {
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
   //Iterate through list
-  var exerciseList = document.querySelectorAll("#exerciseInfoDiv");
+  var exerciseList = document.querySelectorAll("#individualGuide");
 
   for(let i = 0; i < exerciseList.length; i++) {
     
