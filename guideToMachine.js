@@ -62,11 +62,10 @@ function main() {
   const noMachines = document.getElementById("noMachinesButton");
   var smithMachineSelect = false;
 
-  var listOfGuides = document.getElementById("guideList").children;
+  var listOfGuides = document.querySelectorAll("#individualGuide");
   //Add onClick to each item in list
   for(var i = 0; i < listOfGuides.length; i++) {
     var guide = listOfGuides[i].cloneNode(true);
-    
     listOfGuides[i].onclick = function() {
       
       //Clone selected guide
@@ -379,9 +378,7 @@ function main() {
   */
   //Iterate through list
   var exerciseList = document.querySelectorAll("#individualGuide");
-
   for(let i = 0; i < exerciseList.length; i++) {
-    
     //Obtain the gym text field
     var gymElement = exerciseList[i].querySelector("#gymField");
     var muscleElement = exerciseList[i].querySelector("#scientificPrimaryMuscle");
