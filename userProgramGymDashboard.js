@@ -17,10 +17,14 @@ if (document.readyState !== 'loading') {
 function main() {
 
   document.getElementsByClassName("form-block-20")[0].style.display = "block";
-  document.getElementById("workoutsPage").classList.remove("div-block-156");
-  document.getElementById("workoutsPage").classList.add("div-block-154")
+  // document.getElementById("workoutsPage").classList.remove("div-block-156");
+  // document.getElementById("workoutsPage").classList.add("div-block-154")
   document.getElementById("userPage").style.display = "flex";
-  document.getElementById("workoutsPage").click();
+  document.getElementById("userPage").classList.remove("div-block-156-copy");
+  document.getElementById("userPage").classList.add("middlenavbutton")
+  
+  styleNavButtons("workoutsPage");
+  //document.getElementById("workoutsPage").click();
 
   var muscleMapping = {
     "pectoralis-major":"Chest",
@@ -58,6 +62,11 @@ function main() {
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
   var guideToWorkoutObj = {};
+
+  //List to keep track of users training plan (list of programs added to their schedule)
+  //Structure is each element in list is an object of the structure {"programID": "value", "programName": "value", "events": "value"}
+ var userTrainingPlan = [];
+
 
   //Populate gym name text box value
   document.getElementById("gymNameTextBox").value = document.getElementById("gymFullName").innerText;
@@ -101,6 +110,48 @@ function main() {
         cloneAndAddElement(muscleElementArr, muscleElement, exerciseInfoDiv, "div", "scientificPrimaryMuscle", "muscleNameFilter");
       }
     }
+  }
+
+  function styleNavButtons(destinationButton) {
+    //Reset background colour of all buttons:
+    var navButtons = document.querySelectorAll(".navbutton");
+    var middleNavButtons = document.querySelectorAll(".middlenavbutton");
+
+    // Change background color to transparent for elements with class "navButton"
+    for (var i = 0; i < navButtons.length; i++) {
+      navButtons[i].classList.remove("clickednavbutton");
+      navButtons[i].firstElementChild.style.display = "block";
+      navButtons[i].firstElementChild.nextElementSibling.style.display = "none";
+      navButtons[i].style.backgroundColor = "rgba(0,0,0,0)";
+    }
+
+    // Change background color to transparent for elements with class "middleNavButton"
+    for (var i = 0; i < middleNavButtons.length; i++) {
+      middleNavButtons[i].classList.remove("clickednavbutton");
+      middleNavButtons[i].firstElementChild.style.display = "block";
+      middleNavButtons[i].firstElementChild.nextElementSibling.style.display = "none";
+      middleNavButtons[i].style.backgroundColor = "rgba(0,0,0,0)";
+    }
+
+    //Show required button
+    var destinationDiv = document.getElementById(destinationButton);
+
+    if(destinationButton == "dashboardPage") {
+      destinationDiv.querySelector(".homeimage").style.display = "none";
+      destinationDiv.querySelector(".naviconclicked").style.display = "block";
+    } else if(destinationButton == "equipmentPage") {
+      destinationDiv.querySelector(".equipment").style.display = "none";
+      destinationDiv.querySelector(".equipmentclicked").style.display = "block";
+    } else if(destinationButton == "userPage" ) {
+      destinationDiv.querySelector(".users").style.display = "none";
+      destinationDiv.querySelector(".users-clicked").style.display = "block";
+    } else {
+      destinationDiv.querySelector(".navicon").style.display = "none";
+      destinationDiv.querySelector(".naviconclicked").style.display = "block";
+    }
+    //Colour div
+    destinationDiv.classList.add("clickednavbutton");
+    destinationDiv.style.backgroundColor = "#0C08D5";
   }
 
 
@@ -365,79 +416,84 @@ function main() {
         const userDetailDiv = document.getElementById("userDetailsPage");
 
         document.getElementById("equipmentListContainer").style.display = 'block';
+
         document.getElementById("equipmentPage").onclick = function() {
           //equipmentBody.style.display = "block";
           dashboardBody.style.display = "none";
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           settingsBody.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           //workoutBuilderPage.style.display = "none";
           //Reset filters on workout or program summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram") == "true" || sessionStorage.getItem("createUserProgram") == "true" ) {
-            checkAndClearProgram("equipmentBody");
+            checkAndClearProgram("equipmentBody", "equipmentPage");
           } else {
-            checkAndClearWorkouts("equipmentBody");
+            checkAndClearWorkouts("equipmentBody", "equipmentPage");
           }
           
         };
 
         document.getElementById("userPage").onclick = function() {
-          //equipmentBody.style.display = "block";
           dashboardBody.style.display = "none";
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           settingsBody.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           equipmentBody.style.display = "none";
-          //workoutBuilderPage.style.display = "none";
+          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+
           //Reset filters on workout or program summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
-            checkAndClearProgram("usersBody", "userSummaryPage");
+            checkAndClearProgram("usersBody", "userPage", "userSummaryPage");
           } else {
-            checkAndClearWorkouts("usersBody", "userSummaryPage");
+            checkAndClearWorkouts("usersBody", "userPage", "userSummaryPage");
           }
           
         };
 
         document.getElementById("dashboardPage").onclick = function() {
-          //dashboardBody.style.display = "block";
           equipmentBody.style.display = "none";
+          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           settingsBody.style.display = "none";
-          //workoutBuilderPage.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+
           //Reset filters on workout summary page
-          
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram") == "true" || sessionStorage.getItem("createUserProgram") == "true") {
-            checkAndClearProgram("dashboardBody");
+            checkAndClearProgram("dashboardBody", "dashbaordPage");
           } else {
-            checkAndClearWorkouts("dashboardBody");
+            checkAndClearWorkouts("dashboardBody", "dashbaordPage");
           }
         };
 
         document.getElementById("settingsPage").onclick = function() {
-          //settingsBody.style.display = "block";
           equipmentBody.style.display = "none";
+          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           dashboardBody.style.display = "none";
-          //workoutBuilderPage.style.display = "none";
-          //Reset filters on workout summary page
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           
+          //Reset filters on workout summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
-            checkAndClearProgram("settingsBody");
+            checkAndClearProgram("settingsBody", "settingsPage");
           } else {
-            checkAndClearWorkouts("settingsBody");
+            checkAndClearWorkouts("settingsBody", "settingsPage");
           }
         };
         
         document.getElementById("workoutsPage").onclick = function() {
           //Reset filters on workout summary page
-          //workoutSummaryPage.style.display = "block";
-          //workoutBuilderPage.style.display = "none";
           settingsBody.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           equipmentBody.style.display = "none";
+          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           dashboardBody.style.display = "none";
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+
           // Check if there are any exercises in the list 
           // If there is, prompt user to confirm removing list 
-
           // If they confirm remove items from list and clear filters and hide exercise list
-          
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
-            checkAndClearProgram("workoutSummaryPage");
+            checkAndClearProgram("workoutSummaryPage", "workoutsPage");
           } else {
-            checkAndClearWorkouts("workoutSummaryPage");
+            checkAndClearWorkouts("workoutSummaryPage", "workoutsPage");
           }
 
         };
@@ -860,26 +916,24 @@ function main() {
     //Set onclick for program select modal
     document.getElementById("selectProgramModal").onclick = () => {
 
-      // Clear program list
-      clearProgramModalList();
-
       //Put user in 'add program' state
       addProgram = true;
 
-      //Update program name to indicate to user to click a week
-      //document.getElementById("userProgramName").innerText = "Click a week to select when the programs starts. ";
+      //Update training plan to indicate to user to click a week
+      document.getElementById("trainingPlanName").innerText = "Click a week to select when the programs starts.";
 
-      //Populate calendar - change to when row clicked
+      //Navigate to user summary view
+      document.getElementById("userInfoDetails").style.display = "none";
+      document.getElementById("programBuilder").style.display = "block";
+      document.getElementById("programBuilderInfo").style.display = "none";
+      document.getElementById("saveProgramDiv").style.display = "block";
 
-      // userProgramWorkoutID = programItem.querySelector("#programIDModal").innerText;
-
-      // userProgramEvents = programItem.querySelector("#eventDataModal").innerText;
-      // // Add all workout events to the calendar
-      // prefillProgramBuilder(programEventsData, "programSelect");
+      document.getElementById("trainingRadio").click();
 
       // Hide modal
       document.getElementById("modalWrapper").style.display = "none";
       document.getElementById("workoutsList").style.display = "none";
+
       document.getElementById("programList").style.display = "none";
 
     }
@@ -954,12 +1008,13 @@ function main() {
           document.getElementById("userID").innerText = userSummary.querySelector("#summaryItemId").innerText;
           //Fill user program ID
           document.getElementById("userProgramID").innerText = userSummary.querySelector("#summaryProgramId").innerText;
+          //Fill program name
+          document.getElementById("userProgramProgramName").innerText = userSummary.querySelector("#summaryProgramName").innerText;
 
           //Fill calendar
-          prefillProgramBuilder(userSummary, "userProgram");
+          prefillProgramBuilder(userSummary, "userProgramInitial");
           //TODO: Fill program name
           currentUserProgram = userSummary;
-
 
           //Hide user summary list
           document.getElementById("userSummaryPage").style.display = "none";
@@ -967,8 +1022,10 @@ function main() {
           //Show user details
           document.getElementById("userDetailsPage").style.display = "block";
 
-
-          
+          //Show user button
+          document.getElementById("saveUserDetails").style.display = "flex";
+          document.getElementById("saveUserDetails").style.alignContent = "center";
+          document.getElementById("saveUserDetails").style.justifyContent = "center";
 
 
         }
@@ -1157,6 +1214,8 @@ function main() {
           
           if (weekRow) {
 
+            document.getElementById("trainingPlanName").innerText = document.getElementById("userProgramProgramName").innerText;
+
             //Obtain saved copied events
             var copiedEvents = null;
             if(addProgram) {
@@ -1195,7 +1254,6 @@ function main() {
 
                 if(index < events.length - 1) {
                   if(new Date(events[index + 1].start).getTime() >= currentEndOfWeek.getTime()) {
-                    console.log(event.title);
                     incrementWeeks = true;
                   }
                 }
@@ -1234,7 +1292,6 @@ function main() {
 
                 //Increase week counter if week elapsed
                 if(incrementWeeks) {
-                  console.log("incrementing");
                   weekCounter += 1;
                   incrementWeeks = false;
                 }
@@ -1254,9 +1311,30 @@ function main() {
                 }
 
               });
+
+              //Add program breaker
+              //addProgramNameBreaker(weekRow, programBreakerName);
+              if(addProgram) {
+                //add program to global userProgram list
+                var programObj = {};
+                programObj["programName"] = document.getElementById("selectedProgramName").innerText;
+                programObj["programID"] = userProgramWorkoutID;
+                programObj["events"] = sortedCopiedEvents;
+                programObj["startWeek"] = moment(new Date(sortedCopiedEvents[0].start)).format("YYYY-MM-DD");;
+                var endOfProgram = new Date (getEndOfWeek(sortedCopiedEvents[0].start));
+                programObj["endWeek"] = moment(new Date (endOfProgram.setDate(endOfProgram.getDate() + (numProgramWeeks-1)*7))).format("YYYY-MM-DD");;
+
+                userTrainingPlan.push(programObj);
+
+                getProgramBreakers();
+              }
+              
+              // Clear program list
+              clearProgramModalList();
               
             }
           }
+
         } else {
           var copiedEvent = JSON.parse(sessionStorage.getItem('copiedEvent'));
           var clickedDate = new Date(dayCell.parentElement.getAttribute("data-date"));
@@ -1276,7 +1354,7 @@ function main() {
             calendar.addEvent(newEvent);
       
           }
-
+ 
         }
 
         toggleRowPasteStateCSS(weekRow, false);
@@ -1355,9 +1433,9 @@ function main() {
 
         // Remove the week events from the calendar
         weekEvents.forEach(function(event) {
-
           event.remove();
         });
+
         for(var i = 1; i < weekRowChildren.length; i++) {
           var copyButton = weekRowChildren[i].querySelector('.copy-event-button');
           var deleteButton = weekRowChildren[i].querySelector('.delete-event-button');
@@ -1367,6 +1445,8 @@ function main() {
           }
         }
 
+        getUserTrainingPlan();
+        removeEmptyPrograms(weekRow);
 
       } else if (event.target.nodeName == "path") {
 
@@ -1408,6 +1488,12 @@ function main() {
         clearProgramModalList();
         showModal("programList");
 
+      } else if(event.target.closest("#saveUserDetails")) {
+
+        // save user details
+        saveUserDetails();
+
+      
       } else if(document.getElementById("trainingRadio").checked && event.target.id == "trainingRadio") {
 
         summaryRadioClicked = false;
@@ -1415,7 +1501,6 @@ function main() {
 
           //Remove all events first
           //calendar.removeAllEvents();
-          prefillProgramBuilder(currentUserProgram, "userProgram");
 
           //Navigate to user summary view
           document.getElementById("userInfoDetails").style.display = "none";
@@ -1427,10 +1512,16 @@ function main() {
           document.getElementById("saveTrainingPlan").style.alignContent = "center";
           document.getElementById("saveTrainingPlan").style.justifyContent = "center";
 
+          //Set program name in training plan
+          document.getElementById("trainingPlanName").style.display = "block";
+          document.getElementById("trainingPlanName").innerText = document.getElementById("userProgramProgramName").innerText;
+
           checkSummaryTrainingCheckBox();
 
           refreshCalendarLayout();
           updateCalendarWeeks(0, "userProgram");
+
+          prefillProgramBuilder(currentUserProgram, "userProgram");
 
           //Show week date ranges
           showOrHideWeekRange("block");
@@ -1438,18 +1529,11 @@ function main() {
           //Set user create program flag
           sessionStorage.setItem("createUserProgram", "true");
 
+          document.getElementById("saveUserDetails").style.display = "none";
+
         }
 
         isProgrammaticClick = false;
-
-        if(sessionStorage.getItem("createUserProgram") == true) {
-
-        } else {
-          
-
-        }
-
-
 
       } else if(document.getElementById("summaryRadioButton").checked && event.target.id == "summaryRadioButton") {
 
@@ -1457,7 +1541,7 @@ function main() {
 
         summaryRadioClicked = true;
         if(!isProgrammaticClick) {
-          checkAndClearProgram("userInfoDetails");
+          checkAndClearProgram("userInfoDetails", "userPage");
         }
         
 
@@ -1652,8 +1736,8 @@ function main() {
         //Remove all events first
         calendar.removeAllEvents();
 
-        //Set number of weeks to 5
-        updateCalendarWeeks(5);
+        //Set number of weeks to 4
+        updateCalendarWeeks(4);
 
         //Set program flag to create
         sessionStorage.setItem("createProgram", 'true');
@@ -1672,7 +1756,7 @@ function main() {
         document.getElementById("workoutSummaryDiv").style.display = "none";
         document.getElementById("programPage").style.display = "none";
 
-      } else if(event.target.id == "reset-filters" || event.target.id == "reset-filters-ipad" || event.target.id == "reset-filters-modal") {
+      } else if(event.target.id == "reset-filters" || event.target.id == "reset-filters-ipad" || event.target.id == "reset-filters-modal" || event.target.id == "reset-filters-program-modal" || event.target.id == "reset-filters-users" ) {
         resetGeneralFilters(true);
       } else if (event.target.id == "arrowImg" || event.target.id == "filterOn" || event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" ||
         event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
@@ -1836,6 +1920,23 @@ function main() {
           document.getElementById("arrowWrapperModal").style.transform = 'rotate(0deg)';
           document.getElementById("filterButtonModal").click();
         }
+        
+        if (document.getElementById("filterBodyProgramModal").style.display == "flex" && !event.target.classList.value.includes("checkbox-field")) {
+          document.getElementById("filterBodyProgramModal").style.display = "none";
+
+          //Rotate arrow back:
+          document.getElementById("arrowWrapperProgramModal").style.transform = 'rotate(0deg)';
+          document.getElementById("filterButtonProgramModal").click();
+        }
+
+        if (document.getElementById("userFilterBody").style.display == "flex" && !event.target.classList.value.includes("checkbox-field")) {
+          console.log("adsadd");
+          document.getElementById("userFilterBody").style.display = "none";
+
+          //Rotate arrow back:
+          document.getElementById("userArrowWrapper").style.transform = 'rotate(0deg)';
+          document.getElementById("userFilterButton").click();
+        }
 
       }
     }, false);
@@ -1854,7 +1955,7 @@ function main() {
       } else if(document.getElementById("workoutRadio").checked && event.target.id == "workoutRadio") {
         workoutRadioClicked = true;
         if(!isProgrammaticClick) {
-          checkAndClearProgram("workoutSummaryPage", "workoutSummaryDiv");
+          checkAndClearProgram("workoutSummaryPage", "workoutsPage", "workoutSummaryDiv");
         }
         
 
@@ -1982,22 +2083,125 @@ function main() {
             document.getElementById("reset-filters-ipad").style.display = "none";
           }
 
-
-
+          if (res[5] > 0) {
+            document.getElementById("userFilterOn").style.display = "block";
+          } else {
+            document.getElementById("userFilterOn").style.display = "none";
+          }
         });
       }
     }, false);
 
     document.addEventListener("mouseover",function (event) {
+      
       if(event.target.id == "experienceTag" || event.target.id == "experience") {
         document.getElementById("toolTipText").style.display = "block";
       }
+
+      
+      if(event.target.closest("#dashboardPage")) {
+        if(!event.target.closest("#dashboardPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#dashboardPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#dashboardPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
+      if(event.target.closest("#equipmentPage")) {
+        if(!event.target.closest("#equipmentPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#equipmentPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#equipmentPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
+      if(event.target.closest("#workoutsPage")) {
+        if(!event.target.closest("#workoutsPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#workoutsPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#workoutsPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
+      if(event.target.closest("#userPage")) {
+        if(!event.target.closest("#userPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#userPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#userPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+      
+
+      if(event.target.closest("#settingsPage")) {
+        if(!event.target.closest("#settingsPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#settingsPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#settingsPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
+      if(event.target.closest("#helpDiv")) {
+        if(!event.target.closest("#helpDiv").classList.contains("clickednavbutton")) {
+          event.target.closest("#helpDiv").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#helpDiv").style.backgroundColor = "#0C08D5";
+        }
+      }
+      
     }, false);
 
     document.addEventListener("mouseout",function (event) {
+
       if(event.target.id == "experienceTag" || event.target.id == "experience") {
         document.getElementById("toolTipText").style.display = "none";
       }
+
+      if(event.target.closest("#dashboardPage")) {
+        if(!event.target.closest("#dashboardPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#dashboardPage").style.backgroundColor = "";
+        } else {
+          event.target.closest("#dashboardPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
+      if(event.target.closest("#equipmentPage")) {
+        if(!event.target.closest("#equipmentPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#equipmentPage").style.backgroundColor = "";
+        } else {
+          event.target.closest("#equipmentPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
+      if(event.target.closest("#workoutsPage")) {
+        if(!event.target.closest("#workoutsPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#workoutsPage").style.backgroundColor = "";
+        } else {
+          event.target.closest("#workoutsPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
+      if(event.target.closest("#userPage")) {
+        if(!event.target.closest("#userPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#userPage").style.backgroundColor = "";
+        } else {
+          event.target.closest("#userPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+      if(event.target.closest("#settingsPage")) {
+        if(!event.target.closest("#settingsPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#settingsPage").style.backgroundColor = "";
+        } else {
+          event.target.closest("#settingsPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+      if(event.target.closest("#helpDiv")) {
+        if(!event.target.closest("#helpDiv").classList.contains("clickednavbutton")) {
+          event.target.closest("#helpDiv").style.backgroundColor = "";
+        } else {
+          event.target.closest("#helpDiv").style.backgroundColor = "#0C08D5";
+        }
+      }
+
     }, false);
 
     function refreshCalendarLayout() {
@@ -2040,7 +2244,7 @@ function main() {
           // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
-          const [programModalFilters, workoutModalFilters, workoutsSummary, programSummary, workoutsBuilder] = filterInstances;
+          const [programModalFilters, workoutModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
           if(filterInstances.length > 1) { 
             !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
@@ -2094,7 +2298,6 @@ function main() {
       document.getElementById("allFilter").focus();
 
       //Clear textbox filter value:
-      document.getElementById("workoutSearch").value = "";
       window.fsAttributes = window.fsAttributes || [];
       window.fsAttributes.push([
         'cmsfilter',
@@ -2102,8 +2305,12 @@ function main() {
           // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
-          const [summaryFilters, filterInstance] = filterInstances;
-          await summaryFilters.resetFilters(filterKeys=["workoutname-2"], null);
+          //const [summaryFilters, filterInstance] = filterInstances;
+          const [programModalFilters, workoutModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
+          await workoutsSummary.resetFilters(filterKeys=["workoutname-2"], null);
+          await workoutModalFilters.resetFilters(filterKeys=["workoutname-3"], null);
+          await programModalFilters.resetFilters(filterKeys=["programname-5"], null);
+
 
         },
       ]);
@@ -2165,7 +2372,11 @@ function main() {
         var filterInstance4 = res[4].filtersData;
         var filtersTotalSize4 = filterInstance4[1].values.size + filterInstance4[2].values.size;
 
-        return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4];
+        //User summary page
+        var filterInstance5 = res[5].filtersData;
+        var filtersTotalSize5 = filterInstance5[1].values.size + filterInstance5[2].values.size;
+
+        return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4, filtersTotalSize5];
       });
 
     }
@@ -2298,6 +2509,41 @@ function main() {
       sessionStorage.setItem("workoutLink", `${link}?utm_campaign=${gymName}`);
 
     }
+    
+    function saveUserDetails() {
+
+      //Extract user details
+      var userDetailsObj = {};
+      userDetailsObj["notes"] = document.getElementById("userNotes").value;
+      userDetailsObj["limitations"] = document.getElementById("userLimitations").value;
+      userDetailsObj["userName"] = document.getElementById("userFullName").innerText;
+      userDetailsObj["userID"] = document.getElementById("userID").innerText;
+
+      console.log(userDetailsObj);
+
+      fetch("https://hook.us1.make.com/2nq6l90x38nxaqxhitvm323wku5y1cl8", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(userDetailsObj)
+      }).then((res) => {
+        if (res.ok) {
+          return res.text();
+        }
+        throw new Error('Something went wrong');
+      })
+      .then((data) => {
+
+        alert("User details saved successfully!");
+        //Reset program builder flags
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Could not create program, please try again");
+        location.reload();
+      });
+
+
+    }
 
     function createUserProgram() {
 
@@ -2348,6 +2594,9 @@ function main() {
     }
 
     function updateUserProgram() {
+
+      getUserTrainingPlan();
+
       var userProgram = {};
       
       // User Program ID
@@ -2362,34 +2611,157 @@ function main() {
       //User Full name
       userProgram["userName"] = `${document.getElementById("userFullName").innerText}`;
 
-      var userProgramEvents = calendar.getEvents();
       // Event data
-      userProgram["events"] = JSON.stringify(userProgramEvents);
-      
-      const dates = userProgramEvents.map(obj => obj.start);
-      // Sort the dates in ascending order
-      dates.sort((a, b) => a - b);
+      userProgram["events"] = JSON.stringify(userTrainingPlan);
+
+      const firstDate = userTrainingPlan[0].startWeek;
+      const lastDate = userTrainingPlan[0].endWeek;
+
       // Start date
-      userProgram["startDate"] = dates[0];
+      userProgram["startDate"] = firstDate;
       // End date
-      userProgram["endDate"] = dates[dates.length - 1];
+      userProgram["endDate"] = lastDate;
+
       const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-      const firstDate = dates[0];
-      const lastDate = dates[dates.length - 1];
-      userProgram["numberOfWeeks"] = Math.ceil((lastDate - firstDate) / millisecondsPerWeek);
+
+      userProgram["numberOfWeeks"] = Math.ceil((new Date(lastDate) - new Date(firstDate)) / millisecondsPerWeek);
 
       // List of webflow workout IDs
       var userProgramWorkouts = [];
       // List of webflow workout IDs
       // Loop through the events and log their titles to the console
-      for (var i = 0; i < userProgramEvents.length; i++) {
-        userProgramWorkouts.push(userProgramEvents[i].extendedProps.workoutID);
+      for (var i = 0; i < userTrainingPlan[0].events.length; i++) {
+        userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
       }
       userProgram["workoutList"] = userProgramWorkouts;
-
       sendUserProgramToMake(userProgram, "update");
 
     }
+
+    function getUserTrainingPlan() {
+      // Fetch events from FullCalendar for each program
+      userTrainingPlan.forEach((obj, index) => {
+        // Retrieve the program start and end dates from the object
+        const programStart = new Date(obj.startWeek);
+        const programEnd = new Date(obj.endWeek);
+        programStart.setHours(0, 0, 0, 0);
+        programEnd.setHours(0, 0, 0, 0);
+
+        if(obj.events.length == 0) {
+          //remove object
+        }
+
+        // Fetch events from FullCalendar that fall within the program start and end dates
+        const events = calendar.getEvents().filter(event => {
+          const eventStart = event.start;
+
+          //Check if last program
+          if(index == (userTrainingPlan.length -1)) {
+            //Return remaining programs in calendar
+            return eventStart >= programStart
+          } else {
+            // Compare the event's start date with the program start and end dates
+            return eventStart >= programStart && eventStart < programEnd;
+          }
+        });
+
+        // Add the fetched events to the 'events' attribute of the object
+        obj.events = events.map(event => event.toPlainObject());
+      });
+
+      // Second loop to remove objects with empty events attributes
+      for (let i = userTrainingPlan.length - 1; i >= 0; i--) {
+        const obj = userTrainingPlan[i];
+        if (obj.events.length === 0) {
+          userTrainingPlan.splice(i, 1);
+        }
+      }
+
+    }
+
+    function removeEmptyPrograms(weekRow) {
+
+      var programBreakerDiv = weekRow.previousSibling;
+      //Get the program breaker nearest to the week row
+      while(!programBreakerDiv.classList.contains("program-breaker-div")) {
+        programBreakerDiv = programBreakerDiv.previousSibling;
+      }
+      var foundProgram = false;
+      //If the start date of the program isn't in the users training plan object then remove the program breaker div
+      userTrainingPlan.forEach((obj, index) => {
+        if(moment(obj.startWeek).format("YYYY-MM-DD") == programBreakerDiv.id) {
+          foundProgram = true;
+        }
+      });
+
+      if(!foundProgram) {
+        programBreakerDiv.remove();
+      }
+
+      
+
+    }
+
+    function addProgramNameBreaker(weekRow, programBreakerName) {
+
+      const eventWidth = document.querySelector(".fc-daygrid-day-frame").offsetWidth;
+      var newRow = document.createElement('tr');
+      newRow.id = weekRow.querySelector(".fc-day").getAttribute("data-date");
+      newRow.style.textAlign = "center";
+      newRow.classList.add("program-breaker-div");
+      newRow.style.height = "18px";
+      var newCell = document.createElement('td');
+      newCell.setAttribute('colspan', '8');
+      newCell.style.textAlign = 'center'; // Center-align the cell contents
+      newCell.style.paddingLeft = `${eventWidth}px`;
+    
+      var textDiv = document.createElement('div'); // Create a new div element
+      textDiv.classList.add("program-breaker");
+      textDiv.textContent = programBreakerName;
+      textDiv.style.paddingBottom = "10px";
+    
+      newCell.appendChild(textDiv); // Append the div to the cell
+    
+      newRow.appendChild(newCell);
+
+      // Insert the new row before the current row
+      weekRow.parentNode.insertBefore(newRow, weekRow);
+
+    }
+
+    function getProgramBreakers() {
+
+      const weekRows = [];
+      if(document.querySelectorAll(".program-breaker").length < userTrainingPlan.length - 1) {
+        if(userTrainingPlan != null) {
+          var programBreakerDivs = document.querySelectorAll('.program-breaker-div');
+          programBreakerDivs.forEach(function(div) {
+            div.parentNode.removeChild(div);
+          });
+          userTrainingPlan.forEach((obj, index) => {
+            if(index != 0) {
+
+              const date = moment(obj.startWeek).format("YYYY-MM-DD");
+      
+              const cell = calendarEl.querySelector(`[data-date="${date}"]`);
+
+              if(cell != null) {
+                const weekRow = cell.closest('[role="row"]');
+                weekRows.push([weekRow, obj.programName]);
+              }
+
+            }
+          });
+
+          for(var i = 0; i < weekRows.length; i++) {
+            const [weekRow, programName] = weekRows[i];
+            addProgramNameBreaker(weekRow, programName);
+          }
+        }
+      }
+
+    }
+    
 
     async function sendUserProgramToMake(program, type) {
 
@@ -2461,30 +2833,80 @@ function main() {
 
       // Convert the Start Date strings to Date objects
       var eventsData = "";
-      if(programType == "userProgram") {
-        eventsData = JSON.parse(program.querySelector("#summaryEventData").innerText);
+      //Check if user training plan is empty
+      console.log(userTrainingPlan);
+      if(userTrainingPlan.length == 0) {
+        if(programType == "userProgram" || programType == "userProgramInitial") {
+          eventsData = JSON.parse(program.querySelector("#summaryEventData").innerText);
+        } else {
+          eventsData = JSON.parse(program.querySelector("#eventData").innerText);
+        }
+        userTrainingPlan = [...eventsData];
       } else {
-        eventsData = JSON.parse(program.querySelector("#eventData").innerText);
+        eventsData = [...userTrainingPlan];
+      }
+
+      const events = [];
+      const weekRows = [];
+      var objStructure = "programBuilder";
+      console.log(eventsData.length);
+      if(eventsData[0].events != null) {
+        objStructure = "trainingPlan";
+      }
+
+      if(objStructure == "trainingPlan") {
+        eventsData.forEach((obj, index) => {
+          if(index != 0) {
+  
+            if(programType == "userProgram") {
+              const date = moment(obj.startWeek).format("YYYY-MM-DD");
+    
+              const cell = calendarEl.querySelector(`[data-date="${date}"]`);
+              
+              const weekRow = cell.closest('[role="row"]');
+              weekRows.push([weekRow, obj.programName])
+            }
+  
+          }
+          obj.events.forEach(event => {
+            const startDate = new Date(event.start);
+        
+            events.push({
+              title: event.title,
+              extendedProps: {
+                length: event.extendedProps.length,
+                targetArea: event.extendedProps.targetArea,
+                workoutID: event.extendedProps.workoutID
+              },
+              start: startDate,
+              allDay: true
+            });
+          });
+        });
+      } else {
+        eventsData.forEach((event, index) => {
+          const startDate = new Date(event.start);
+      
+          events.push({
+            title: event.title,
+            extendedProps: {
+              length: event.extendedProps.length,
+              targetArea: event.extendedProps.targetArea,
+              workoutID: event.extendedProps.workoutID
+            },
+            start: startDate,
+            allDay: true
+          });
+        });
       }
 
 
-      const events = eventsData.map(event => {
-        const startDate = new Date(event["start"]);
-
-        return {
-          title: event.title,
-          extendedProps: {"length": event.extendedProps.length, "targetArea": event.extendedProps.targetArea, "workoutID": event.extendedProps.workoutID},
-          start: startDate,
-          allDay: true
-        };
-      });
       
       // Extract and convert the "start" values into Date objects
       const dates = events.map(obj => obj.start);
       
       // Sort the dates in ascending order
       dates.sort((a, b) => a - b);
-
 
       //Set calendar initial date
 
@@ -2547,12 +2969,10 @@ function main() {
 
       refreshCalendarLayout();
 
-      //Show or hide the save training plan button
-      // if(programType == "programSelect") {
-      //   document.getElementById("saveTrainingPlan").style.display = "block";
-      // } else {
-      //   document.getElementById("saveTrainingPlan").style.display = "none";
-      // }
+      if(programType == "userProgram") {
+        getProgramBreakers();
+      }
+
     }
 
     function addWorkoutToProgramModalList(events) {
@@ -2722,6 +3142,9 @@ function main() {
       for(let i = 0; i < events.length; i++) {
         calendar.addEvent(events[i]);
       }
+      if(sessionStorage.getItem("createUserProgram") == "true" ) {
+        getProgramBreakers()
+      }
 
     }
     
@@ -2739,7 +3162,7 @@ function main() {
         currentNumberOfWeeks = overrideWeeks;
       
       } else if(overrideWeeks != 0 && overrideWeeks <= 4) {
-        currentNumberOfWeeks = 5;
+        currentNumberOfWeeks = 4;
       } else {
         //Increment current number of weeks
         currentNumberOfWeeks += 1;
@@ -2766,6 +3189,9 @@ function main() {
         showOrHideWeekRange("none");
       } else {
         showOrHideWeekRange("block");
+      }
+      if(sessionStorage.getItem("createUserProgram") == "true" ) {
+        getProgramBreakers()
       }
     }
 
@@ -2914,7 +3340,7 @@ function main() {
       return workout;
     }
 
-    function checkAndClearProgram(destinationScreen, secondaryDestination=null) {
+    function checkAndClearProgram(destinationScreen, destinationButton, secondaryDestination=null) {
       //Check if text boxes have values or events exist
       const programBuilderName = document.getElementById("programName").value;
       const programBuilderDescription = document.getElementById("programDescription").value;
@@ -2940,6 +3366,17 @@ function main() {
 
         //Navigate to selected page
         document.getElementById("dontSave").onclick = function() {
+
+          
+          document.getElementById("saveUserDetails").style.display = "flex";
+          document.getElementById("saveUserDetails").style.alignContent = "center";
+          document.getElementById("saveUserDetails").style.justifyContent = "center";
+
+          //Remove training plan header
+          document.getElementById("trainingPlanName").style.display = "none";
+
+          //Reset user training plan:
+          userTrainingPlan = [];
 
           document.getElementById("saveTrainingPlan").style.display = "none";
 
@@ -2969,9 +3406,14 @@ function main() {
           if(destinationScreen != "workoutSummaryPage") {
             document.getElementById("workoutSummaryPage").style.display = "none";
             document.getElementById("workoutBuilderPage").style.display = "none";
-          } else if(destinationScreen != "usersBody" || destinationScreen != "userInfoDetails") {
+          }
+
+          if(destinationScreen != "usersBody" && destinationScreen != "userInfoDetails") {
             document.getElementById("usersBody").style.display = "none";
             document.getElementById("userSummaryPage").style.display = "none";
+            
+          } else if(destinationScreen == "usersBody") {
+            document.getElementById("userDetailsPage").style.display = "none";
           }
 
           document.getElementById(destinationScreen).style.display = "block";
@@ -2979,13 +3421,22 @@ function main() {
           if(secondaryDestination != null) {
             document.getElementById(secondaryDestination).style.display = "block";
           }
+
+          styleNavButtons(destinationButton)
+
         }
 
       } else {
+                  
+        document.getElementById("saveUserDetails").style.display = "flex";
+        document.getElementById("saveUserDetails").style.alignContent = "center";
+        document.getElementById("saveUserDetails").style.justifyContent = "center";
+
+        //Remove training plan header
+        document.getElementById("trainingPlanName").style.display = "none";
         document.getElementById("saveTrainingPlan").style.display = "none";
         document.getElementById("programBuilder").style.display = "none";
         document.getElementById("programPage").style.display = "none";
-
 
         document.getElementById("workoutRadio").click();
         //Click workout radio button
@@ -2998,8 +3449,11 @@ function main() {
         document.getElementById("workoutSummaryPage").style.display = "none";
         document.getElementById("workoutBuilderPage").style.display = "none";
 
-        if(destinationScreen != "userInfoDetails") {
+        if(destinationScreen != "usersBody" && destinationScreen != "userInfoDetails") {
           document.getElementById("usersBody").style.display = "none";
+          document.getElementById("userDetailsPage").style.display = "none";
+          document.getElementById("userSummaryPage").style.display = "none";
+        } else if(destinationScreen == "usersBody") {
           document.getElementById("userDetailsPage").style.display = "none";
         }
 
@@ -3015,6 +3469,8 @@ function main() {
         sessionStorage.setItem('duplicateProgram', 'false');
         sessionStorage.setItem('createProgram', 'false');
         sessionStorage.setItem('createUserProgram', 'false');
+
+        styleNavButtons(destinationButton)
 
         //Clear program entries
         clearProgram();
@@ -3057,7 +3513,7 @@ function main() {
       });
     }
 
-    function checkAndClearWorkouts(destinationScreen, secondaryDestination=null) {
+    function checkAndClearWorkouts(destinationScreen, destinationButton, secondaryDestination=null) {
       resetGeneralFilters();
       //Check if list size is > 1 and obtain values for workout summary inputs to check if they are empty or not
       const workoutList = document.getElementById("workoutList").children;
@@ -3098,6 +3554,8 @@ function main() {
           sessionStorage.setItem('editWorkout', 'false');
           sessionStorage.setItem('duplicateWorkout', 'false');
           sessionStorage.setItem('createWorkout', 'false');
+
+          styleNavButtons(destinationButton)
   
           //Clear workout to guide list mapping
           clearWorkoutListEntry();
@@ -3124,6 +3582,8 @@ function main() {
         sessionStorage.setItem('editWorkout', 'false');
         sessionStorage.setItem('duplicateWorkout', 'false');
         sessionStorage.setItem('createWorkout', 'false');
+
+        styleNavButtons(destinationButton);
   
         //Clear workout to guide list mapping
         clearWorkoutListEntry();
