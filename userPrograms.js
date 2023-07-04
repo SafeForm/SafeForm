@@ -7,6 +7,12 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+  if (typeof moment === 'function') {
+    // Moment.js is loaded, execute your code here
+  } else {
+    // Moment.js is not loaded yet, wait for a brief moment and try again
+    location.reload();
+  }
 //
 
   //Add utm to buttons
@@ -68,9 +74,22 @@ function main() {
   //Remove original placeholder button
   weekButton.remove();
 
-  const workouts = JSON.parse(document.getElementById("programEventData").innerText);
+  const programs = JSON.parse(document.getElementById("programEventData").innerText);
+  var workouts = null;
+  //iterate until we find current program
+  for(var i = 0; i < programs.length; i++) {
+    if(new Date() <  moment(programs[i].endWeek).toDate()) {
+      workouts = programs[i].events;
+      break;
+    }
+  }
 
-  // Sort the workouts array based on the 'Start Date' field
+  if(workouts == null) {
+    console.log("NO PROGRAMS");
+    return;
+  }
+
+  //Sort the workouts array based on the 'Start Date' field
   workouts.sort((a, b) => {
     const dateA = moment(a['start']);
     const dateB = moment(b['start']);
