@@ -251,7 +251,12 @@ function main() {
 
     // Get the selected week's workouts from the JSON structure
     const selectedWeekWorkouts = weeks[weekIndex];
+
+    //Get workout index to start of the selected week
     var addedWorkout = 1;
+    for(var i = 0; i < weekIndex; i++) {
+      addedWorkout += weeks[i].length;
+    }
     // Iterate over the selected week's workouts
     selectedWeekWorkouts.forEach((workout) => {
       // Get the workout element based on the workout ID
@@ -270,7 +275,7 @@ function main() {
       if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID) {
 
         var newElement = workoutElement.closest('.workoutprogramitem').cloneNode(true);
-        newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout + selectedWeekWorkouts.length * weekIndex }.`;
+        newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
         workoutList.appendChild(newElement);
         addedWorkout += 1;
 
