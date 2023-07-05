@@ -15,6 +15,12 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+  if (typeof moment === 'function') {
+    // Moment.js is loaded, execute your code here
+  } else {
+    // Moment.js is not loaded yet, wait for a brief moment and try again
+    location.reload();
+  }
 
   document.getElementsByClassName("form-block-20")[0].style.display = "block";
   // document.getElementById("workoutsPage").classList.remove("div-block-156");
@@ -56,6 +62,7 @@ function main() {
   var userProgramWorkoutID = "";
   var addProgram = false;
   var currentUserProgram = null;
+  var workoutIndexCount = [];
 
   
     
@@ -853,6 +860,8 @@ function main() {
       (function(programItem) {
         programItem.onclick = () => {
 
+          workoutIndexCount = [];
+
           //Remove if any workouts exist
           clearProgramModalList();
 
@@ -1311,7 +1320,7 @@ function main() {
                 }
 
               });
-
+              
               //Add program breaker
               //addProgramNameBreaker(weekRow, programBreakerName);
               if(addProgram) {
@@ -1447,6 +1456,7 @@ function main() {
 
         getUserTrainingPlan();
         removeEmptyPrograms(weekRow);
+        getUserTrainingPlan();
 
       } else if (event.target.nodeName == "path") {
 
@@ -2640,16 +2650,13 @@ function main() {
 
     function getUserTrainingPlan() {
       // Fetch events from FullCalendar for each program
+      console.log(userTrainingPlan);
       userTrainingPlan.forEach((obj, index) => {
         // Retrieve the program start and end dates from the object
         const programStart = new Date(obj.startWeek);
         const programEnd = new Date(obj.endWeek);
         programStart.setHours(0, 0, 0, 0);
         programEnd.setHours(0, 0, 0, 0);
-
-        if(obj.events.length == 0) {
-          //remove object
-        }
 
         // Fetch events from FullCalendar that fall within the program start and end dates
         const events = calendar.getEvents().filter(event => {
@@ -2672,9 +2679,26 @@ function main() {
       // Second loop to remove objects with empty events attributes
       for (let i = userTrainingPlan.length - 1; i >= 0; i--) {
         const obj = userTrainingPlan[i];
-        if (obj.events.length === 0) {
+        if (obj.events.length === 0 || (new Date() > moment(obj.endWeek).toDate())) {
           userTrainingPlan.splice(i, 1);
         }
+      }
+
+      if(userTrainingPlan.length > 0) {
+        //Check if all of the first programs elements are before the current date
+        var beforeCurrent = false;
+        var firstProgram = userTrainingPlan[0].events;
+        for(var i = 0; i < firstProgram.length; i++) {
+          if(new Date() > moment(firstProgram[i].start).toDate()) {
+            beforeCurrent = true;
+          } else {
+            beforeCurrent = false;
+          }
+        }
+      }
+
+      if (beforeCurrent) {
+        userTrainingPlan.shift();
       }
 
     }
@@ -2834,7 +2858,7 @@ function main() {
       // Convert the Start Date strings to Date objects
       var eventsData = "";
       //Check if user training plan is empty
-      console.log(userTrainingPlan);
+
       if(userTrainingPlan.length == 0) {
         if(programType == "userProgram" || programType == "userProgramInitial") {
           eventsData = JSON.parse(program.querySelector("#summaryEventData").innerText);
@@ -2849,14 +2873,14 @@ function main() {
       const events = [];
       const weekRows = [];
       var objStructure = "programBuilder";
-      console.log(eventsData.length);
+
       if(eventsData[0].events != null) {
         objStructure = "trainingPlan";
       }
-
+      console.log(userTrainingPlan);
       if(objStructure == "trainingPlan") {
         eventsData.forEach((obj, index) => {
-          if(index != 0) {
+          if(index = 0) {
   
             if(programType == "userProgram") {
               const date = moment(obj.startWeek).format("YYYY-MM-DD");
@@ -2899,17 +2923,13 @@ function main() {
           });
         });
       }
-
-
       
       // Extract and convert the "start" values into Date objects
       const dates = events.map(obj => obj.start);
       
       // Sort the dates in ascending order
       dates.sort((a, b) => a - b);
-
       //Set calendar initial date
-
       if(programType == "userProgram") {
         calendar.today();
       } else {
@@ -2920,7 +2940,6 @@ function main() {
       const firstDate = dates[0];
       const lastDate = dates[dates.length - 1];
       var weeks = Math.ceil((lastDate - firstDate) / millisecondsPerWeek);
-
       if(firstDate.getDay() > 4) {
         weeks += 1;
       }
@@ -3088,14 +3107,19 @@ function main() {
   
     // Function to filter and display the workouts based on the selected week
     function displayWorkouts(weekIndex, workoutList, workoutListWorkouts, weeks) {
-
       // Clear the current workout list
       workoutList.innerHTML = '';
       
       // Get the selected week's workouts from the JSON structure
       const selectedWeekWorkouts = weeks[weekIndex];
 
+      //Get workout index to start of the selected week
       var addedWorkout = 1;
+      for(var i = 0; i < weekIndex; i++) {
+        addedWorkout += weeks[i].length;
+      }
+
+      //var addedWorkout = 1;
       // Iterate over the selected week's workouts
       selectedWeekWorkouts.forEach((workout, index) => {
 
@@ -3113,9 +3137,10 @@ function main() {
 
         if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID ) {
           var newElement = workoutElement.closest('.workout-item-template').cloneNode(true);
-          newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout + selectedWeekWorkouts.length * weekIndex }.`;
+          newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
           workoutList.appendChild(newElement);
           addedWorkout += 1;
+          workoutIndexCount += 1;
         }
       });
       
@@ -3131,7 +3156,6 @@ function main() {
       */
   
     }
-
 
     function updateCalendar(events=null) {
       
