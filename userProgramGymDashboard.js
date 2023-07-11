@@ -945,6 +945,10 @@ function main() {
 
       document.getElementById("programList").style.display = "none";
 
+      //Add a week to the calenda
+      document.getElementById("addWeekButton").click();
+
+
     }
     
 
@@ -1249,97 +1253,139 @@ function main() {
               var currentEndOfWeek = null;
               var incrementWeeks = false;
 
+              if(addProgram) {
+                //Check if there is a program existing after the clicked row and if the selected program will creep into this
+                var programBreakerDiv = weekRow.nextSibling;
+
+                if(programBreakerDiv && programBreakerDiv.classList.length > 0 ) {
+                  //Get the program breaker nearest to the week row
+                  while(!programBreakerDiv.classList.contains("program-breaker-div")) {
+                    programBreakerDiv = programBreakerDiv.nextSibling;
+                  }
+                } else {
+                  programBreakerDiv = null;
+                }
+
+              }
+ 
               const sortedCopiedEvents = copiedEvents.slice().sort((a, b) => {
                 const dateA = moment(a.start, 'YYYY-MM-DD');
                 const dateB = moment(b.start, 'YYYY-MM-DD');
                 return dateA.diff(dateB);
               });
 
-              sortedCopiedEvents.forEach(function(event, index, events) {
-
-                event.start = new Date(event.start); 
-
-                currentEndOfWeek = new Date (getEndOfWeek(event.start));
-
-                if(index < events.length - 1) {
-                  if(new Date(events[index + 1].start).getTime() >= currentEndOfWeek.getTime()) {
-                    incrementWeeks = true;
-                  }
+              if (addProgram && programBreakerDiv) {
+                var lastWorkout = new Date(sortedCopiedEvents[sortedCopiedEvents.length - 1].start);
+                var programBreakerDivId = new Date(programBreakerDiv.id);
+              
+                if (lastWorkout.getTime() > programBreakerDivId.getTime()) {
+                  var difference = Math.floor((lastWorkout.getTime() - programBreakerDivId.getTime()) / millisecondsPerWeek);
+                  lastWorkout.setDate(lastWorkout.getDate() - ((difference * 7)));
+                } else if (lastWorkout.getTime() < programBreakerDivId.getTime() ) {
+                  var difference = Math.ceil((programBreakerDivId.getTime() - lastWorkout.getTime()) / millisecondsPerWeek);
+                  lastWorkout.setDate(lastWorkout.getDate() + ((difference * 7)));
                 }
                 
-                startTime.setHours(0, 0, 0, 0);
+                lastWorkout.setDate(lastWorkout.getDate() + ((weekCounter * 7)));
 
-                // Filter the events within the week of interest
-                if(!addProgram) {
-                  var eventsInWeek = calendar.getEvents().filter(function(existingEvent) {
-                    var existingEventStart = existingEvent.start;
-                    return (
-                      existingEventStart >= startTime && existingEventStart <= endOfWeek
-                    );
-                  });
-                }
-
-                // Calculate the difference between copied event and selected paste week
-                if (event.start.getTime() > startTime.getTime()) {
-
-                  var difference = Math.floor((event.start.getTime() - startTime.getTime()) / millisecondsPerWeek);
-                  event.start.setDate(event.start.getDate() - ((difference * 7)));
-                  
-                } else if (event.start.getTime() < startTime.getTime()) {
-                  
-                  var difference = Math.ceil((startTime.getTime() - event.start.getTime()) / millisecondsPerWeek);
-                  event.start.setDate(event.start.getDate() + ((difference * 7)));
-
-                }
-
-                event.start.setDate(event.start.getDate() + ((weekCounter * 7)));
-
-                // If event added that exceeds calendar view, add another week
-                if(event.start > calendar.view.currentEnd) {
-                  updateCalendarWeeks(0, "userProgram");
-                }
-
-                //Increase week counter if week elapsed
-                if(incrementWeeks) {
-                  weekCounter += 1;
-                  incrementWeeks = false;
-                }
-
-                if(!addProgram) {
-                  // Check if there are any duplicate events within the week
-                  var duplicateEventExists = eventsInWeek.some(function(existingEvent) {
-                    return existingEvent.start.toDateString() === event.start.toDateString();
-                  });
-                }
-
-                if(!duplicateEventExists && !addProgram) {
-                  // Add event to calendar
-                  calendar.addEvent(event);
-                } else if(addProgram) {
-                  calendar.addEvent(event);
-                }
-
-              });
-              
-              //Add program breaker
-              //addProgramNameBreaker(weekRow, programBreakerName);
-              if(addProgram) {
-                //add program to global userProgram list
-                var programObj = {};
-                programObj["programName"] = document.getElementById("selectedProgramName").innerText;
-                programObj["programID"] = userProgramWorkoutID;
-                programObj["events"] = sortedCopiedEvents;
-                programObj["startWeek"] = moment(new Date(sortedCopiedEvents[0].start)).format("YYYY-MM-DD");;
-                var endOfProgram = new Date (getEndOfWeek(sortedCopiedEvents[0].start));
-                programObj["endWeek"] = moment(new Date (endOfProgram.setDate(endOfProgram.getDate() + (numProgramWeeks-1)*7))).format("YYYY-MM-DD");;
-
-                userTrainingPlan.push(programObj);
-
-                getProgramBreakers();
               }
-              
-              // Clear program list
-              clearProgramModalList();
+
+              if(isPasteState || programBreakerDiv == null || lastWorkout < programBreakerDivId ) {
+                sortedCopiedEvents.forEach(function(event, index, events) {
+
+                  event.start = new Date(event.start); 
+  
+                  currentEndOfWeek = new Date (getEndOfWeek(event.start));
+  
+                  if(index < events.length - 1) {
+                    if(new Date(events[index + 1].start).getTime() >= currentEndOfWeek.getTime()) {
+                      incrementWeeks = true;
+                    }
+                  }
+                  
+                  startTime.setHours(0, 0, 0, 0);
+  
+                  // Filter the events within the week of interest
+                  if(!addProgram) {
+                    var eventsInWeek = calendar.getEvents().filter(function(existingEvent) {
+                      var existingEventStart = existingEvent.start;
+                      return (
+                        existingEventStart >= startTime && existingEventStart <= endOfWeek
+                      );
+                    });
+                  }
+  
+                  // Calculate the difference between copied event and selected paste week
+                  if (event.start.getTime() > startTime.getTime()) {
+  
+                    var difference = Math.floor((event.start.getTime() - startTime.getTime()) / millisecondsPerWeek);
+                    event.start.setDate(event.start.getDate() - ((difference * 7)));
+                    
+                  } else if (event.start.getTime() < startTime.getTime()) {
+                    
+                    var difference = Math.ceil((startTime.getTime() - event.start.getTime()) / millisecondsPerWeek);
+                    event.start.setDate(event.start.getDate() + ((difference * 7)));
+  
+                  }
+  
+                  event.start.setDate(event.start.getDate() + ((weekCounter * 7)));
+  
+                  // If event added that exceeds calendar view, add another week
+                  if(event.start > calendar.view.currentEnd) {
+                    updateCalendarWeeks(0, "userProgram");
+                  }
+  
+                  //Increase week counter if week elapsed
+                  if(incrementWeeks) {
+                    weekCounter += 1;
+                    incrementWeeks = false;
+                  }
+  
+                  if(!addProgram) {
+                    // Check if there are any duplicate events within the week
+                    var duplicateEventExists = eventsInWeek.some(function(existingEvent) {
+                      return existingEvent.start.toDateString() === event.start.toDateString();
+                    });
+                  }
+  
+                  if(!duplicateEventExists && !addProgram) {
+                    // Add event to calendar
+                    calendar.addEvent(event);
+                  } else if(addProgram) {
+                    calendar.addEvent(event);
+                  }
+  
+                });
+                
+                if(addProgram) {
+                  //add program to global userProgram list
+                  var programObj = {};
+                  programObj["programName"] = document.getElementById("selectedProgramName").innerText;
+                  programObj["programID"] = userProgramWorkoutID;
+                  programObj["events"] = sortedCopiedEvents;
+                  programObj["startWeek"] = moment(new Date(sortedCopiedEvents[0].start)).format("YYYY-MM-DD");;
+                  var endOfProgram = new Date (getEndOfWeek(sortedCopiedEvents[0].start));
+                  programObj["endWeek"] = moment(new Date (endOfProgram.setDate(endOfProgram.getDate() + (numProgramWeeks-1)*7))).format("YYYY-MM-DD");;
+  
+                  userTrainingPlan.push(programObj);
+  
+                  //Sort the programs by start week
+                  userTrainingPlan.sort(function(a, b) {
+                    var dateA = moment(a.startWeek, "YYYY-MM-DD");
+                    var dateB = moment(b.startWeek, "YYYY-MM-DD");
+                    return dateA - dateB;
+                  });
+  
+                }
+  
+                getProgramBreakers();
+                
+                // Clear program list
+                clearProgramModalList();
+
+              } else {
+                alert("A program already exists there! Please select another one or make some more room");
+              }
               
             }
           }
@@ -1372,7 +1418,6 @@ function main() {
         setFromPaste = true;
       } else {
         isPasteState = false;
-        //addProgram = false;
         isEventPasteState = false;
       }
 
@@ -1457,6 +1502,7 @@ function main() {
         getUserTrainingPlan();
         removeEmptyPrograms(weekRow);
         getUserTrainingPlan();
+        getProgramBreakers();
 
       } else if (event.target.nodeName == "path") {
 
@@ -2529,8 +2575,6 @@ function main() {
       userDetailsObj["userName"] = document.getElementById("userFullName").innerText;
       userDetailsObj["userID"] = document.getElementById("userID").innerText;
 
-      console.log(userDetailsObj);
-
       fetch("https://hook.us1.make.com/2nq6l90x38nxaqxhitvm323wku5y1cl8", {
         method: "POST",
         headers: {'Content-Type': 'application/json'}, 
@@ -2557,6 +2601,8 @@ function main() {
 
     function createUserProgram() {
 
+      getUserTrainingPlan("create");
+
       var userProgram = {};
       // Name of user program - user name + program name
       userProgram["userName"] = `${document.getElementById("userFullName").innerText}`;
@@ -2570,42 +2616,40 @@ function main() {
       //Program Full Name
       userProgram["programName"] = `${document.getElementById("userFullName").innerText}'s program`;
       
-      // Number of weeks - TODO: DEAL WITH MULTIPLE PROGRAMS
-      //userProgram["numberOfWeeks"] = document.getElementById("selectedProgramWeeks").innerText;
       // User ID
       userProgram["userID"] = document.getElementById("userID").innerText;
 
-      var userProgramEvents = calendar.getEvents();
-      var userProgramWorkouts = [];
-      // List of webflow workout IDs
-      // Loop through the events and log their titles to the console
-      for (var i = 0; i < userProgramEvents.length; i++) {
-        userProgramWorkouts.push(userProgramEvents[i].extendedProps.workoutID);
-      }
-      userProgram["workoutList"] = userProgramWorkouts;
-      
       // Event data
-      userProgram["events"] = JSON.stringify(userProgramEvents);
+      userProgram["events"] = JSON.stringify(userTrainingPlan);
 
-      const dates = userProgramEvents.map(obj => obj.start);
-      // Sort the dates in ascending order
-      dates.sort((a, b) => a - b);
-      // Start date
-      userProgram["startDate"] = dates[0];
-      // End date
-      userProgram["endDate"] = dates[dates.length - 1];
-      const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-      const firstDate = dates[0];
-      const lastDate = dates[dates.length - 1];
-      userProgram["numberOfWeeks"] = Math.ceil((lastDate - firstDate) / millisecondsPerWeek);
+      if(userTrainingPlan.length > 0) {
+        const firstDate = userTrainingPlan[0].startWeek;
+        const lastDate = userTrainingPlan[0].endWeek;
+        // Start date
+        userProgram["startDate"] = firstDate;
+        // End date
+        userProgram["endDate"] = lastDate;
 
+        const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+
+        userProgram["numberOfWeeks"] = Math.ceil((new Date(lastDate) - new Date(firstDate)) / millisecondsPerWeek);
+
+        // List of webflow workout IDs
+        var userProgramWorkouts = [];
+        // List of webflow workout IDs
+        // Loop through the events and log their titles to the console
+        for (var i = 0; i < userTrainingPlan[0].events.length; i++) {
+          userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
+        }
+        userProgram["workoutList"] = userProgramWorkouts;
+      } 
       sendUserProgramToMake(userProgram, "create");
 
     }
 
     function updateUserProgram() {
 
-      getUserTrainingPlan();
+      getUserTrainingPlan("submit");
 
       var userProgram = {};
       
@@ -2624,33 +2668,42 @@ function main() {
       // Event data
       userProgram["events"] = JSON.stringify(userTrainingPlan);
 
-      const firstDate = userTrainingPlan[0].startWeek;
-      const lastDate = userTrainingPlan[0].endWeek;
 
-      // Start date
-      userProgram["startDate"] = firstDate;
-      // End date
-      userProgram["endDate"] = lastDate;
+      if(userTrainingPlan.length > 0) {
+        const firstDate = userTrainingPlan[0].startWeek;
+        const lastDate = userTrainingPlan[0].endWeek;
+        // Start date
+        userProgram["startDate"] = firstDate;
+        // End date
+        userProgram["endDate"] = lastDate;
 
-      const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+        const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
 
-      userProgram["numberOfWeeks"] = Math.ceil((new Date(lastDate) - new Date(firstDate)) / millisecondsPerWeek);
+        userProgram["numberOfWeeks"] = Math.ceil((new Date(lastDate) - new Date(firstDate)) / millisecondsPerWeek);
 
-      // List of webflow workout IDs
-      var userProgramWorkouts = [];
-      // List of webflow workout IDs
-      // Loop through the events and log their titles to the console
-      for (var i = 0; i < userTrainingPlan[0].events.length; i++) {
-        userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
-      }
-      userProgram["workoutList"] = userProgramWorkouts;
+        // List of webflow workout IDs
+        var userProgramWorkouts = [];
+        // List of webflow workout IDs
+        // Loop through the events and log their titles to the console
+        for (var i = 0; i < userTrainingPlan[0].events.length; i++) {
+          userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
+        }
+        userProgram["workoutList"] = userProgramWorkouts;
+      } 
+
       sendUserProgramToMake(userProgram, "update");
 
     }
 
-    function getUserTrainingPlan() {
-      // Fetch events from FullCalendar for each program
-      console.log(userTrainingPlan);
+    function getUserTrainingPlan(action="obtainPlan") {
+
+      //Sort the programs by start week
+      userTrainingPlan.sort(function(a, b) {
+        var dateA = moment(a.startWeek, "YYYY-MM-DD");
+        var dateB = moment(b.startWeek, "YYYY-MM-DD");
+        return dateA - dateB;
+      });
+
       userTrainingPlan.forEach((obj, index) => {
         // Retrieve the program start and end dates from the object
         const programStart = new Date(obj.startWeek);
@@ -2658,22 +2711,41 @@ function main() {
         programStart.setHours(0, 0, 0, 0);
         programEnd.setHours(0, 0, 0, 0);
 
-        // Fetch events from FullCalendar that fall within the program start and end dates
+        // Retrieve the next startWeek, if it exists
+        const nextStartWeek = index < userTrainingPlan.length - 1 ? moment(userTrainingPlan[index + 1].startWeek).format('YYYY-MM-DD') : null;
+
+        // Fetch events from FullCalendar that fall within the program start and next startWeek
         const events = calendar.getEvents().filter(event => {
           const eventStart = event.start;
 
-          //Check if last program
-          if(index == (userTrainingPlan.length -1)) {
-            //Return remaining programs in calendar
-            return eventStart >= programStart
-          } else {
-            // Compare the event's start date with the program start and end dates
-            return eventStart >= programStart && eventStart < programEnd;
+          // Check if last program or the event is before the next startWeek
+          if ((index === userTrainingPlan.length - 1 && eventStart >= programStart) || (nextStartWeek && eventStart >= programStart && eventStart < moment(nextStartWeek).toDate())) {
+            return true;
           }
+          return false;
         });
+
+        //Sort the events by start date
+        events.sort(function(a, b) {
+          var dateA = moment(a.start, "YYYY-MM-DD");
+          var dateB = moment(b.start, "YYYY-MM-DD");
+          return dateA - dateB;
+        });
+
+
+        // Update the start and end week fields of the object
+        if (events.length > 0) {
+          const firstEvent = events[0];
+          const lastEvent = events[events.length - 1];
+          const startOfWeek = moment(firstEvent.start).startOf('week').format('YYYY-MM-DD');
+          const endOfWeek = moment(lastEvent.start).endOf('week').format('YYYY-MM-DD');
+          (action != "obtainPlan") ? obj.startWeek = startOfWeek : null; //Only update start week date if submitting training plan 
+          obj.endWeek = endOfWeek;
+        }
 
         // Add the fetched events to the 'events' attribute of the object
         obj.events = events.map(event => event.toPlainObject());
+
       });
 
       // Second loop to remove objects with empty events attributes
@@ -2683,47 +2755,36 @@ function main() {
           userTrainingPlan.splice(i, 1);
         }
       }
-
-      if(userTrainingPlan.length > 0) {
-        //Check if all of the first programs elements are before the current date
-        var beforeCurrent = false;
-        var firstProgram = userTrainingPlan[0].events;
-        for(var i = 0; i < firstProgram.length; i++) {
-          if(new Date() > moment(firstProgram[i].start).toDate()) {
-            beforeCurrent = true;
-          } else {
-            beforeCurrent = false;
-          }
-        }
-      }
-
-      if (beforeCurrent) {
-        userTrainingPlan.shift();
-      }
-
     }
 
     function removeEmptyPrograms(weekRow) {
-
       var programBreakerDiv = weekRow.previousSibling;
+      
       //Get the program breaker nearest to the week row
       while(!programBreakerDiv.classList.contains("program-breaker-div")) {
         programBreakerDiv = programBreakerDiv.previousSibling;
       }
+
       var foundProgram = false;
+      var programToRemove = null;
       //If the start date of the program isn't in the users training plan object then remove the program breaker div
       userTrainingPlan.forEach((obj, index) => {
         if(moment(obj.startWeek).format("YYYY-MM-DD") == programBreakerDiv.id) {
           foundProgram = true;
+          programToRemove = obj;
         }
       });
 
       if(!foundProgram) {
+
         programBreakerDiv.remove();
+        // Removing the program from the list
+        userTrainingPlan = userTrainingPlan.filter(function(obj) {
+          return obj !== programToRemove;
+        });
+
       }
-
       
-
     }
 
     function addProgramNameBreaker(weekRow, programBreakerName) {
@@ -2754,26 +2815,21 @@ function main() {
     }
 
     function getProgramBreakers() {
-
+      
       const weekRows = [];
-      if(document.querySelectorAll(".program-breaker").length < userTrainingPlan.length - 1) {
+      if(document.querySelectorAll(".program-breaker").length < userTrainingPlan.length ) {
         if(userTrainingPlan != null) {
           var programBreakerDivs = document.querySelectorAll('.program-breaker-div');
           programBreakerDivs.forEach(function(div) {
             div.parentNode.removeChild(div);
           });
           userTrainingPlan.forEach((obj, index) => {
-            if(index != 0) {
-
-              const date = moment(obj.startWeek).format("YYYY-MM-DD");
-      
-              const cell = calendarEl.querySelector(`[data-date="${date}"]`);
-
-              if(cell != null) {
-                const weekRow = cell.closest('[role="row"]');
-                weekRows.push([weekRow, obj.programName]);
-              }
-
+            const date = moment(obj.startWeek).format("YYYY-MM-DD");
+    
+            const cell = calendarEl.querySelector(`[data-date="${date}"]`);
+            if(cell != null) {
+              const weekRow = cell.closest('[role="row"]');
+              weekRows.push([weekRow, obj.programName]);
             }
           });
 
@@ -2786,7 +2842,6 @@ function main() {
 
     }
     
-
     async function sendUserProgramToMake(program, type) {
 
       if(type == "update") {
@@ -2801,7 +2856,28 @@ function main() {
           throw new Error('Something went wrong');
         })
         .then((data) => {
-  
+          alert("Program Updated Successfully!");
+          //Reset program builder flags
+          location.reload();
+        })
+        .catch((error) => {
+          console.log(error);
+          alert("Could not update program, please try again");
+          location.reload();
+        });
+        sessionStorage.setItem("createUserProgram", "false");
+      } else if (type == "create") {
+        fetch("https://hook.us1.make.com/xc19h2x675jb99nsrlya5bvj8gcw1txp", {
+          method: "POST",
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify(program)
+        }).then((res) => {
+          if (res.ok) {
+            return res.text();
+          }
+          throw new Error('Something went wrong');
+        })
+        .then((data) => {
           alert("Program Created Successfully!");
           //Reset program builder flags
           location.reload();
@@ -2860,39 +2936,63 @@ function main() {
       //Check if user training plan is empty
 
       if(userTrainingPlan.length == 0) {
+        const summaryEventData = program.querySelector("#summaryEventData");
+        const eventDataElement = program.querySelector("#eventData");
+
         if(programType == "userProgram" || programType == "userProgramInitial") {
-          eventsData = JSON.parse(program.querySelector("#summaryEventData").innerText);
+          if(summaryEventData && summaryEventData.innerText != "") {
+            eventsData = JSON.parse(summaryEventData.innerText);
+          }
         } else {
-          eventsData = JSON.parse(program.querySelector("#eventData").innerText);
+          if(eventDataElement && eventDataElement.innerText != "") {
+            eventsData = JSON.parse(program.querySelector("#eventData").innerText);
+          }
         }
         userTrainingPlan = [...eventsData];
       } else {
         eventsData = [...userTrainingPlan];
       }
 
-      const events = [];
-      const weekRows = [];
-      var objStructure = "programBuilder";
-
-      if(eventsData[0].events != null) {
-        objStructure = "trainingPlan";
-      }
-      console.log(userTrainingPlan);
-      if(objStructure == "trainingPlan") {
-        eventsData.forEach((obj, index) => {
-          if(index = 0) {
+      if(eventsData != "" && eventsData.length > 0) {
+        const events = [];
+        const weekRows = [];
+        var objStructure = "programBuilder";
   
-            if(programType == "userProgram") {
-              const date = moment(obj.startWeek).format("YYYY-MM-DD");
+        if(eventsData[0].events != null) {
+          objStructure = "trainingPlan";
+        }
+  
+        if(objStructure == "trainingPlan") {
+          eventsData.forEach((obj, index) => {
+            if(index = 0) {
     
-              const cell = calendarEl.querySelector(`[data-date="${date}"]`);
-              
-              const weekRow = cell.closest('[role="row"]');
-              weekRows.push([weekRow, obj.programName])
+              if(programType == "userProgram") {
+                const date = moment(obj.startWeek).format("YYYY-MM-DD");
+      
+                const cell = calendarEl.querySelector(`[data-date="${date}"]`);
+                
+                const weekRow = cell.closest('[role="row"]');
+                weekRows.push([weekRow, obj.programName])
+              }
+    
             }
-  
-          }
-          obj.events.forEach(event => {
+            obj.events.forEach(event => {
+              const startDate = new Date(event.start);
+          
+              events.push({
+                title: event.title,
+                extendedProps: {
+                  length: event.extendedProps.length,
+                  targetArea: event.extendedProps.targetArea,
+                  workoutID: event.extendedProps.workoutID
+                },
+                start: startDate,
+                allDay: true
+              });
+            });
+          });
+        } else {
+          eventsData.forEach((event, index) => {
             const startDate = new Date(event.start);
         
             events.push({
@@ -2906,91 +3006,78 @@ function main() {
               allDay: true
             });
           });
-        });
-      } else {
-        eventsData.forEach((event, index) => {
-          const startDate = new Date(event.start);
-      
-          events.push({
-            title: event.title,
-            extendedProps: {
-              length: event.extendedProps.length,
-              targetArea: event.extendedProps.targetArea,
-              workoutID: event.extendedProps.workoutID
-            },
-            start: startDate,
-            allDay: true
-          });
-        });
-      }
-      
-      // Extract and convert the "start" values into Date objects
-      const dates = events.map(obj => obj.start);
-      
-      // Sort the dates in ascending order
-      dates.sort((a, b) => a - b);
-      //Set calendar initial date
-      if(programType == "userProgram") {
-        calendar.today();
-      } else {
-        calendar.gotoDate( dates[0] );
-      }
-      // Calculate the number of weeks between the first and last dates
-      const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-      const firstDate = dates[0];
-      const lastDate = dates[dates.length - 1];
-      var weeks = Math.ceil((lastDate - firstDate) / millisecondsPerWeek);
-      if(firstDate.getDay() > 4) {
-        weeks += 1;
-      }
-      
-      //Populate calendar with events
-      updateCalendar(events);
-
-      if(programType == "builder") {
-        //Populate name and description.
-        document.getElementById("programName").value = program.querySelector("#programSummaryName").innerText;
-        document.getElementById("programDescription").value = program.querySelector("#programSummaryDescription").innerText;
-
-        //Populate experience and goal
-        document.getElementById("programExperience").value = program.querySelector("#programSummaryExperience").innerText;
-        document.getElementById("programGoal").value = program.querySelector("#programSummaryGoal").innerText;
-
-        //Populate hidden program ID field
-        document.getElementById("programSummaryID").value = program.querySelector("#programID").innerText;
-
-        //Show Calendar
-        document.getElementById("programPage").style.display = "none";
-        document.getElementById("programBuilder").style.display = "block";
-        //Show form inputs for program builder
-        var programBuilderInfo = document.getElementById("programBuilderInfo");
-        programBuilderInfo.style.display = "flex";
-        programBuilderInfo.style.flexDirection = "row";
-        programBuilderInfo.style.alignContent = "flex-end";
-        programBuilderInfo.style.justifyContent = "space-between";
-        document.getElementById("programBuilderInfo").style.display = "flex";
-
-      }
-
-      if(weeks > 4) {
-        //Update calendar weeks if necessary
-        updateCalendarWeeks(weeks);
-      } else {
-        updateCalendarWeeks(weeks);
+        }
+        
+        // Extract and convert the "start" values into Date objects
+        const dates = events.map(obj => obj.start);
+        
+        // Sort the dates in ascending order
+        dates.sort((a, b) => a - b);
+        //Set calendar initial date
+        if(programType == "userProgram") {
+          calendar.today();
+        } else {
+          calendar.gotoDate( dates[0] );
+        }
+        // Calculate the number of weeks between the first and last dates
+        const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
+        const firstDate = dates[0];
+        const lastDate = dates[dates.length - 1];
+        var weeks = Math.ceil((lastDate - firstDate) / millisecondsPerWeek);
+        if(firstDate.getDay() > 4) {
+          weeks += 1;
+        }
+        
+        //Populate calendar with events
+        updateCalendar(events);
+  
+        if(programType == "builder") {
+          //Populate name and description.
+          document.getElementById("programName").value = program.querySelector("#programSummaryName").innerText;
+          document.getElementById("programDescription").value = program.querySelector("#programSummaryDescription").innerText;
+  
+          //Populate experience and goal
+          document.getElementById("programExperience").value = program.querySelector("#programSummaryExperience").innerText;
+          document.getElementById("programGoal").value = program.querySelector("#programSummaryGoal").innerText;
+  
+          //Populate hidden program ID field
+          document.getElementById("programSummaryID").value = program.querySelector("#programID").innerText;
+  
+          //Show Calendar
+          document.getElementById("programPage").style.display = "none";
+          document.getElementById("programBuilder").style.display = "block";
+          //Show form inputs for program builder
+          var programBuilderInfo = document.getElementById("programBuilderInfo");
+          programBuilderInfo.style.display = "flex";
+          programBuilderInfo.style.flexDirection = "row";
+          programBuilderInfo.style.alignContent = "flex-end";
+          programBuilderInfo.style.justifyContent = "space-between";
+          document.getElementById("programBuilderInfo").style.display = "flex";
+  
+        }
+  
+        if(weeks > 4) {
+          //Update calendar weeks if necessary
+          updateCalendarWeeks(weeks);
+        } else {
+          updateCalendarWeeks(weeks);
+        }
+  
+        //If going to program builder then hide week start and end dates:
+        if(programType == "builder") {
+          showOrHideWeekRange("none");
+        } else {
+          showOrHideWeekRange("block");
+        }
+  
+        refreshCalendarLayout();
+  
+        if(programType == "userProgram") {
+          getProgramBreakers();
+        }
       }
 
-      //If going to program builder then hide week start and end dates:
-      if(programType == "builder") {
-        showOrHideWeekRange("none");
-      } else {
-        showOrHideWeekRange("block");
-      }
 
-      refreshCalendarLayout();
-
-      if(programType == "userProgram") {
-        getProgramBreakers();
-      }
 
     }
 
@@ -3167,7 +3254,7 @@ function main() {
         calendar.addEvent(events[i]);
       }
       if(sessionStorage.getItem("createUserProgram") == "true" ) {
-        getProgramBreakers()
+        getProgramBreakers();
       }
 
     }
@@ -3215,7 +3302,7 @@ function main() {
         showOrHideWeekRange("block");
       }
       if(sessionStorage.getItem("createUserProgram") == "true" ) {
-        getProgramBreakers()
+        getProgramBreakers();
       }
     }
 
