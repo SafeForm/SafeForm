@@ -1107,6 +1107,44 @@ function main() {
 
     }, false);
 
+
+    document.getElementById("createStaffForm").onsubmit = function() {
+
+      //Get necessary details from form and submit to make
+      const gymStaffName = document.getElementById("staffMemberName").value;
+      const gymStaffEmail = document.getElementById("staffMemberEmail").value;
+
+      var staffMember = {};
+      staffMember["name"] = gymStaffName;
+      staffMember["email"] = gymStaffEmail;
+      staffMember["gymID"] = document.getElementById("gymID").innerText;
+
+      createStaffMember(staffMember);
+
+      //Use staff and email to create QR code
+      const createStaffGymName = document.getElementById("gymFullName").innerText;
+      const createStaffGymID = document.getElementById("gymID").innerText;
+    
+      //Create QR Code
+      const createUserlink = `https://safeform.app/user-sign-up?gym_name=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
+      generateQRCode(createUserlink);
+
+      //Hide staff add modal
+      document.getElementById("staffSelectModal").style.display = "none";
+      document.getElementById("addStaffMember").style.display = "none";
+      document.getElementById("selectStaffMember").style.display = "block";
+
+      //Show sign up instructions
+      var createUserModal = document.getElementById("createUserModal");
+      createUserModal.style.display = "flex";
+      createUserModal.style.flexDirection = "column";
+      createUserModal.style.alignItems = "center";
+
+      //Reset form
+      this.reset();
+
+    }
+
     document.getElementById("programForm").onsubmit = function() {
       var program = {};
       var programWorkoutsArr = [];
@@ -1504,6 +1542,23 @@ function main() {
         getUserTrainingPlan();
         getProgramBreakers();
 
+      } else if(event.target.id == "closeCreateUserModal" || event.target.id == "createUserModal") {
+
+        //Hide modal
+        document.getElementById("createUserModal").style.display = "none";
+        //Remove QR code
+        var userQrImg = document.getElementById("createUserQrCode").querySelector("img");
+        if(userQrImg) {
+          userQrImg.remove()
+        }
+
+
+      } else if(event.target.id == "closeAddStaffModal" || event.target.id == "closeStaffSelectModal" || event.target.id == "staffSelectModal" ) {
+
+        document.getElementById("staffSelectModal").style.display = "none";
+        document.getElementById("addStaffMember").style.display = "none";
+        document.getElementById("selectStaffMember").style.display = "block";
+
       } else if (event.target.nodeName == "path") {
 
         var muscleFilter = sessionStorage.getItem("muscleFilter");
@@ -1601,13 +1656,37 @@ function main() {
         }
         
 
-      } else if(event.target.id == "createUser" || event.target.id == "createUserText" || event.target.id == "createUserImage") {
+      } else if(event.target.id == "staffName" || event.target.id == "staffDiv") {
 
         //Get button
-        var userButton = event.target.closest("#createUser");
-        var gymName = document.getElementById("gymFullName").innerText;
-        userButton.src += `utm_campaign=${gymName}`;
+        const createUserGymName = document.getElementById("gymFullName").innerText;
+        const createUserGymID = document.getElementById("gymID").innerText;
 
+        var staffInfo = event.target.closest("#staffDiv");
+
+        if(staffInfo == null) {
+          staffInfo = event.target;
+        }
+
+        //Get staff email
+        const staffEmail = staffInfo.querySelector("#staffEmail").innerText;
+
+        //Create QR Code
+        const link = `https://safeform.app/user-sign-up?gym_name=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
+        generateQRCode(link);
+
+        //Hide staff select modal
+        document.getElementById("staffSelectModal").style.display = "none";
+        document.getElementById("selectStaffMember").style.display = "none";
+        document.getElementById("addStaffMember").style.display = "none";
+
+        //Show sign up instructions
+        var createUserModal = document.getElementById("createUserModal");
+        createUserModal.style.display = "flex";
+        createUserModal.style.flexDirection = "column";
+        createUserModal.style.alignItems = "center";
+
+      
       } else if(event.target.id == "ipadBackButton") {
         //Reset filters on workout summary page
         //workoutSummaryPage.style.display = "block";
@@ -2550,16 +2629,27 @@ function main() {
 
     }
 
-    function generateQRCode(link, gymName) {
+    function generateQRCode(link, gymName=null) {
 
-      var qrcode = new QRCode(document.querySelector(".qr-code"), {
-        text: `${link}?utm_campaign=${gymName}`,
-        width: 300, //default 128
-        height: 300,
-        colorDark : "#0C08D5",
-        colorLight : "#FFFFFF",
-        correctLevel : QRCode.CorrectLevel.L
-      });
+      if(gymName != null) {
+        var qrcode = new QRCode(document.querySelector(".qr-code"), {
+          text: `${link}?utm_campaign=${gymName}`,
+          width: 300, //default 128
+          height: 300,
+          colorDark : "#0C08D5",
+          colorLight : "#FFFFFF",
+          correctLevel : QRCode.CorrectLevel.L
+        });
+      } else {
+        var qrcode = new QRCode(document.querySelector("#createUserQrCode"), {
+          text: `${link}`,
+          width: 128, //default 128
+          height: 128,
+          colorDark : "#0C08D5",
+          colorLight : "#FFFFFF",
+          correctLevel : QRCode.CorrectLevel.L
+        });
+      }
 
       //Set link in session storage
       sessionStorage.setItem("workoutLink", `${link}?utm_campaign=${gymName}`);
@@ -2839,6 +2929,29 @@ function main() {
           }
         }
       }
+
+    }
+
+    async function createStaffMember(staffMember) {
+
+      fetch("https://hook.us1.make.com/ld0136fy2iag6vubvocby4hd635nf74c", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(staffMember)
+      }).then((res) => {
+        if (res.ok) {
+          return res.text();
+        }
+        throw new Error('Something went wrong');
+      })
+      .then((data) => {
+
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Could not create staff member, please try again");
+        location.reload();
+      });
 
     }
     
