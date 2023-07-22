@@ -13,6 +13,15 @@ function main() {
     // Moment.js is not loaded yet, wait for a brief moment and try again
     location.reload();
   }
+
+    //Loop through all list items and assign href to each workout
+    const programWorkoutList = document.getElementById("workoutList").children;
+
+    for (var i = 0; i < programWorkoutList.length; i++) {
+      //Get link from workout summary information and set thumbnail link
+      var workoutSummaryLink = programWorkoutList[i].querySelector("#workoutSummaryLink").href;
+      programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink;
+    }
 //
 
   //Add utm to buttons
