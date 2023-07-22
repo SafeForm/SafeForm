@@ -151,7 +151,8 @@ function main() {
   var linksOnPage = document.querySelectorAll("a");
 
   //Check if there is no gym filter
-  if (gymName == '') {
+  if (gymName == '' && savedGymName == null) {
+
     //Switch off gym filter
     document.getElementById("utm_campaign").click();
 
@@ -161,13 +162,18 @@ function main() {
       }
     }
   } else {
-    localStorage.setItem("fromGym", gymName);
+    var currentGym = '';
+    if(gymName != '') {
+      currentGym = gymName;
+    } else {
+      currentGym = savedGymName;
+    }
+    localStorage.setItem("fromGym", currentGym);
     //Ensure utm campaign parameter is passed to all other links
-    
     for(var i = 0; i < linksOnPage.length; i++) {
 
       if(linksOnPage[i].id != "clearExperienceExerciseFilters" && linksOnPage[i].id != "showFiltersBtn") {
-        linksOnPage[i].href += `?utm_campaign=${gymName}&fromLibrary=true`;
+        linksOnPage[i].href += `?utm_campaign=${currentGym}&fromLibrary=true`;
       }
     }
   }
