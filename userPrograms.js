@@ -15,7 +15,7 @@ function main() {
   }
 
     //Loop through all list items and assign href to each workout
-    const programWorkoutList = document.getElementById("workoutList").children;
+    const programWorkoutList = document.getElementById("programWorkoutList").children;
 
     for (var i = 0; i < programWorkoutList.length; i++) {
       //Get link from workout summary information and set thumbnail link
