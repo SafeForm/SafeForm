@@ -23,13 +23,12 @@ function main() {
   }
 
   document.getElementsByClassName("form-block-20")[0].style.display = "block";
-  // document.getElementById("workoutsPage").classList.remove("div-block-156");
-  // document.getElementById("workoutsPage").classList.add("div-block-154")
+
   document.getElementById("userPage").style.display = "flex";
   document.getElementById("userPage").classList.remove("div-block-156-copy");
   document.getElementById("userPage").classList.add("middlenavbutton")
   
-  styleNavButtons("workoutsPage");
+  styleNavButtons("userPage");
   //document.getElementById("workoutsPage").click();
 
   var muscleMapping = {
@@ -63,8 +62,8 @@ function main() {
   var addProgram = false;
   var currentUserProgram = null;
   var workoutIndexCount = [];
+  var userInputsChanged = false;
 
-  
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -539,6 +538,7 @@ function main() {
       // Your calendar options here
       initialView: 'dayGridFourWeek',
       contentHeight: "90%",
+      eventOverlap: false,
       duration: { weeks: currentNumberOfWeeks},
       views: {
         dayGridFourWeek: {
@@ -684,7 +684,7 @@ function main() {
         });
 
         calendar.on('eventDrop', function(info) {
-
+    
           var stoppedEventDay = info.event._instance.range.start;
 
           if(originalCell) {
@@ -697,6 +697,7 @@ function main() {
               originalCopyButtonEl.remove()
             }
           }
+
 
         });
 
@@ -1023,7 +1024,9 @@ function main() {
           document.getElementById("userProgramID").innerText = userSummary.querySelector("#summaryProgramId").innerText;
           //Fill program name
           document.getElementById("userProgramProgramName").innerText = userSummary.querySelector("#summaryProgramName").innerText;
-
+          //Fill user memberstack ID
+          document.getElementById("userMemberstackID").innerText = userSummary.querySelector("#summaryUserMemberstackID").innerText;
+          
           //Fill calendar
           prefillProgramBuilder(userSummary, "userProgramInitial");
           //TODO: Fill program name
@@ -1036,9 +1039,9 @@ function main() {
           document.getElementById("userDetailsPage").style.display = "block";
 
           //Show user button
-          document.getElementById("saveUserDetails").style.display = "flex";
-          document.getElementById("saveUserDetails").style.alignContent = "center";
-          document.getElementById("saveUserDetails").style.justifyContent = "center";
+          // document.getElementById("saveUserDetails").style.display = "flex";
+          // document.getElementById("saveUserDetails").style.alignContent = "center";
+          // document.getElementById("saveUserDetails").style.justifyContent = "center";
 
 
         }
@@ -1290,21 +1293,6 @@ function main() {
               var weekCounter = 0;
               var currentEndOfWeek = null;
               var incrementWeeks = false;
-
-              if(addProgram) {
-                //Check if there is a program existing after the clicked row and if the selected program will creep into this
-                var programBreakerDiv = weekRow.nextSibling;
-
-                if(programBreakerDiv && programBreakerDiv.classList.length > 0 ) {
-                  //Get the program breaker nearest to the week row
-                  while(!programBreakerDiv.classList.contains("program-breaker-div")) {
-                    programBreakerDiv = programBreakerDiv.nextSibling;
-                  }
-                } else {
-                  programBreakerDiv = null;
-                }
-
-              }
  
               const sortedCopiedEvents = copiedEvents.slice().sort((a, b) => {
                 const dateA = moment(a.start, 'YYYY-MM-DD');
@@ -1312,23 +1300,44 @@ function main() {
                 return dateA.diff(dateB);
               });
 
-              if (addProgram && programBreakerDiv) {
-                var lastWorkout = new Date(sortedCopiedEvents[sortedCopiedEvents.length - 1].start);
-                var programBreakerDivId = new Date(programBreakerDiv.id);
-              
-                if (lastWorkout.getTime() > programBreakerDivId.getTime()) {
-                  var difference = Math.floor((lastWorkout.getTime() - programBreakerDivId.getTime()) / millisecondsPerWeek);
+              var lastWorkout = new Date(sortedCopiedEvents[sortedCopiedEvents.length - 1].start);
+              var firstWorkout = new Date(sortedCopiedEvents[0].start);
+              var programClash = false;
+
+              //Iterate through each existing program and check if there will be a clash with the new program
+              for(const program of userTrainingPlan) {
+                const programStartWeek = new Date(program.startWeek);
+                const programEndWeek = new Date(program.endWeek);
+
+                var weeksBetween = Math.floor((programEndWeek - programStartWeek) / millisecondsPerWeek);
+                
+                if (lastWorkout.getTime() > startTime.getTime()) {
+                  var difference = Math.floor((lastWorkout.getTime() - startTime.getTime()) / millisecondsPerWeek);
                   lastWorkout.setDate(lastWorkout.getDate() - ((difference * 7)));
-                } else if (lastWorkout.getTime() < programBreakerDivId.getTime() ) {
-                  var difference = Math.ceil((programBreakerDivId.getTime() - lastWorkout.getTime()) / millisecondsPerWeek);
+                } else if (lastWorkout.getTime() < startTime.getTime() ) {
+                  var difference = Math.ceil((startTime.getTime() - lastWorkout.getTime()) / millisecondsPerWeek);
                   lastWorkout.setDate(lastWorkout.getDate() + ((difference * 7)));
                 }
-                
-                lastWorkout.setDate(lastWorkout.getDate() + ((weekCounter * 7)));
 
+                if (firstWorkout.getTime() > startTime.getTime()) {
+                  var difference = Math.floor((firstWorkout.getTime() - startTime.getTime()) / millisecondsPerWeek);
+                  firstWorkout.setDate(firstWorkout.getDate() - ((difference * 7)));
+                } else if (firstWorkout.getTime() < startTime.getTime() ) {
+                  var difference = Math.ceil((startTime.getTime() - firstWorkout.getTime()) / millisecondsPerWeek);
+                  firstWorkout.setDate(firstWorkout.getDate() + ((difference * 7)));
+                }
+
+                lastWorkout.setDate(lastWorkout.getDate() + ((weeksBetween * 7)));
+
+                programClash = (lastWorkout >= programStartWeek && lastWorkout <= programEndWeek || firstWorkout >= programStartWeek && firstWorkout <= programEndWeek);
+
+                if(programClash) {
+                  break;
+                }
+              
               }
 
-              if(isPasteState || programBreakerDiv == null || lastWorkout < programBreakerDivId ) {
+              if(isPasteState || !programClash ) {
                 sortedCopiedEvents.forEach(function(event, index, events) {
 
                   event.start = new Date(event.start); 
@@ -1420,6 +1429,7 @@ function main() {
                 
                 // Clear program list
                 clearProgramModalList();
+                setFromPaste = true;
 
               } else {
                 alert("A program already exists there! Please select another one or make some more room");
@@ -1431,8 +1441,8 @@ function main() {
         } else {
           var copiedEvent = JSON.parse(sessionStorage.getItem('copiedEvent'));
           var clickedDate = new Date(dayCell.parentElement.getAttribute("data-date"));
-
-          if ((copiedEvent && clickedDate)) {
+          var hasExistingEvent = dayCell.querySelector(".copy-event-button");
+          if ((copiedEvent && clickedDate && hasExistingEvent == null)) { 
         
             // Create a new event object with the copied event details
             var newEvent = {
@@ -1445,7 +1455,7 @@ function main() {
         
             // Add the new event to the calendar
             calendar.addEvent(newEvent);
-      
+            setFromPaste = true;
           }
  
         }
@@ -1453,7 +1463,7 @@ function main() {
         toggleRowPasteStateCSS(weekRow, false);
         toggleDayPasteStateCSS(dayCell, false);
 
-        setFromPaste = true;
+        
       } else {
         isPasteState = false;
         isEventPasteState = false;
@@ -1587,6 +1597,7 @@ function main() {
         
       } else if(event.target.closest("#saveTrainingPlan")) {
 
+        event.target.closest("#saveTrainingPlan").querySelector("#assignProgramText").innerText = "Please Wait..."
         //Check if existing user program exists
         if(document.getElementById("userProgramID").innerText == "") {
           createUserProgram();
@@ -1596,19 +1607,29 @@ function main() {
       
       } else if(event.target.closest("#assignProgram")) {
 
+        //Submit user details
+        if(document.getElementById("userDetailsPage").style.display == "block") {
+          saveUserDetails();
+        }
+
         clearProgramModalList();
         showModal("programList");
 
       } else if(event.target.closest("#saveUserDetails")) {
 
         // save user details
-        saveUserDetails();
+        //saveUserDetails();
 
       
       } else if(document.getElementById("trainingRadio").checked && event.target.id == "trainingRadio") {
 
         summaryRadioClicked = false;
         if(!isProgrammaticClick) {
+
+          //Submit user details
+          if(document.getElementById("userDetailsPage").style.display == "block") {
+            saveUserDetails();
+          }
 
           //Remove all events first
           //calendar.removeAllEvents();
@@ -1632,7 +1653,10 @@ function main() {
           refreshCalendarLayout();
           updateCalendarWeeks(0, "userProgram");
 
-          prefillProgramBuilder(currentUserProgram, "userProgram");
+          if(!addProgram) {
+            prefillProgramBuilder(currentUserProgram, "userProgram");
+          }
+          
 
           //Show week date ranges
           showOrHideWeekRange("block");
@@ -1640,7 +1664,7 @@ function main() {
           //Set user create program flag
           sessionStorage.setItem("createUserProgram", "true");
 
-          document.getElementById("saveUserDetails").style.display = "none";
+          //document.getElementById("saveUserDetails").style.display = "none";
 
         }
 
@@ -1671,8 +1695,14 @@ function main() {
         //Get staff email
         const staffEmail = staffInfo.querySelector("#staffEmail").innerText;
 
+        var link = ``;
         //Create QR Code
-        const link = `https://safeform.app/user-sign-up?gym_name=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
+        if(createUserGymName.toLowerCase() == "uts - activatefit gym") {
+          link = `https://safeform.app/user-sign-up?gym_name=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
+        } else {
+          link = `https://safeform.app/user-sign-up?gym_name=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
+        }
+        
         generateQRCode(link);
 
         //Hide staff select modal
@@ -2076,6 +2106,12 @@ function main() {
       }
     }, false);
 
+    document.addEventListener('input', function(event) {
+      if(event.target.id == "userNotes" || event.target.id == "userLimitations") {
+        userInputsChanged = true;
+      }
+    });
+
     //Listen for change events:
     document.addEventListener('change', function (event) {
 
@@ -2441,9 +2477,9 @@ function main() {
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
           //const [summaryFilters, filterInstance] = filterInstances;
-          const [programModalFilters, workoutModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
+          const [workoutModalFilters, programModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
           await workoutsSummary.resetFilters(filterKeys=["workoutname-2"], null);
-          await workoutModalFilters.resetFilters(filterKeys=["workoutname-3"], null);
+          await workoutModalFilters.resetFilters(filterKeys=["workoutmodalname"], null);
           await programModalFilters.resetFilters(filterKeys=["programname-5"], null);
 
 
@@ -2489,10 +2525,12 @@ function main() {
 
         //Workouts modal form
         var filterInstance = res[0].filtersData;
+        console.log(filterInstance);
         var filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
 
         //Program modal form
         var filterInstance1 = res[1].filtersData;
+        console.log(filterInstance1);
         var filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
 
         //Workouts Summary List
@@ -2658,33 +2696,35 @@ function main() {
     
     function saveUserDetails() {
 
-      //Extract user details
-      var userDetailsObj = {};
-      userDetailsObj["notes"] = document.getElementById("userNotes").value;
-      userDetailsObj["limitations"] = document.getElementById("userLimitations").value;
-      userDetailsObj["userName"] = document.getElementById("userFullName").innerText;
-      userDetailsObj["userID"] = document.getElementById("userID").innerText;
+      if(userInputsChanged) {
+        //Extract user details
+        var userDetailsObj = {};
+        userDetailsObj["notes"] = document.getElementById("userNotes").value;
+        userDetailsObj["limitations"] = document.getElementById("userLimitations").value;
+        userDetailsObj["userName"] = document.getElementById("userFullName").innerText;
+        userDetailsObj["userID"] = document.getElementById("userID").innerText;
 
-      fetch("https://hook.us1.make.com/2nq6l90x38nxaqxhitvm323wku5y1cl8", {
-        method: "POST",
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify(userDetailsObj)
-      }).then((res) => {
-        if (res.ok) {
-          return res.text();
-        }
-        throw new Error('Something went wrong');
-      })
-      .then((data) => {
+        fetch("https://hook.us1.make.com/2nq6l90x38nxaqxhitvm323wku5y1cl8", {
+          method: "POST",
+          headers: {'Content-Type': 'application/json'}, 
+          body: JSON.stringify(userDetailsObj)
+        }).then((res) => {
+          if (res.ok) {
+            return res.text();
+          }
+          throw new Error('Something went wrong');
+        })
+        .then((data) => {
+          //Reset program builder flags
+        })
+        .catch((error) => {
+          console.log(error);
+          alert("Could not create program, please try again");
+          location.reload();
+        });
+      }
 
-        alert("User details saved successfully!");
-        //Reset program builder flags
-      })
-      .catch((error) => {
-        console.log(error);
-        alert("Could not create program, please try again");
-        location.reload();
-      });
+      userInputsChanged = false;
 
 
     }
@@ -2711,6 +2751,9 @@ function main() {
 
       // Event data
       userProgram["events"] = JSON.stringify(userTrainingPlan);
+
+      //Memberstack ID
+      userProgram["userMemberstackID"] = document.getElementById("userMemberstackID").innerText;
 
       if(userTrainingPlan.length > 0) {
         const firstDate = userTrainingPlan[0].startWeek;
@@ -3592,9 +3635,9 @@ function main() {
         document.getElementById("dontSave").onclick = function() {
 
           
-          document.getElementById("saveUserDetails").style.display = "flex";
-          document.getElementById("saveUserDetails").style.alignContent = "center";
-          document.getElementById("saveUserDetails").style.justifyContent = "center";
+          // document.getElementById("saveUserDetails").style.display = "flex";
+          // document.getElementById("saveUserDetails").style.alignContent = "center";
+          // document.getElementById("saveUserDetails").style.justifyContent = "center";
 
           //Remove training plan header
           document.getElementById("trainingPlanName").style.display = "none";
@@ -3652,9 +3695,9 @@ function main() {
 
       } else {
                   
-        document.getElementById("saveUserDetails").style.display = "flex";
-        document.getElementById("saveUserDetails").style.alignContent = "center";
-        document.getElementById("saveUserDetails").style.justifyContent = "center";
+        // document.getElementById("saveUserDetails").style.display = "flex";
+        // document.getElementById("saveUserDetails").style.alignContent = "center";
+        // document.getElementById("saveUserDetails").style.justifyContent = "center";
 
         //Remove training plan header
         document.getElementById("trainingPlanName").style.display = "none";
@@ -3792,6 +3835,10 @@ function main() {
         }
   
       } else {
+        //Submit user details
+        if(document.getElementById("userDetailsPage").style.display == "block") {
+          saveUserDetails();
+        }
         workoutBuilderPage.style.display = "none";
         document.getElementById("workoutSummaryPage").style.display = "none";
         document.getElementById("usersBody").style.display = "none";
@@ -3811,6 +3858,7 @@ function main() {
   
         //Clear workout to guide list mapping
         clearWorkoutListEntry();
+
       }
   
       //Ensure svg man is shown and exercise list is hidden
