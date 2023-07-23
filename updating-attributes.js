@@ -8,6 +8,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   //Check if user is logged in
   MemberStack.onReady.then(function(member) {  
 
@@ -175,7 +176,6 @@ async function main() {
 
     }
 
-
   }
 
   async function updateProfile(attributeKey, attributeValue, nextPage) {
@@ -197,7 +197,7 @@ async function main() {
           "workout-duration": attributeValue
         }, true);
       } else if(attributeKey == "userDetails") {
-
+        var gymName = sessionStorage.getItem('gymName');
         member.updateProfile({
           "height": attributeValue.height,
           "weight": attributeValue.weight,
