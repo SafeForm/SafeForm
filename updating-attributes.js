@@ -8,9 +8,6 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
-  if(typeof(MemberStack) == "undefined") {
-    location.reload();
-  }
   //Check if user is logged in
   MemberStack.onReady.then(function(member) {  
 
