@@ -1,16 +1,9 @@
 if (document.readyState !== 'loading') {
-  const item = localStorage.getItem('nonExistentItem');
+  main();
 
-  if(item != null || item != undefined) {
-    main();
-  }
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    const item = localStorage.getItem('nonExistentItem');
-
-    if(item != null || item != undefined) {
-      main();
-    }
+    main();
   });
 }
 
