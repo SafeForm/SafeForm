@@ -14,12 +14,6 @@ function main() {
     // Moment.js is not loaded yet, wait for a brief moment and try again
     location.reload();
   }
-
-  document.getElementsByClassName("form-block-20")[0].style.display = "block";
-
-  document.getElementById("userPage").style.display = "flex";
-  document.getElementById("userPage").classList.remove("div-block-156-copy");
-  document.getElementById("userPage").classList.add("middlenavbutton")
   
   styleNavButtons("userPage");
   //document.getElementById("workoutsPage").click();
@@ -1103,17 +1097,46 @@ function main() {
 
     }, false);
 
-
-    document.getElementById("createStaffForm").onsubmit = function() {
-
+    document.getElementById("createStaffForm").onsubmit = function(event) {
       //Get necessary details from form and submit to make
-      const gymStaffName = document.getElementById("staffMemberName").value;
+      const gymStaffName = document.getElementById("staffInputName").value;
       const gymStaffEmail = document.getElementById("staffMemberEmail").value;
 
       var staffMember = {};
       staffMember["name"] = gymStaffName;
       staffMember["email"] = gymStaffEmail;
       staffMember["gymID"] = document.getElementById("gymID").innerText;
+
+      //Add to staff list
+      var staffList = document.getElementById("staffMemberList");
+
+      // Create a div element for the cms list
+      var staffItem = document.createElement("div");
+      staffItem.className = "w-dyn-item";
+      staffItem.setAttribute("role", "listitem");
+
+      // Create a div element for the staff div
+      var staffDiv = document.createElement("div");
+      staffDiv.className = "staffdiv";
+      staffDiv.id = "staffDiv";
+      
+      // Create a div element for the staff name
+      var staffNameDiv = document.createElement("div");
+      staffNameDiv.textContent = gymStaffName;
+      staffNameDiv.className = "staffname";
+      staffNameDiv.id = "staffName";
+
+      // Create a div element for the staff email
+      var staffEmailDiv = document.createElement("div");
+      staffEmailDiv.textContent = gymStaffEmail;
+      staffEmailDiv.className = "hidden-staff-field";
+      staffEmailDiv.id = "staffEmail";
+
+      // Append the staff name and staff email elements to the staffdiv
+      staffDiv.appendChild(staffNameDiv);
+      staffDiv.appendChild(staffEmailDiv);
+      staffItem.appendChild(staffDiv);
+      staffList.appendChild(staffItem);
 
       createStaffMember(staffMember);
 
@@ -1122,7 +1145,14 @@ function main() {
       const createStaffGymID = document.getElementById("gymID").innerText;
     
       //Create QR Code
-      const createUserlink = `https://safeform.app/user-sign-up?gym_name=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
+      var createUserlink = ``;
+      //Create QR Code
+      if(createStaffGymName.toLowerCase() == "uts - activatefit gym") {
+        createUserlink = `https://safeform.app/user-sign-up?gym_name=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}&payment=false`;
+      } else {
+        createUserlink = `https://safeform.app/user-sign-up?gym_name=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
+      }
+      
       generateQRCode(createUserlink);
 
       //Hide staff add modal
@@ -1137,7 +1167,7 @@ function main() {
       createUserModal.style.alignItems = "center";
 
       //Reset form
-      this.reset();
+      event.target.reset();
 
     }
 
@@ -2217,41 +2247,59 @@ function main() {
       } else if (event.target.type) {
         checkCheckboxFilters().then(res => { 
 
-          //Check if the amount of active filters is more than 0
+          if(res.length == 6) {
+            //Check if the amount of active filters is more than 0
+            if (res[0] > 0) {
+              document.getElementById("filterOnModal").style.display = "block";
+            } else {
+              document.getElementById("filterOnModal").style.display = "none";
+            }
 
-          if (res[0] > 0) {
-            document.getElementById("filterOnModal").style.display = "block";
-          } else {
-            document.getElementById("filterOnModal").style.display = "none";
-          }
+            if (res[1] > 0) {
+              document.getElementById("filterOnProgramModal").style.display = "block";
+            } else {
+              document.getElementById("filterOnProgramModal").style.display = "none";
+            }
 
-          if (res[1] > 0) {
-            document.getElementById("filterOnProgramModal").style.display = "block";
-          } else {
-            document.getElementById("filterOnProgramModal").style.display = "none";
-          }
+            if(res[2] > 0) {
+              document.getElementById("filterOn").style.display = "block";
+            } else {
+              document.getElementById("clearExperienceExerciseFilters").style.display = "none";
+              document.getElementById("filterOn").style.display = "none";
+            }
 
-          if(res[2] > 0) {
-            document.getElementById("filterOn").style.display = "block";
-          } else {
-            document.getElementById("clearExperienceExerciseFilters").style.display = "none";
-            document.getElementById("filterOn").style.display = "none";
-          }
+            if (res[4] > 0) {
+              document.getElementById("clearExperienceExerciseFilters").style.display = "block";
+              document.getElementById("filterOnIpad").style.display = "block";
+              document.getElementById("reset-filters-ipad").style.display = "block";
+            } else {
+              document.getElementById("filterOnIpad").style.display = "none";
+              document.getElementById("reset-filters-ipad").style.display = "none";
+            }
 
-          if (res[4] > 0) {
-            document.getElementById("clearExperienceExerciseFilters").style.display = "block";
-            document.getElementById("filterOnIpad").style.display = "block";
-            document.getElementById("reset-filters-ipad").style.display = "block";
+            if (res[5] > 0) {
+              document.getElementById("userFilterOn").style.display = "block";
+            } else {
+              document.getElementById("userFilterOn").style.display = "none";
+            }
           } else {
-            document.getElementById("filterOnIpad").style.display = "none";
-            document.getElementById("reset-filters-ipad").style.display = "none";
-          }
+            if(res[0] > 0) {
+              document.getElementById("filterOn").style.display = "block";
+            } else {
+              document.getElementById("clearExperienceExerciseFilters").style.display = "none";
+              document.getElementById("filterOn").style.display = "none";
+            }
 
-          if (res[5] > 0) {
-            document.getElementById("userFilterOn").style.display = "block";
-          } else {
-            document.getElementById("userFilterOn").style.display = "none";
+            if (res[1] > 0) {
+              document.getElementById("clearExperienceExerciseFilters").style.display = "block";
+              document.getElementById("filterOnIpad").style.display = "block";
+              document.getElementById("reset-filters-ipad").style.display = "block";
+            } else {
+              document.getElementById("filterOnIpad").style.display = "none";
+              document.getElementById("reset-filters-ipad").style.display = "none";
+            }
           }
+          
         });
       }
     }, false);
@@ -2409,7 +2457,7 @@ function main() {
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
           const [programModalFilters, workoutModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
-          if(filterInstances.length > 1) { 
+          if(filterInstances.length > 5) { 
             !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
           } else {
@@ -2516,33 +2564,44 @@ function main() {
       ])
       return window.fsAttributes.cmsfilter.loading.then(res => {
 
-        //Workouts modal form
-        var filterInstance = res[0].filtersData;
-        console.log(filterInstance);
-        var filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
+        if(res.length == 6) {
+          //Workouts modal form
+          var filterInstance = res[0].filtersData;
+          var filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
 
-        //Program modal form
-        var filterInstance1 = res[1].filtersData;
-        console.log(filterInstance1);
-        var filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
+          //Program modal form
+          var filterInstance1 = res[1].filtersData;
+          var filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
 
-        //Workouts Summary List
-        var filterInstance2 = res[2].filtersData;
-        var filtersTotalSize2 = filterInstance2[1].values.size + filterInstance2[2].values.size;
+          //Workouts Summary List
+          var filterInstance2 = res[2].filtersData;
+          var filtersTotalSize2 = filterInstance2[1].values.size + filterInstance2[2].values.size;
 
-        //Program Summary list
-        var filterInstance3 = res[3].filtersData;
-        var filtersTotalSize3 = filterInstance3[1].values.size + filterInstance3[2].values.size;
+          //Program Summary list
+          var filterInstance3 = res[3].filtersData;
+          var filtersTotalSize3 = filterInstance3[1].values.size + filterInstance3[2].values.size;
 
-        //Workouts builder page
-        var filterInstance4 = res[4].filtersData;
-        var filtersTotalSize4 = filterInstance4[1].values.size + filterInstance4[2].values.size;
+          //Workouts builder page
+          var filterInstance4 = res[4].filtersData;
+          var filtersTotalSize4 = filterInstance4[1].values.size + filterInstance4[2].values.size;
 
-        //User summary page
-        var filterInstance5 = res[5].filtersData;
-        var filtersTotalSize5 = filterInstance5[1].values.size + filterInstance5[2].values.size;
+          //User summary page
+          var filterInstance5 = res[5].filtersData;
+          var filtersTotalSize5 = filterInstance5[1].values.size + filterInstance5[2].values.size;
 
-        return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4, filtersTotalSize5];
+          return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4, filtersTotalSize5];
+        } else {
+
+          //Workout summary page
+          var filterInstance = res[1].filtersData;
+          var filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
+
+          //Workout builder page
+          var filterInstance1 = res[2].filtersData;
+          var filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
+          return [filtersTotalSize, filtersTotalSize1];
+        }
+
       });
 
     }
@@ -2561,7 +2620,6 @@ function main() {
         }).then(res => {
           //Set flag back
           sessionStorage.setItem('editWorkout', 'false');
-          location.href = `${location.href}?showPage=workoutSummaryPage`;
           location.reload();
         });
 
