@@ -180,42 +180,42 @@ async function main() {
 
     document.getElementById('first-name').addEventListener('blur', function(event) {
       const firstName = document.getElementById("first-name").value;
-      updateProfile("first-name", firstName, null);
+      updateProfile("first-name", firstName, null, true);
     });
 
     document.getElementById('last-name').addEventListener('blur', function(event) {
       const lastName = document.getElementById("last-name").value;
-      updateProfile("last-name", lastName, null);
+      updateProfile("last-name", lastName, null, true);
     });
     
     document.getElementById('experience').addEventListener('blur', function(event) {
       const experience = document.getElementById("experience").value;
-      updateProfile("experience", experience, null);
+      updateProfile("experience", experience, null, true);
     });
     
     document.getElementById('goals').addEventListener('blur', function(event) {
       const goals = document.getElementById("goals").value;
-      updateProfile("goals", goals, null);
+      updateProfile("goals", goals, null, true);
     });
     
     document.getElementById('workout-frequency').addEventListener('blur', function(event) {
       const workoutFrequency = document.getElementById("workout-frequency").value;
-      updateProfile("workout-frequency", workoutFrequency, null);
+      updateProfile("workout-frequency", workoutFrequency, null, true);
     });
     
     document.getElementById('workout-duration').addEventListener('blur', function(event) {
       const workoutDuration = document.getElementById("workout-duration").value;
-      updateProfile("workout-duration", workoutDuration, null);
+      updateProfile("workout-duration", workoutDuration, null, true);
     });
     
     document.getElementById('height').addEventListener('blur', function(event) {
       const height = document.getElementById("height").value;
-      updateProfile("height", height, null);
+      updateProfile("height", height, null, true);
     });
     
     document.getElementById('weight').addEventListener('blur', function(event) {
       const weight = document.getElementById("weight").value;
-      updateProfile("weight", weight, null);
+      updateProfile("weight", weight, null, true);
     });
     
     document.getElementById('physical-limitations').addEventListener('blur', function(event) {
@@ -227,48 +227,58 @@ async function main() {
   async function updateProfile(attributeKey, attributeValue, nextPage, userProfile=false) {
     MemberStack.onReady.then(async function(member) {  
       if(attributeKey == "first-name") {
-        member.updateProfile({
+        await member.updateProfile({
           "first-name": attributeValue
         }, true);
         attributeKey = "given_name";
+        member["first-name"] = attributeValue;
       } else if (attributeKey == "last-name") {
-        member.updateProfile({
+        await member.updateProfile({
           "last-name": attributeValue
         }, true);
+        member["last-name"] = attributeValue;
         attributeKey = "family_name";
       } else if (attributeKey == "email") {
-        member.updateProfile({
+        await member.updateProfile({
           "email": attributeValue
         }, true);
+        member["email"] = attributeValue;
       } else if (attributeKey == "mobile") {
-        member.updateProfile({
+        await member.updateProfile({
           "mobile": attributeValue
         }, true);
+        member["mobile"] = attributeValue;
         attributeKey = "phone";
       } else if (attributeKey == "height") {
-        member.updateProfile({
+        await member.updateProfile({
           "height": attributeValue
         }, true);
+        member["height"] = attributeValue;
       } else if (attributeKey == "weight") {
-        member.updateProfile({
+        await member.updateProfile({
           "weight": attributeValue
         }, true);
+        member["weight"] = attributeValue;
       } else if(attributeKey == "experience") {
-        member.updateProfile({
+        await member.updateProfile({
           "experience": attributeValue
         }, true);
+        member["experience"] = attributeValue;
       } else if (attributeKey == "goals") {
-        member.updateProfile({
+        await member.updateProfile({
           "goals": attributeValue
         }, true);
+        member["goals"] = attributeValue;
       } else if (attributeKey == "workout-frequency") {
-        member.updateProfile({
+        await member.updateProfile({
           "workout-frequency": attributeValue
         }, true);
+        member["workout-frequency"] = attributeValue;
       } else if(attributeKey == "workout-duration") {
-        member.updateProfile({
+        await member.updateProfile({
           "workout-duration": attributeValue
         }, true);
+        member["workout-duration"] = attributeValue;
       } else if(attributeKey == "userDetails") {
         var gymName = sessionStorage.getItem('gymName');
         member.updateProfile({
@@ -291,10 +301,10 @@ async function main() {
         var gymId = sessionStorage.getItem('gymId');
         var staffEmail = sessionStorage.getItem('staffEmail');
 
-        member.updateProfile({
+        await member.updateProfile({
           "physical-limitations": attributeValue
         }, true);
-
+        member["physical-limitations"] = attributeValue;
         var userObj = member;
         userObj["initials"] = member["first-name"][0] + member["last-name"][0];
 
@@ -314,7 +324,6 @@ async function main() {
         if(!userProfile) {
           await createUserInWebflow(webhook, userObj);
         }
-        
 
       }
       var cognitoKey = ""
@@ -326,8 +335,33 @@ async function main() {
       }
       
       await updateAttributes(member["email"], member["cognito-password"], cognitoKey, attributeValue, nextPage);
+
+      if(userProfile) {
+        updateUserWebflow(member);
+      }
     });
     
+  }
+
+  async function updateUserWebflow(member) {
+    fetch("https://hook.us1.make.com/r4f3zmq1xspprsmr8qhb85cmga2sfn3a", {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify(member)
+    }).then((res) => {
+      if (res.ok) {
+        return res.text();
+      }
+      throw new Error('Something went wrong');
+    })
+    .then((data) => {
+      
+    })
+    .catch((error) => {
+      console.log(error);
+      alert("Unable to update details - please try again");
+      location.reload();
+    });
   }
 
   async function createUserInWebflow(webhook, userObj) {
