@@ -145,7 +145,7 @@ async function main() {
     const payment = sessionStorage.getItem('payment');
     var nextPage = "";
     if(payment == 'false' || payment != null) { 
-      nextPage = "https://safeform.app/user-sign-in";
+      nextPage = "https://www.safeform.app/workouts/workout-navigation";
     } else {
       nextPage = "https://buy.stripe.com/dR6eWBfd31Pg42Q00z";
     }
