@@ -176,11 +176,84 @@ async function main() {
 
     }
 
+  } else if(pathname == "/user-space/user-account-info") {
+
+    document.getElementById('first-name').addEventListener('blur', function(event) {
+      const firstName = document.getElementById("first-name").value;
+      updateProfile("first-name", firstName, null);
+    });
+
+    document.getElementById('last-name').addEventListener('blur', function(event) {
+      const lastName = document.getElementById("last-name").value;
+      updateProfile("last-name", lastName, null);
+    });
+    
+    document.getElementById('experience').addEventListener('blur', function(event) {
+      const experience = document.getElementById("experience").value;
+      updateProfile("experience", experience, null);
+    });
+    
+    document.getElementById('goals').addEventListener('blur', function(event) {
+      const goals = document.getElementById("goals").value;
+      updateProfile("goals", goals, null);
+    });
+    
+    document.getElementById('workout-frequency').addEventListener('blur', function(event) {
+      const workoutFrequency = document.getElementById("workout-frequency").value;
+      updateProfile("workout-frequency", workoutFrequency, null);
+    });
+    
+    document.getElementById('workout-duration').addEventListener('blur', function(event) {
+      const workoutDuration = document.getElementById("workout-duration").value;
+      updateProfile("workout-duration", workoutDuration, null);
+    });
+    
+    document.getElementById('height').addEventListener('blur', function(event) {
+      const height = document.getElementById("height").value;
+      updateProfile("height", height, null);
+    });
+    
+    document.getElementById('weight').addEventListener('blur', function(event) {
+      const weight = document.getElementById("weight").value;
+      updateProfile("weight", weight, null);
+    });
+    
+    document.getElementById('physical-limitations').addEventListener('blur', function(event) {
+      const physicalLimitations = document.getElementById("physical-limitations").value;
+      updateProfile("physical-limitations", physicalLimitations, null, true);
+    });
   }
 
-  async function updateProfile(attributeKey, attributeValue, nextPage) {
+  async function updateProfile(attributeKey, attributeValue, nextPage, userProfile=false) {
     MemberStack.onReady.then(async function(member) {  
-      if(attributeKey == "experience") {
+      if(attributeKey == "first-name") {
+        member.updateProfile({
+          "first-name": attributeValue
+        }, true);
+        attributeKey = "given_name";
+      } else if (attributeKey == "last-name") {
+        member.updateProfile({
+          "last-name": attributeValue
+        }, true);
+        attributeKey = "family_name";
+      } else if (attributeKey == "email") {
+        member.updateProfile({
+          "email": attributeValue
+        }, true);
+      } else if (attributeKey == "mobile") {
+        member.updateProfile({
+          "mobile": attributeValue
+        }, true);
+        attributeKey = "phone";
+      } else if (attributeKey == "height") {
+        member.updateProfile({
+          "height": attributeValue
+        }, true);
+      } else if (attributeKey == "weight") {
+        member.updateProfile({
+          "weight": attributeValue
+        }, true);
+      } else if(attributeKey == "experience") {
         member.updateProfile({
           "experience": attributeValue
         }, true);
@@ -238,12 +311,20 @@ async function main() {
           webhook = "https://hook.us1.make.com/g3wit8xuonhumsifktuj3bknz783x70q"
         }
 
-        await createUserInWebflow(webhook, userObj);
+        if(!userProfile) {
+          await createUserInWebflow(webhook, userObj);
+        }
+        
 
       }
+      var cognitoKey = ""
 
-      var cognitoKey = "custom:"+attributeKey;
-
+      if(attributeKey != "given_name" && attributeKey != "family_name") {
+        cognitoKey = "custom:"+attributeKey;
+      } else {
+        cognitoKey = attributeKey;
+      }
+      
       await updateAttributes(member["email"], member["cognito-password"], cognitoKey, attributeValue, nextPage);
     });
     
@@ -305,7 +386,7 @@ async function main() {
     return cognitoDetails;
   }
 
-  async function updateAttributes(userName, password, attributeKey, attributeValue, nextPage) {
+  async function updateAttributes(userName, password, attributeKey, attributeValue, nextPage=null) {
     // Initialize the Amazon Cognito identity object
     var poolData = await getPoolData();
     var userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
@@ -355,7 +436,10 @@ async function main() {
             return;
           }
           console.log('User attributes updated successfully:', result);
-          document.location.href = nextPage;
+          if(nextPage != null) {
+            document.location.href = nextPage;
+          }
+          
         });
       },
       onFailure: function (err) {
