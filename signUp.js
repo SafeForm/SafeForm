@@ -1,18 +1,29 @@
 //Grab and store url parameters if they exist
 const urlParams = new URLSearchParams(window.location.search);
 
+// Get the parameter values
+const gymName = urlParams.get('gym_name');
+const gymId = urlParams.get('gym_id');
+const staffEmail = urlParams.get('staff_email');
+
 // Check if the parameters exist
 if (urlParams.has('gym_name') && urlParams.has('gym_id') && urlParams.has('staff_email')) {
-  // Get the parameter values
-  const gymName = urlParams.get('gym_name');
-  const gymId = urlParams.get('gym_id');
-  const staffEmail = urlParams.get('staff_email');
-
   // Store the values in sessionStorage
   sessionStorage.setItem('gymName', gymName);
   sessionStorage.setItem('gymId', gymId);
   sessionStorage.setItem('staffEmail', staffEmail);
 } 
+var disableForm = false;
+if(gymId == null) {
+  alert("Something went wrong, please scan the QR code from a staff member again.");
+  // Disable interactive elements on the page
+  const interactiveElements = document.querySelectorAll('button, input, select, textarea, a, #sign-up-button');
+  interactiveElements.forEach(element => {
+    element.disabled = true;
+  });
+  disableForm = true;
+}
+
 
 if(urlParams.has('payment')) {
   sessionStorage.setItem('payment', 'false');
@@ -46,7 +57,7 @@ var capturedEvent = null; // Variable to store the captured event
 const signUpForm = document.getElementById('sign-up-button');
 signUpForm.addEventListener('click', async function(event) {
 
-  if (!cognitoComplete) {
+  if (!cognitoComplete && !disableForm) {
 
     event.preventDefault();
     capturedEvent = event;
@@ -79,7 +90,9 @@ signUpForm.addEventListener('click', async function(event) {
     }
 
     
-  } 
+  } else if(disableForm) {
+    event.preventDefault();
+  }
 });
 
 // Function to replay the captured event
