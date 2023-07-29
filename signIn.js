@@ -29,7 +29,7 @@ async function getPoolData() {
   })
   .catch((error) => {
     console.log(error);
-    alert("Unable to sign up, please refresh and try again");
+    alert("Unable to sign in, please refresh and try again");
   });
   return cognitoDetails;
 }
@@ -83,7 +83,8 @@ document.getElementById("forgotPasswordLink").addEventListener("click", function
     tempPassword = document.getElementById('confirmPassword').value;
     user["email"] = email;
     user["password"] = tempPassword;
-    console.log(user);
+
+    localStorage.setItem("resetPassword", "true");
 
     fetch("https://hook.us1.make.com/o8loetjrnkwzpaunnot3v3vh41jraos0", {
       method: "POST",
