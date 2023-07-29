@@ -1,12 +1,12 @@
 if (document.readyState !== 'loading') {
-  main();
+  mainFunc();
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-      main();
+    mainFunc();
   });
 }
 
-function main() {
+function mainFunc() {
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -15,7 +15,7 @@ function main() {
   }
 
     //Loop through all list items and assign href to each workout
-    const programWorkoutList = document.getElementById("programWorkoutList").children;
+    const programWorkoutList = document.getElementById("workoutList").children;
 
     for (var i = 0; i < programWorkoutList.length; i++) {
       //Get link from workout summary information and set thumbnail link
