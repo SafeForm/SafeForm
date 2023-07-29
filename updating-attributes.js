@@ -125,12 +125,7 @@ async function main() {
 
       //Get dob value
       const userDOB = document.getElementById("dob");
-      const pattern = /^(0[1-9]|[1-2]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-      if (!pattern.test(userDOB.value)) {
-        userDOB.setCustomValidity('Please enter a valid date in the format DD/MM/YYYY');
-      } else {
-        userDOB.setCustomValidity('');
-      }
+
       const userDOBValidation = document.getElementById("dob").reportValidity();
 
       if(heightValidation && weightValidation && genderValidation && userDOBValidation ) {
