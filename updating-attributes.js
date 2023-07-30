@@ -142,7 +142,7 @@ async function main() {
     if(payment == 'false' || payment != null) { 
       nextPage = "https://www.safeform.app/workouts/workout-navigation";
     } else {
-      nextPage = "https://buy.stripe.com/4gw8ydgh7fG642Q6oY";
+      nextPage = "https://buy.stripe.com/4gw15Lgh7gKaare28G";
     }
 
     document.getElementById("no").onclick = () => {
