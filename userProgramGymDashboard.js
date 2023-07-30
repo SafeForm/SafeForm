@@ -15,7 +15,6 @@ function main() {
     location.reload();
   }
   
-  styleNavButtons("userPage");
   //document.getElementById("workoutsPage").click();
 
   var muscleMapping = {
@@ -370,18 +369,6 @@ function main() {
       guideExercise.style.borderColor = "rgb(8, 213, 139)";
     }
 
-  /*
-    - Check if specified parameters are in URL from workout builder submitting to show appropriate page
-  */
-  url = new URL(window.location.href.replace("#",""));
-
-  if (url.searchParams.has('showPage')) {
-    var showPage = url.searchParams.get('showPage');
-    //Hide and show necessary pages
-    document.getElementById("equipmentBody").style.display = "none";
-    document.getElementById("workoutSummaryPage").style.display = "block";
-  }
-
   window.addEventListener('load', (event) => {
     //Start workouts button clicked
     document.getElementById("workoutRadio").click();
@@ -389,6 +376,7 @@ function main() {
 
     document.getElementById("summaryRadioButton").click();
     checkSummaryTrainingCheckBox();
+
 
     MemberStack.onReady.then(function(member) {  
       var membership = member.membership  
@@ -400,6 +388,75 @@ function main() {
       const path = window.location.pathname;
 
       const urlID = path.split("/")[2];	
+
+      /*
+      
+        - Check if specified parameters are in URL from workout builder submitting to show appropriate page
+      */
+      url = new URL(window.location.href.replace("#",""));
+
+      if (url.searchParams.has('showPage')) {
+        var showPage = url.searchParams.get('showPage');
+
+        //Hide and show necessary pages
+        if(showPage == "workoutSummaryPage") {
+          document.getElementById("usersBody").style.display = "none";
+          document.getElementById("workoutSummaryPage").style.display = "block";
+          styleNavButtons("workoutsPage");
+        } else if(showPage == "programSummary") {
+
+          document.getElementById("usersBody").style.display = "none";
+          document.getElementById("workoutSummaryPage").style.display = "block";
+          styleNavButtons("workoutsPage");
+          document.getElementById("programRadio").click();
+          checkProgramWorkoutCheckBox();
+
+        } else if(showPage == "user") {
+          var userIDParam = url.searchParams.get('id');
+          const userIDList = document.querySelectorAll("#summaryItemId");
+          var foundUser = false;
+          for(var i = 0; i < userIDList.length; i++) {
+            if(userIDList[i].innerText == userIDParam) {
+              foundUser = userIDList[i];
+              break;
+            }
+            
+          }
+          //Find cms item with the user id
+          if(foundUser != false) {
+            //Get parent summary div
+            const parentProgramSummary = foundUser.closest("#userSummary");
+            parentProgramSummary.click();
+          }
+          styleNavButtons("userPage");
+
+        } else {
+          styleNavButtons("userPage");
+        }
+
+      } else {
+        styleNavButtons("userPage");
+      }
+      document.getElementById("workoutsPage").onclick = function() {
+        console.log("He;;p");
+        //Reset filters on workout summary page
+        settingsBody.style.display = "none";
+        settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+        equipmentBody.style.display = "none";
+        equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+        dashboardBody.style.display = "none";
+        dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+
+        // Check if there are any exercises in the list 
+        // If there is, prompt user to confirm removing list 
+        // If they confirm remove items from list and clear filters and hide exercise list
+        if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
+          checkAndClearProgram("workoutSummaryPage", "workoutsPage");
+        } else {
+          checkAndClearWorkouts("workoutSummaryPage", "workoutsPage");
+        }
+
+      };
 
       if(equipmentStatus == "complete") {
         const equipmentBody = document.getElementById("equipmentBody");
@@ -471,25 +528,7 @@ function main() {
           }
         };
         
-        document.getElementById("workoutsPage").onclick = function() {
-          //Reset filters on workout summary page
-          settingsBody.style.display = "none";
-          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-          equipmentBody.style.display = "none";
-          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-          dashboardBody.style.display = "none";
-          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
 
-          // Check if there are any exercises in the list 
-          // If there is, prompt user to confirm removing list 
-          // If they confirm remove items from list and clear filters and hide exercise list
-          if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
-            checkAndClearProgram("workoutSummaryPage", "workoutsPage");
-          } else {
-            checkAndClearWorkouts("workoutSummaryPage", "workoutsPage");
-          }
-
-        };
 
       } else if(equipmentStatus == "skipped") {
         var gymName = member["gym-name"];
@@ -750,31 +789,20 @@ function main() {
     var programList = document.querySelectorAll("#programSummary");
     for(let i = 0; i < programList.length; i++) {
       (function(program) {
-        program.onclick = () => {
-          //Prefill program screen
-          prefillProgramBuilder(program);
+        program.onclick = (event) => {
+          if(event.target.id != "addUserProgram") {
+            //Prefill program screen
+            prefillProgramBuilder(program);
 
-          //Set edit program flag
-          sessionStorage.setItem("editProgram", 'true');
+            //Set edit program flag
+            sessionStorage.setItem("editProgram", 'true');
+          }
 
-        }
-      })(programList[i]);
-    }
-
-    //Get all program summaries and set onclicks
-    var programList = document.querySelectorAll("#programSummary");
-    for(let i = 0; i < programList.length; i++) {
-      (function(program) {
-        program.onclick = () => {
-          //Prefill program screen
-          prefillProgramBuilder(program);
-
-          //Set edit program flag
-          sessionStorage.setItem("editProgram", 'true');
 
         }
       })(programList[i]);
     }
+
     //Set onclicks for all workouts
     var programWorkouts = document.querySelectorAll("#workoutSummaryProgram");
     var mainWorkoutList = document.getElementById("workoutSummaryList").children;
@@ -1035,6 +1063,13 @@ function main() {
       })(userSummaryList[i]);
     }
 
+    // JavaScript function to prevent form submission on Enter key press
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault(); // Prevent form submission
+      }
+    });
+
     //Catching mouse over and out events for showing the thumbnail and svg person
     document.addEventListener('mouseover', function (event) {
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') ) && (isPasteState || isEventPasteState || addProgram)) {
@@ -1170,6 +1205,18 @@ function main() {
       event.target.reset();
 
     }
+
+    document.getElementById("saveProgram").addEventListener("click", function(event) {
+      //List events from calendar
+      
+      var events = calendar.getEvents();
+      if(events.length == 0) {
+        event.preventDefault();
+        alert("Please add some workouts to the program before you submit it!");
+      } else {
+        document.getElementById("saveProgram").click();
+      }
+    });
 
     document.getElementById("programForm").onsubmit = function() {
       var program = {};
@@ -1575,6 +1622,13 @@ function main() {
         getUserTrainingPlan();
         getProgramBreakers();
 
+      } else if(event.target.id == "addUserProgram") {
+
+        //Hide program page
+        //Show user page
+        document.getElementById("userPage").click();
+
+      
       } else if(event.target.id == "closeCreateUserModal" || event.target.id == "createUserModal") {
 
         //Hide modal
@@ -1754,7 +1808,7 @@ function main() {
         // If they confirm remove items from list and clear filters and hide exercise list
         checkAndClearWorkouts("workoutSummaryPage");
 
-      } else if(event.target.id == "addWeekButton") {
+      } else if(event.target.id == "addWeekButton" || event.target.classList.contains("italic-text-9")) {
         if(sessionStorage.getItem("createUserProgram") == "true") {
           updateCalendarWeeks(0,"userProgramBuilder");
         } else {
@@ -2620,7 +2674,14 @@ function main() {
         }).then(res => {
           //Set flag back
           sessionStorage.setItem('editWorkout', 'false');
-          location.reload();
+          // Get the current URL without parameters
+          const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+          // Construct the new URL with the parameter
+          const newURL = `${baseURLWithoutParams}?showPage=workoutSummaryPage`;
+
+          // Update the current URL to the new URL
+          window.location.href = newURL;
         });
 
 
@@ -2640,14 +2701,27 @@ function main() {
           
           sessionStorage.setItem('duplicateWorkout', 'false');
           sessionStorage.setItem('createWorkout', 'false');
-          location.href = `${location.href}?showPage=workoutSummaryPage`;
-          location.reload();
+          // Get the current URL without parameters
+          const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+          // Construct the new URL with the parameter
+          const newURL = `${baseURLWithoutParams}?showPage=workoutSummaryPage`;
+
+          // Update the current URL to the new URL
+          window.location.href = newURL;
           
         })
         .catch((error) => {
           console.log(error);
           alert("Could not create workout, please try again");
-          location.href = `${location.href}?showPage=workoutSummaryPage`;
+          // Get the current URL without parameters
+          const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+          // Construct the new URL with the parameter
+          const newURL = `${baseURLWithoutParams}?showPage=workoutSummaryPage`;
+
+          // Update the current URL to the new URL
+          window.location.href = newURL;
         });
         
       }
@@ -2688,7 +2762,6 @@ function main() {
           //Add entry in guide to workout mapping
           createWorkoutListEntry(listOfGuides[i].querySelector("#itemID").innerText, listOfGuides[i].firstElementChild);
         }
-
       }
     }
 
@@ -3052,6 +3125,7 @@ function main() {
     async function sendUserProgramToMake(program, type) {
 
       if(type == "update") {
+        const paramUserID = program["userID"];
         fetch("https://hook.us1.make.com/hq253ggn54ha5cxydo0def1rmo2zq8rx", {
           method: "POST",
           headers: {'Content-Type': 'application/json'}, 
@@ -3064,8 +3138,14 @@ function main() {
         })
         .then((data) => {
           alert("Program Updated Successfully!");
-          //Reset program builder flags
-          location.reload();
+          // Get the current URL without parameters
+          const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+          // Construct the new URL with the parameter
+          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+
+          // Update the current URL to the new URL
+          window.location.href = newURL;
         })
         .catch((error) => {
           console.log(error);
@@ -3074,6 +3154,7 @@ function main() {
         });
         sessionStorage.setItem("createUserProgram", "false");
       } else if (type == "create") {
+        const paramUserID = program["userID"];
         fetch("https://hook.us1.make.com/xc19h2x675jb99nsrlya5bvj8gcw1txp", {
           method: "POST",
           headers: {'Content-Type': 'application/json'}, 
@@ -3087,12 +3168,27 @@ function main() {
         .then((data) => {
           alert("Program Created Successfully!");
           //Reset program builder flags
-          location.reload();
+          
+          // Get the current URL without parameters
+          const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+          // Construct the new URL with the parameter
+          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+
+          // Update the current URL to the new URL
+          window.location.href = newURL;
         })
         .catch((error) => {
           console.log(error);
           alert("Could not create program, please try again");
-          location.reload();
+          // Get the current URL without parameters
+          const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+          // Construct the new URL with the parameter
+          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+
+          // Update the current URL to the new URL
+          window.location.href = newURL;
         });
         sessionStorage.setItem("createUserProgram", "false");
       }
@@ -3126,13 +3222,26 @@ function main() {
         //Reset program builder flags
         sessionStorage.setItem("editProgram", "false");
         sessionStorage.setItem("createProgram", "false");
-        location.reload();
+        // Get the current URL without parameters
+        const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
+        // Construct the new URL with the parameter
+        const newURL = `${baseURLWithoutParams}?showPage=programSummary`;
+
+        // Update the current URL to the new URL
+        window.location.href = newURL;
       })
       .catch((error) => {
         console.log(error);
         alert("Could not create program, please try again");
-        location.reload();
+        // Get the current URL without parameters
+        const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+        // Construct the new URL with the parameter
+        const newURL = `${baseURLWithoutParams}?showPage=programSummary`;
+
+        // Update the current URL to the new URL
+        window.location.href = newURL;
       });
     }
 
@@ -3663,8 +3772,10 @@ function main() {
       const programBuilderName = document.getElementById("programName").value;
       const programBuilderDescription = document.getElementById("programDescription").value;
       const programBuilderEvents = calendar.getEvents();
+      const experiencePicker = document.getElementById("programExperience");
+      const goalPicker = document.getElementById("programGoal");
 
-      if(programBuilderName != "" || programBuilderDescription != "" || programBuilderEvents.length > 0) {
+      if(programBuilderName != "" || programBuilderDescription != "" || programBuilderEvents.length > 0 || experiencePicker.selectedIndex != 0 || goalPicker.selectedIndex != 0) {
 
         if(programBuilderName != "") {
           document.getElementById("closingText").innerText = `Do you want to save the changes to your workout \"${programBuilderName}\"?`;
@@ -3684,11 +3795,6 @@ function main() {
 
         //Navigate to selected page
         document.getElementById("dontSave").onclick = function() {
-
-          
-          // document.getElementById("saveUserDetails").style.display = "flex";
-          // document.getElementById("saveUserDetails").style.alignContent = "center";
-          // document.getElementById("saveUserDetails").style.justifyContent = "center";
 
           //Remove training plan header
           document.getElementById("trainingPlanName").style.display = "none";
@@ -3745,10 +3851,6 @@ function main() {
         }
 
       } else {
-                  
-        // document.getElementById("saveUserDetails").style.display = "flex";
-        // document.getElementById("saveUserDetails").style.alignContent = "center";
-        // document.getElementById("saveUserDetails").style.justifyContent = "center";
 
         //Remove training plan header
         document.getElementById("trainingPlanName").style.display = "none";
@@ -3803,6 +3905,16 @@ function main() {
 
       //Clear description
       document.getElementById("programDescription").value = "";
+
+      const experiencePicker = document.getElementById("programExperience");
+
+      // Reset the selected option to the default (first) option
+      experiencePicker.selectedIndex = 0;
+
+      const goalPicker = document.getElementById("programGoal");
+
+      // Reset the selected option to the default (first) option
+      goalPicker.selectedIndex = 0;
 
       //Clear events
       calendar.removeAllEvents();
