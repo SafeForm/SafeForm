@@ -1141,10 +1141,24 @@ function main() {
       staffMember["name"] = gymStaffName;
       staffMember["email"] = gymStaffEmail;
       staffMember["gymID"] = document.getElementById("gymID").innerText;
-
-      /*
+      
       //Add to staff list
       var staffList = document.getElementById("staffMemberList");
+      if(staffList == null) {
+        staffList = document.createElement("div");
+        staffList.className = "staffmemberlist w-dyn-items";
+        staffList.setAttribute("role", "list");
+        //Add to cms list
+        // Get the first child of the parent element
+        var parentElement = document.getElementById("staffMemberListParent");
+        var firstChild = parentElement.firstChild;
+        // Insert staffList before the first child
+        parentElement.insertBefore(staffList, firstChild);
+
+        //Hide Empty state
+        document.getElementById("staffEmpty").style.display = "none";
+      
+      }
 
       // Create a div element for the cms list
       var staffItem = document.createElement("div");
@@ -1173,7 +1187,6 @@ function main() {
       staffDiv.appendChild(staffEmailDiv);
       staffItem.appendChild(staffDiv);
       staffList.appendChild(staffItem);
-      */
 
       createStaffMember(staffMember);
 
