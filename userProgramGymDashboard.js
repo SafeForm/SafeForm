@@ -1133,6 +1133,8 @@ function main() {
     }, false);
 
     document.getElementById("createStaffForm").onsubmit = function(event) {
+
+      
       //Get necessary details from form and submit to make
       const gymStaffName = document.getElementById("staffInputName").value;
       const gymStaffEmail = document.getElementById("staffMemberEmail").value;
@@ -1198,9 +1200,9 @@ function main() {
       var createUserlink = ``;
       //Create QR Code
       if(createStaffGymName.toLowerCase() == "uts - activatefit gym") {
-        createUserlink = `https://safeform.app/user-sign-up?gym_name=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}&payment=false`;
+        createUserlink = `https://safeform.app/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}&payment=false`;
       } else {
-        createUserlink = `https://safeform.app/user-sign-up?gym_name=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
+        createUserlink = `https://safeform.app/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
       }
       
       generateQRCode(createUserlink);
@@ -1790,9 +1792,9 @@ function main() {
         var link = ``;
         //Create QR Code
         if(createUserGymName.toLowerCase() == "uts - activatefit gym") {
-          link = `https://safeform.app/user-sign-up?gym_name=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
+          link = `https://safeform.app/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
         } else {
-          link = `https://safeform.app/user-sign-up?gym_name=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
+          link = `https://safeform.app/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
         }
         
         generateQRCode(link);
