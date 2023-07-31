@@ -1142,6 +1142,7 @@ function main() {
       staffMember["email"] = gymStaffEmail;
       staffMember["gymID"] = document.getElementById("gymID").innerText;
 
+      /*
       //Add to staff list
       var staffList = document.getElementById("staffMemberList");
 
@@ -1172,6 +1173,7 @@ function main() {
       staffDiv.appendChild(staffEmailDiv);
       staffItem.appendChild(staffDiv);
       staffList.appendChild(staffItem);
+      */
 
       createStaffMember(staffMember);
 
