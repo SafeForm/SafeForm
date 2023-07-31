@@ -27,37 +27,45 @@ if(urlParams.has('payment')) {
   sessionStorage.setItem('payment', 'false');
 }
 
-//Set onclicks for each staff button
-const staffMembers = document.getElementById("staffMemberList").children;
+if(urlParams.has('staff_email')) {
+  const staffEmail = urlParams.get('staff_email');
+  sessionStorage.setItem('staffEmail', 'false');
+  //Hide modal
+  document.getElementById("staffSelectModal").style.display = "none";
+} else {
 
-// Iterate through each staff member element and set the onclick event
-for (let i = 0; i < staffMembers.length; i++) {
-  const staffMember = staffMembers[i];
-  var staffMemberNameElement = staffMember.querySelector("#staffName");
-  var staffMemberName = staffMemberNameElement.innerText;
+  //Set onclicks for each staff button
+  const staffMembers = document.getElementById("staffMemberList").children;
 
-  // Split the name into an array containing first name and last name
-  var nameParts = staffMemberName.split(" ");
+  // Iterate through each staff member element and set the onclick event
+  for (let i = 0; i < staffMembers.length; i++) {
+    const staffMember = staffMembers[i];
+    var staffMemberNameElement = staffMember.querySelector("#staffName");
+    var staffMemberName = staffMemberNameElement.innerText;
 
-  // Extract the first name (index 0) and the first letter of the last name (index 1)
-  var firstName = nameParts[0];
-  var lastNameInitial = nameParts[1] ? nameParts[1].charAt(0) : "";
+    // Split the name into an array containing first name and last name
+    var nameParts = staffMemberName.split(" ");
 
-  // Create the new text in the format "First Name L", where L is the first letter of the last name.
-  var newName = lastNameInitial ? `${firstName} ${lastNameInitial}` : firstName;
+    // Extract the first name (index 0) and the first letter of the last name (index 1)
+    var firstName = nameParts[0];
+    var lastNameInitial = nameParts[1] ? nameParts[1].charAt(0) : "";
 
-  // Update the element's text with the new name
-  staffMemberNameElement.innerText = newName;
-  // Set the onclick event for each staff member element
-  staffMember.onclick = function () {
+    // Create the new text in the format "First Name L", where L is the first letter of the last name.
+    var newName = lastNameInitial ? `${firstName} ${lastNameInitial}` : firstName;
 
-    const staffEmail = staffMember.querySelector("#staffEmail").innerText;
-    sessionStorage.setItem('staffEmail', staffEmail);
+    // Update the element's text with the new name
+    staffMemberNameElement.innerText = newName;
+    // Set the onclick event for each staff member element
+    staffMember.onclick = function () {
 
-    //Hide modal
-    document.getElementById("staffSelectModal").style.display = "none";
+      const staffEmail = staffMember.querySelector("#staffEmail").innerText;
+      sessionStorage.setItem('staffEmail', staffEmail);
 
-  };
+      //Hide modal
+      document.getElementById("staffSelectModal").style.display = "none";
+
+    };
+  }
 }
 
 window.fsAttributes = window.fsAttributes || [];
