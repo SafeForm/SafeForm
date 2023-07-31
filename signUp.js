@@ -2,19 +2,18 @@
 const urlParams = new URLSearchParams(window.location.search);
 
 // Get the parameter values
-const gymName = urlParams.get('gym_name');
+const gymName = urlParams.get('utm_campaign');
 const gymId = urlParams.get('gym_id');
-const staffEmail = urlParams.get('staff_email');
 
 // Check if the parameters exist
-if (urlParams.has('gym_name') && urlParams.has('gym_id') && urlParams.has('staff_email')) {
+if (urlParams.has('utm_campaign') && urlParams.has('gym_id')) {
   // Store the values in sessionStorage
   sessionStorage.setItem('gymName', gymName);
   sessionStorage.setItem('gymId', gymId);
-  sessionStorage.setItem('staffEmail', staffEmail);
 } 
 var disableForm = false;
 if(gymId == null) {
+  document.getElementById("selectStaffMember").style.display = "none";
   alert("Something went wrong, please scan the QR code from a staff member again.");
   // Disable interactive elements on the page
   const interactiveElements = document.querySelectorAll('button, input, select, textarea, a, #sign-up-button');
@@ -24,10 +23,46 @@ if(gymId == null) {
   disableForm = true;
 }
 
-
 if(urlParams.has('payment')) {
   sessionStorage.setItem('payment', 'false');
 }
+
+//Set onclicks for each staff button
+const staffMembers = document.getElementById("staffMemberList").children;
+
+// Iterate through each staff member element and set the onclick event
+for (let i = 0; i < staffMembers.length; i++) {
+  const staffMember = staffMembers[i];
+  // Set the onclick event for each staff member element
+  staffMember.onclick = function () {
+
+    const staffEmail = staffMember.querySelector("#staffEmail").innerText;
+    sessionStorage.setItem('staffEmail', staffEmail);
+
+    //Hide modal
+    document.getElementById("staffSelectModal").style.display = "none";
+
+  };
+}
+
+window.fsAttributes = window.fsAttributes || [];
+window.fsAttributes.push([
+  'cmsfilter',
+  (filterInstances) => {
+    // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
+    const [filterInstance] = filterInstances;
+    
+    // The `renderitems` event runs whenever the list renders items after filtering.
+    filterInstance.listInstance.on('renderitems', (renderedItems) => {
+
+      document.getElementById("staffMemberListParent").style.display = "block";
+      if(renderedItems.length == 0) {
+        document.getElementById("selectStaffMember").style.display = "none";
+        alert("Something went wrong, please scan the QR code from a staff member again.");
+       }
+    });
+  },
+]);
 
 
 //Listen for changes on password textbox and update cognito password text box
