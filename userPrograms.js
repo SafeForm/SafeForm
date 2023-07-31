@@ -22,6 +22,14 @@ function mainFunc() {
       var workoutSummaryLink = programWorkoutList[i].querySelector("#svgPersonLink").href;
       programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink;
     }
+
+    MemberStack.onReady.then(async function(member) {  
+      const gymName = member["current-gym"];
+      localStorage.setItem("fromGym", gymName)
+
+    });
+
+    
 //
 
   //Add utm to buttons
