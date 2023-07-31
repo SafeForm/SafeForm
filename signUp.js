@@ -33,6 +33,21 @@ const staffMembers = document.getElementById("staffMemberList").children;
 // Iterate through each staff member element and set the onclick event
 for (let i = 0; i < staffMembers.length; i++) {
   const staffMember = staffMembers[i];
+  var staffMemberNameElement = staffMember.querySelector("#staffName");
+  var staffMemberName = staffMemberNameElement.innerText;
+
+  // Split the name into an array containing first name and last name
+  var nameParts = staffMemberName.split(" ");
+
+  // Extract the first name (index 0) and the first letter of the last name (index 1)
+  var firstName = nameParts[0];
+  var lastNameInitial = nameParts[1] ? nameParts[1].charAt(0) : "";
+
+  // Create the new text in the format "First Name L", where L is the first letter of the last name.
+  var newName = lastNameInitial ? `${firstName} ${lastNameInitial}` : firstName;
+
+  // Update the element's text with the new name
+  staffMemberNameElement.innerText = newName;
   // Set the onclick event for each staff member element
   staffMember.onclick = function () {
 
