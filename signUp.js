@@ -8,7 +8,7 @@ const gymId = urlParams.get('gym_id');
 // Check if the parameters exist
 if (urlParams.has('utm_campaign') && urlParams.has('gym_id')) {
   // Store the values in sessionStorage
-  sessionStorage.setItem('gymName', gymName);
+  sessionStorage.setItem('fromGym', gymName);
   sessionStorage.setItem('gymId', gymId);
 } 
 var disableForm = false;
