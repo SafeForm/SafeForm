@@ -14,13 +14,16 @@ function mainFunc() {
     location.reload();
   }
 
+  showInstructions();
     //Loop through all list items and assign href to each workout
     const programWorkoutList = document.getElementById("programWorkoutList").children;
 
     for (var i = 0; i < programWorkoutList.length; i++) {
       //Get link from workout summary information and set thumbnail link
-      var workoutSummaryLink = programWorkoutList[i].querySelector("#svgPersonLink").href;
-      programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink;
+      var workoutSummaryLink = programWorkoutList[i].querySelector("#svgPersonLink");
+      workoutSummaryLink.href += "?fromProgram=true";
+      programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
+      programWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
     }
 
     MemberStack.onReady.then(async function(member) {  
@@ -29,50 +32,6 @@ function mainFunc() {
 
     });
 
-    
-//
-
-  //Add utm to buttons
-  // document.getElementById("exerciseLibrary").href += "?utm_campaign=safeform fitness - haymarket";
-  // document.getElementById("workouts").href += "?utm_campaign=safeform fitness - haymarket";
-  // document.getElementById("home").href += "?utm_campaign=safeform fitness - haymarket";
-
-  /*
-  // Add buttons to horizontal div based on number of weeks
-  var numWeeks = document.getElementById("programWeeks").innerText;
-  //numWeeks = 20;
-  var currentProgramWeek = 1;
-  var weekButton = document.getElementById("week-1");
-  
-  var parentDiv = document.getElementById("weekParentDiv");
-  
-  for (var i = 0; i < numWeeks; i++) {
-      var newButton = weekButton.cloneNode(true);
-      newButton.innerText = `Week ${i+1}`;
-      // Apply styling based on completion and current week status
-      newButton.id = `week-${i+1}`;
-      if (i+1 < currentProgramWeek) {
-        weekButton.classList.remove('current-week');
-        newButton.classList.add('complete-week');
-      } else if (i+1 == currentProgramWeek) {
-        newButton.classList.add('current-week');
-      } else {
-        weekButton.classList.remove('current-week');
-        newButton.classList.add('future-week');
-      }
-
-      parentDiv.appendChild(newButton);
-  }
-  //Remove original placeholder button
-  weekButton.remove();
-
-  // Style the first element:
-  if (currentProgramWeek > 1) {
-    weekButton.classList.remove('current-week');
-    weekButton.classList.add('complete-week');
-  }
-
-  */
 
   //Add week buttons to paginate through workout, based on number of workouts
   //var numWeeks = document.getElementById("programWeeks").innerText;
@@ -164,7 +123,7 @@ function mainFunc() {
 
       // Only allow the page if user is logged in
       if(member.loggedIn === false) {
-        window.location = "https://safeform.app/user-sign-in";
+        window.location = "https://app.bene-fit.io/user-sign-in";
       }
 
       var metadata = await member.getMetaData();
@@ -245,6 +204,50 @@ function mainFunc() {
 
   });
   */
+
+  // Function to check if the device is iOS
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  // Function to check if the device is Android
+  function isAndroid() {
+    return /Android/.test(navigator.userAgent);
+  }
+
+  // Function to show the appropriate instructions element
+  function showInstructions() {
+    const instructionsModal = document.getElementById('instructionsModal');
+    const iosInstructions = document.querySelector('.ios-instructions');
+    const androidInstructions = document.querySelector('.android-instructions');
+
+    // Check if the 'hasViewedProgram' flag exists in localStorage
+    const hasViewedProgram = localStorage.getItem('hasViewedProgram');
+    if (hasViewedProgram === null || hasViewedProgram === 'false') {
+      // Show the instructions modal
+      instructionsModal.style.display = 'flex';
+      instructionsModal.style.alignContent = 'center';
+      instructionsModal.style.justifyContent = 'center';
+
+      if (isIOS()) {
+        // Show iOS instructions, hide Android instructions
+        iosInstructions.style.display = 'flex';
+        androidInstructions.style.display = 'none';
+      } else if (isAndroid()) {
+        // Show Android instructions, hide iOS instructions
+        iosInstructions.style.display = 'none';
+        androidInstructions.style.display = 'flex';
+      } else {
+        // If the device is neither iOS nor Android, you can handle it as you wish
+        // For example, show a default instruction or hide both elements.
+        iosInstructions.style.display = 'flex';
+        androidInstructions.style.display = 'none';
+      }
+
+      // Set the 'hasViewedProgram' flag to true in localStorage
+      localStorage.setItem('hasViewedProgram', 'true');
+    }
+  }
 
   function getEndOfWeek(date) {
     // Parse the input date using Moment.js
