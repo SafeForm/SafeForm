@@ -1200,9 +1200,9 @@ function main() {
       var createUserlink = ``;
       //Create QR Code
       if(createStaffGymName.toLowerCase() == "uts - activatefit gym") {
-        createUserlink = `https://safeform.app/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}&payment=false`;
+        createUserlink = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}&payment=false`;
       } else {
-        createUserlink = `https://safeform.app/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
+        createUserlink = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
       }
       
       generateQRCode(createUserlink);
@@ -1792,9 +1792,9 @@ function main() {
         var link = ``;
         //Create QR Code
         if(createUserGymName.toLowerCase() == "uts - activatefit gym") {
-          link = `https://safeform.app/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
+          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
         } else {
-          link = `https://safeform.app/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
+          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
         }
         
         generateQRCode(link);
