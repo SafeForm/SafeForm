@@ -275,7 +275,7 @@ async function main() {
         }, true);
         member["workout-duration"] = attributeValue;
       } else if(attributeKey == "userDetails") {
-        var gymName = sessionStorage.getItem('gymName');
+        var gymName = sessionStorage.getItem('fromGym');
         member.updateProfile({
           "height": attributeValue.height,
           "weight": attributeValue.weight,
@@ -292,7 +292,7 @@ async function main() {
       } else if(attributeKey == "physical-limitations") {
 
         // // Retrieve values from sessionStorage
-        var gymName = sessionStorage.getItem('gymName');
+        var gymName = sessionStorage.getItem('fromGym');
         var gymId = sessionStorage.getItem('gymId');
         var staffEmail = sessionStorage.getItem('staffEmail');
 
