@@ -15,13 +15,14 @@ async function main() {
     // check if member is logged in  
     if(!member.loggedIn) {
       alert("Cannot find user, please try again");
-      window.location = "https://app.bene-fit.io/user-sign-up";
+      var baseURL = window.location.origin;
+      window.location = baseURL + "/user-sign-in";
     }
   })
 
   //Check what page the user is on:
   const pathname = window.location.pathname;
-  var baseURL = "https://app.bene-fit.io";
+  var baseURL = window.location.origin;
   if(pathname == "/user-sign-up-experience") {
     var nextPage = baseURL+"/user-sign-up-goals";
     document.getElementById("beginner").onclick = async function () {
@@ -140,7 +141,7 @@ async function main() {
     const payment = sessionStorage.getItem('payment');
     var nextPage = "";
     if(payment == 'false' || payment != null) { 
-      nextPage = "https://app.bene-fit.io/workouts/workout-navigation";
+      nextPage = window.location.origin + "/workouts/workout-navigation";
     } else {
       nextPage = "https://buy.stripe.com/4gw15Lgh7gKaare28G";
     }
@@ -474,7 +475,8 @@ async function main() {
       onFailure: function (err) {
         console.log('Error authenticating user:', err);
         alert("Cannot find user, please try again");
-        window.location = "https://app.bene-fit.io/user-sign-up";
+        var baseURL = window.location.origin;
+        window.location = baseURL+"/user-sign-in";
       }
     });
   }
