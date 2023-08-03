@@ -80,8 +80,7 @@ window.fsAttributes.push([
 
       document.getElementById("staffMemberListParent").style.display = "block";
       if(renderedItems.length == 0) {
-        document.getElementById("selectStaffMember").style.display = "none";
-        alert("Something went wrong, please scan the QR code from a staff member again.");
+        document.getElementById("staffSelectModal").style.display = "none";
        }
     });
   },
