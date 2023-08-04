@@ -2,25 +2,24 @@
 const urlParams = new URLSearchParams(window.location.search);
 
 // Get the parameter values
-const gymName = urlParams.get('utm_campaign');
+var gymName = urlParams.get('utm_campaign');
 const gymId = urlParams.get('gym_id');
+var disableForm = false;
 
 // Check if the parameters exist
 if (urlParams.has('utm_campaign') && urlParams.has('gym_id')) {
   // Store the values in sessionStorage
-  sessionStorage.setItem('fromGym', gymName);
+  localStorage.setItem('fromGym', gymName);
   sessionStorage.setItem('gymId', gymId);
 } 
-var disableForm = false;
-if(gymId == null) {
-  document.getElementById("selectStaffMember").style.display = "none";
-  alert("Something went wrong, please scan the QR code from a staff member again.");
-  // Disable interactive elements on the page
-  const interactiveElements = document.querySelectorAll('button, input, select, textarea, a, #sign-up-button');
-  interactiveElements.forEach(element => {
-    element.disabled = true;
-  });
-  disableForm = true;
+
+//If no parameter, check if gym is already saved
+if(gymName == null) {
+  gymName = localStorage.getItem("fromGym");
+  //If its still empty, then alert and lock form
+  if(gymName == null) {
+    disableFormFunc();
+  }
 }
 
 if(urlParams.has('payment')) {
@@ -151,6 +150,17 @@ signUpForm.addEventListener('click', async function(event) {
     event.preventDefault();
   }
 });
+
+function disableFormFunc() {
+  document.getElementById("selectStaffMember").style.display = "none";
+  alert("Something went wrong, please scan the QR code from a staff member again.");
+  // Disable interactive elements on the page
+  const interactiveElements = document.querySelectorAll('button, input, select, textarea, a, #sign-up-button');
+  interactiveElements.forEach(element => {
+    element.disabled = true;
+  });
+  disableForm = true;
+}
 
 // Function to replay the captured event
 function replayEvent() {
