@@ -276,7 +276,7 @@ async function main() {
         }, true);
         member["workout-duration"] = attributeValue;
       } else if(attributeKey == "userDetails") {
-        var gymName = sessionStorage.getItem('fromGym');
+        var gymName = localStorage.getItem('fromGym');
         member.updateProfile({
           "height": attributeValue.height,
           "weight": attributeValue.weight,
