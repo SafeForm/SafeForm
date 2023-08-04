@@ -49,6 +49,7 @@ function main() {
   var currentUserProgram = null;
   var workoutIndexCount = [];
   var userInputsChanged = false;
+  var addStaffMemberFromSettings = false;
 
     
   //Object to keep track of the guide -> exercise workout mapping
@@ -1192,31 +1193,36 @@ function main() {
 
       createStaffMember(staffMember);
 
-      //Use staff and email to create QR code
-      const createStaffGymName = document.getElementById("gymFullName").innerText;
-      const createStaffGymID = document.getElementById("gymID").innerText;
-    
-      //Create QR Code
-      var createUserlink = ``;
-      //Create QR Code
-      if(createStaffGymName.toLowerCase() == "uts - activatefit gym") {
-        createUserlink = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}&payment=false`;
-      } else {
-        createUserlink = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
-      }
+      if(!addStaffMemberFromSettings) {
+        //Use staff and email to create QR code
+        const createStaffGymName = document.getElementById("gymFullName").innerText;
+        const createStaffGymID = document.getElementById("gymID").innerText;
       
-      generateQRCode(createUserlink);
+        //Create QR Code
+        var createUserlink = ``;
+        //Create QR Code
+        if(createStaffGymName.toLowerCase() == "uts - activatefit gym") {
+          createUserlink = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}&payment=false`;
+        } else {
+          createUserlink = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createStaffGymName}&gym_id=${createStaffGymID}&staff_email=${gymStaffEmail}`;
+        }
+        
+        generateQRCode(createUserlink);
+
+        //Show sign up instructions
+        var createUserModal = document.getElementById("createUserModal");
+        createUserModal.style.display = "flex";
+        createUserModal.style.flexDirection = "column";
+        createUserModal.style.alignItems = "center";
+      }
 
       //Hide staff add modal
       document.getElementById("staffSelectModal").style.display = "none";
       document.getElementById("addStaffMember").style.display = "none";
       document.getElementById("selectStaffMember").style.display = "block";
 
-      //Show sign up instructions
-      var createUserModal = document.getElementById("createUserModal");
-      createUserModal.style.display = "flex";
-      createUserModal.style.flexDirection = "column";
-      createUserModal.style.alignItems = "center";
+      addStaffMemberFromSettings = false;
+
 
       //Reset form
       event.target.reset();
@@ -1638,6 +1644,9 @@ function main() {
         removeEmptyPrograms(weekRow);
         getUserTrainingPlan();
         getProgramBreakers();
+
+      } else if(event.target.closest("#addStaffMemberSettings")) {
+        addStaffMemberFromSettings = true;
 
       } else if(event.target.id == "addUserProgram") {
 
