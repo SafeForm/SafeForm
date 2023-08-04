@@ -293,7 +293,7 @@ async function main() {
       } else if(attributeKey == "physical-limitations") {
 
         // // Retrieve values from sessionStorage
-        var gymName = sessionStorage.getItem('fromGym');
+        var gymName = localStorage.getItem('fromGym');
         var gymId = sessionStorage.getItem('gymId');
         var staffEmail = sessionStorage.getItem('staffEmail');
 
@@ -311,7 +311,7 @@ async function main() {
         userObj["physical-limitations"] = attributeValue;
 
         var webhook = "";
-        if(staffEmail != null) {
+        if(staffEmail != null)  {
           webhook = "https://hook.us1.make.com/bcljq4gu8uo3v3lgoq85sv6hdihdqo1u";
         } else {
           webhook = "https://hook.us1.make.com/g3wit8xuonhumsifktuj3bknz783x70q"
