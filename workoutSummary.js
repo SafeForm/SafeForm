@@ -34,7 +34,7 @@ async function main() {
 
       weightInput.addEventListener('blur', function(event) {
         const inputValue = event.target.value;
-        if(!event.target.value.includes("kg")) {
+        if(!event.target.value.includes("kg") && event.target.value != "") {
           event.target.value = `${inputValue} kg`;
         }
   
@@ -46,7 +46,7 @@ async function main() {
 
       repsInput.addEventListener('blur', function(event) {
         const inputValue = event.target.value;
-        if(!event.target.value.includes("reps")) {
+        if(!event.target.value.includes("reps") && event.target.value != "") {
           event.target.value = `${inputValue} reps`;
         }
   
@@ -107,7 +107,7 @@ async function main() {
           newWeightInput.addEventListener('blur', function(event) {
 
             const inputValue = event.target.value;
-            if(!event.target.value.includes("kg")) {
+            if(!event.target.value.includes("kg") && event.target.value != "") {
               event.target.value = `${inputValue} kg`;
             }
             const exerciseBlock = event.target.closest("#inputSectionBlock");
@@ -119,7 +119,7 @@ async function main() {
           newRepsInput.addEventListener('blur', function(event) {
             const inputValue = event.target.value;
 
-            if(!event.target.value.includes("reps")) {
+            if(!event.target.value.includes("reps") && event.target.value != "") {
               event.target.value = `${inputValue} reps`;
             }
       
@@ -159,7 +159,6 @@ async function main() {
 
         })(j); // Pass the value of j into the immediately-invoked function expression (IIFE)
       }
-  
   
     }
 
