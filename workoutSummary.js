@@ -19,11 +19,11 @@ async function main() {
 
       //Get number of sets for that exercise
       const numberOfSets = parseInt(inputList[i].querySelector("#setsInput").innerText);
-  
       //Get rest info for that exercise
       const restDiv = inputList[i].querySelector("#inputRest");
       var newRestDiv = restDiv.cloneNode(true);
       newRestDiv.style.display = "flex";
+  
       //Get input section for cloning
       const inputSectionPlaceholder = inputList[i].querySelector("#inputSection");
       var exerciseInputSection = inputList[i].querySelector("#inputSectionBlock");
@@ -34,6 +34,9 @@ async function main() {
 
       weightInput.addEventListener('blur', function(event) {
         const inputValue = event.target.value;
+        if(!event.target.value.includes("kg")) {
+          event.target.value = `${inputValue} kg`;
+        }
   
         const exerciseBlock = event.target.closest("#inputSectionBlock");
         const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
@@ -43,6 +46,9 @@ async function main() {
 
       repsInput.addEventListener('blur', function(event) {
         const inputValue = event.target.value;
+        if(!event.target.value.includes("reps")) {
+          event.target.value = `${inputValue} reps`;
+        }
   
         const exerciseBlock = event.target.closest("#inputSectionBlock");
         const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
@@ -55,34 +61,55 @@ async function main() {
       if(memberJSONExerciseName != undefined) {
 
         if(memberJSONExerciseName.weight != undefined) {
-          weightInput.value = memberJSONExerciseName.weight;
+          if (memberJSONExerciseName.weight.includes("kg")) {
+            weightInput.value = `${memberJSONExerciseName.weight}`;
+          } else {
+            weightInput.value = `${memberJSONExerciseName.weight} kg`;
+          }
         }
 
         if(memberJSONExerciseName.reps != undefined) {
           if(memberJSONExerciseName.reps.length > 0) {
-            repsInput.value = memberJSONExerciseName.reps[0];
+            if (memberJSONExerciseName.reps[0].includes("reps")) {
+              repsInput.value = `${memberJSONExerciseName.reps[0]}`;
+            } else {
+              repsInput.value = `${memberJSONExerciseName.reps[0]} reps`;
+            }
           }
           
         }
         
       }
-      
-      exerciseInputSection.appendChild(newRestDiv);
 
       for (var j = 0; j < numberOfSets - 1; j++) {
         (function(j) {
+
           newRestDiv = restDiv.cloneNode(true);
-  
           var newInputSection = inputSectionPlaceholder.cloneNode(true);
-          newRestDiv.style.display = "flex";
-  
           var newWeightInput = newInputSection.querySelector("#weight");
           var newRepsInput = newInputSection.querySelector("#reps");
-          console.log(newRepsInput);
+          newRestDiv.style.display = "flex";
+
+          const completeButton = newInputSection.querySelector("#completeExercise")
+          completeButton.addEventListener("click", () => {
+
+            // Hide the clicked element
+            completeButton.style.display = "none";
+        
+            // Find the next sibling element with the id "completedExercise"
+            const nextCompletedImage = completeButton.nextElementSibling;
+            if (nextCompletedImage && nextCompletedImage.id === "completedExercise") {
+              nextCompletedImage.style.display = "block"; // Or any other display value you prefer
+            }
+              
+            });
   
           newWeightInput.addEventListener('blur', function(event) {
+
             const inputValue = event.target.value;
-      
+            if(!event.target.value.includes("kg")) {
+              event.target.value = `${inputValue} kg`;
+            }
             const exerciseBlock = event.target.closest("#inputSectionBlock");
             const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
       
@@ -91,32 +118,45 @@ async function main() {
   
           newRepsInput.addEventListener('blur', function(event) {
             const inputValue = event.target.value;
+
+            if(!event.target.value.includes("reps")) {
+              event.target.value = `${inputValue} reps`;
+            }
       
             const exerciseBlock = event.target.closest("#inputSectionBlock");
             const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
       
             updateExerciseDetails(exerciseName.innerText, inputValue, j+1, "reps");
           });
+
           newRepsInput.value = "";
           
-          if(memberJSONExerciseName != null) {
+          if(memberJSONExerciseName != undefined) {
 
-            if(memberJSONExerciseName.weight != "undefined" && memberJSONExerciseName.weight != null) {
-              newWeightInput.value = memberJSONExerciseName.weight;
+            if(memberJSONExerciseName.weight != undefined) {
+              if (memberJSONExerciseName.weight.includes("kg")) {
+                newWeightInput.value = `${memberJSONExerciseName.weight}`;
+              } else {
+                newWeightInput.value = `${memberJSONExerciseName.weight} kg`;
+              }
             }
-            
 
             if(memberJSONExerciseName.reps != undefined) {
               if(memberJSONExerciseName.reps.length > j+1) {
-                newRepsInput.value = memberJSONExerciseName.reps[j+1];
+                if (memberJSONExerciseName.reps[j+1].includes("reps")) {
+                  newRepsInput.value = `${memberJSONExerciseName.reps[j+1]}`;
+                } else {
+                  newRepsInput.value = `${memberJSONExerciseName.reps[j+1]} reps`;
+                }
               } 
             }
           }
-          
-          exerciseInputSection.appendChild(newInputSection);
-          if(j < numberOfSets - 2) {
+          if(j < numberOfSets - 1) {
             exerciseInputSection.appendChild(newRestDiv);
           }
+          
+          exerciseInputSection.appendChild(newInputSection);
+
         })(j); // Pass the value of j into the immediately-invoked function expression (IIFE)
       }
   
@@ -124,6 +164,26 @@ async function main() {
     }
 
   });
+
+  //Set onclicks for each complete image
+  const completeButtons = document.querySelectorAll("#completeExercise");
+
+  // Loop through each element and set the onclick handler
+  completeButtons.forEach(button => {
+    button.addEventListener("click", () => {
+
+    // Hide the clicked element
+    button.style.display = "none";
+
+    // Find the next sibling element with the id "completedExercise"
+    const nextCompletedImage = button.nextElementSibling;
+    if (nextCompletedImage && nextCompletedImage.id === "completedExercise") {
+      nextCompletedImage.style.display = "block"; // Or any other display value you prefer
+    }
+      
+    });
+  });
+
 
   //Hide the first exercise breaker of the exercise list
   const exerciseList = document.getElementById("listOfExercises").children;
