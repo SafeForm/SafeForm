@@ -29,7 +29,6 @@ async function main() {
       var exerciseInputSection = inputList[i].querySelector("#inputSectionBlock");
       const exerciseName = exerciseInputSection.querySelector("#exerciseNameInput").innerText;
       var weightInput = exerciseInputSection.querySelector("#weight");
-
       var repsInput = exerciseInputSection.querySelector("#reps");
 
       weightInput.addEventListener('blur', function(event) {
@@ -41,7 +40,14 @@ async function main() {
         const exerciseBlock = event.target.closest("#inputSectionBlock");
         const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
   
-        updateExerciseDetails(exerciseName.innerText, inputValue, null, "weight");
+        updateExerciseDetails(exerciseName.innerText, inputValue, 0, "weight");
+
+        //Check if reps also has a value then auto complete set
+        const updatedRepsInput = exerciseBlock.querySelector("#reps");
+        if(updatedRepsInput.value != "") {
+          exerciseBlock.querySelector("#completeExercise").click();
+        }
+
       });
 
       repsInput.addEventListener('blur', function(event) {
@@ -54,6 +60,11 @@ async function main() {
         const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
   
         updateExerciseDetails(exerciseName.innerText, inputValue, 0, "reps");
+        //Check if weight also has a value then auto complete set
+        const updatedWeightInput = exerciseBlock.querySelector("#weight");
+        if(updatedWeightInput != "") {
+          exerciseBlock.querySelector("#completeExercise").click();
+        }
       });
 
       var memberJSONExerciseName = memberJSON[exerciseName];
@@ -62,18 +73,18 @@ async function main() {
 
         if(memberJSONExerciseName.weight != undefined) {
           if (memberJSONExerciseName.weight.includes("kg")) {
-            weightInput.value = `${memberJSONExerciseName.weight}`;
+            weightInput.value = `${memberJSONExerciseName.weight[0]}`;
           } else {
-            weightInput.value = `${memberJSONExerciseName.weight} kg`;
+            weightInput.value = `${memberJSONExerciseName.weight[0]} kg`;
           }
         }
 
         if(memberJSONExerciseName.reps != undefined) {
           if(memberJSONExerciseName.reps.length > 0) {
             if (memberJSONExerciseName.reps[0].includes("reps")) {
-              repsInput.value = `${memberJSONExerciseName.reps[0]}`;
+              repsInput.placeholder = `${memberJSONExerciseName.reps[0]}`;
             } else {
-              repsInput.value = `${memberJSONExerciseName.reps[0]} reps`;
+              repsInput.placeholder = `${memberJSONExerciseName.reps[0]} reps`;
             }
           }
           
@@ -88,21 +99,42 @@ async function main() {
           var newInputSection = inputSectionPlaceholder.cloneNode(true);
           var newWeightInput = newInputSection.querySelector("#weight");
           var newRepsInput = newInputSection.querySelector("#reps");
+          newRepsInput.value = "";
           newRestDiv.style.display = "flex";
 
-          const completeButton = newInputSection.querySelector("#completeExercise")
+          const completeButton = newInputSection.querySelector("#completeExercise");
+          completeButton.style.display = "none";
           completeButton.addEventListener("click", () => {
 
-            // Hide the clicked element
-            completeButton.style.display = "none";
-        
-            // Find the next sibling element with the id "completedExercise"
-            const nextCompletedImage = completeButton.nextElementSibling;
-            if (nextCompletedImage && nextCompletedImage.id === "completedExercise") {
-              nextCompletedImage.style.display = "block"; // Or any other display value you prefer
+          // Hide the clicked element
+          completeButton.style.display = "none";
+
+          //Get input section sibling to update the next set
+          var setInputSection = completeButton.closest("#inputSection");
+          setInputSection = setInputSection.nextElementSibling;
+
+          if(setInputSection) {
+
+            var nextInputSection = setInputSection.nextElementSibling;
+
+            while (nextInputSection) {
+              if (nextInputSection.id === "inputSection") {
+                break;
+              }
+              nextInputSection = nextInputSection.nextElementSibling;
             }
-              
-            });
+
+            nextInputSection.querySelector("#completeExercise").style.display = "block";
+          } 
+
+      
+          // Find the next sibling element with the id "completedExercise"
+          const nextCompletedImage = completeButton.nextElementSibling;
+          if (nextCompletedImage && nextCompletedImage.id === "completedExercise") {
+            nextCompletedImage.style.display = "block"; // Or any other display value you prefer
+          }
+            
+          });
   
           newWeightInput.addEventListener('blur', function(event) {
 
@@ -113,7 +145,13 @@ async function main() {
             const exerciseBlock = event.target.closest("#inputSectionBlock");
             const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
       
-            updateExerciseDetails(exerciseName.innerText, inputValue, null, "weight");
+            updateExerciseDetails(exerciseName.innerText, inputValue, j+1, "weight");
+            //Check if weight also has a value then auto complete set
+            const newUpdatedRepsInput = newInputSection.querySelector("#reps");
+
+            if(newUpdatedRepsInput.value != "") {
+              newInputSection.querySelector("#completeExercise").click();
+            }
           });
   
           newRepsInput.addEventListener('blur', function(event) {
@@ -127,26 +165,30 @@ async function main() {
             const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
       
             updateExerciseDetails(exerciseName.innerText, inputValue, j+1, "reps");
-          });
+            const newUpdatedWeightInput = newInputSection.querySelector("#weight");
 
-          newRepsInput.value = "";
+            //Check if weight also has a value then auto complete set
+            if(newUpdatedWeightInput.value != "") {
+              newInputSection.querySelector("#completeExercise").click();
+            }
+          });
           
           if(memberJSONExerciseName != undefined) {
 
             if(memberJSONExerciseName.weight != undefined) {
               if (memberJSONExerciseName.weight.includes("kg")) {
-                newWeightInput.value = `${memberJSONExerciseName.weight}`;
+                newWeightInput.value = `${memberJSONExerciseName.weight[j+1]}`;
               } else {
-                newWeightInput.value = `${memberJSONExerciseName.weight} kg`;
+                newWeightInput.value = `${memberJSONExerciseName.weight[j+1]} kg`;
               }
             }
 
             if(memberJSONExerciseName.reps != undefined) {
               if(memberJSONExerciseName.reps.length > j+1) {
                 if (memberJSONExerciseName.reps[j+1].includes("reps")) {
-                  newRepsInput.value = `${memberJSONExerciseName.reps[j+1]}`;
+                  newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]}`;
                 } else {
-                  newRepsInput.value = `${memberJSONExerciseName.reps[j+1]} reps`;
+                  newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]} reps`;
                 }
               } 
             }
@@ -164,6 +206,17 @@ async function main() {
 
   });
 
+  //Set onclick for start button
+  document.getElementById("startWorkout").onclick = () => {
+    
+    document.getElementById("workoutInput").click();
+
+    document.getElementById("workoutNavigation").style.display = "none";
+
+    document.getElementById("finishWorkoutDiv").style.display = "block";
+
+  };
+
   //Set onclicks for each complete image
   const completeButtons = document.querySelectorAll("#completeExercise");
 
@@ -174,8 +227,24 @@ async function main() {
     // Hide the clicked element
     button.style.display = "none";
 
+    //Get input section sibling to update the next set
+    var setInputSection = button.closest("#inputSection");
+    setInputSection = setInputSection.nextElementSibling;
+
+    var nextInputSection = setInputSection.nextElementSibling;
+
+    while (nextInputSection) {
+      if (nextInputSection.id === "inputSection") {
+        break;
+      }
+      nextInputSection = nextInputSection.nextElementSibling;
+    }
+
+    nextInputSection.querySelector("#completeExercise").style.display = "block";
+
     // Find the next sibling element with the id "completedExercise"
     const nextCompletedImage = button.nextElementSibling;
+
     if (nextCompletedImage && nextCompletedImage.id === "completedExercise") {
       nextCompletedImage.style.display = "block"; // Or any other display value you prefer
     }
@@ -284,10 +353,9 @@ async function main() {
 
       //Get info from exercise
       var exerciseInfo = metadata[exerciseName];
-      console.log(exerciseInfo);
 
       if(exerciseInfo == undefined) {
-        exerciseInfo = {"weight": "", "reps":[]};
+        exerciseInfo = {"weight": [], "reps":[]};
       }
  
       if(type == "reps") {
@@ -316,7 +384,27 @@ async function main() {
         member.updateMetaData(updatedJSON);
 
       } else {
-        exerciseInfo.weight = inputValue;
+
+        //If no rep info recorded
+        var weightArr = exerciseInfo.weight;
+
+        if(weightArr == null) {
+          //Reps array is empty so just put input value into array and update
+          var exerciseRepsObj = [inputValue];
+        } else {
+          //There is rep info
+          //Check if index in reps array exists first
+          if(setNumber < weightArr.length) {
+            weightArr[setNumber] = inputValue;
+          } else {
+            weightArr.push(inputValue)
+          }
+
+          var exerciseRepsObj = weightArr;
+        }
+          
+
+        exerciseInfo.weight = exerciseRepsObj;
         const updatedJSON = {[exerciseName] : exerciseInfo};
 
         member.updateMetaData(updatedJSON);
