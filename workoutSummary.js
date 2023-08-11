@@ -204,18 +204,33 @@ async function main() {
   
     }
 
+    //Set onclick for start button
+    document.getElementById("startWorkout").onclick = () => {
+
+      if(member.loggedIn) {
+      
+        document.getElementById("workoutInput").click();
+
+        document.getElementById("workoutNavigation").style.display = "none";
+        
+        if(document.getElementById("shareWorkout").style.display != "block") {
+          document.getElementById("finishWorkoutDiv").style.display = "block";
+        }
+        
+      } else {
+
+        document.getElementById("workoutNavigation").style.display = "none";
+  
+        if(document.getElementById("shareWorkout").style.display != "block") {
+          document.getElementById("finishWorkoutDiv").style.display = "block";
+        }
+      }
+
+    };
+
+
   });
 
-  //Set onclick for start button
-  document.getElementById("startWorkout").onclick = () => {
-    
-    document.getElementById("workoutInput").click();
-
-    document.getElementById("workoutNavigation").style.display = "none";
-
-    document.getElementById("finishWorkoutDiv").style.display = "block";
-
-  };
 
   //Set onclicks for each complete image
   const completeButtons = document.querySelectorAll("#completeExercise");
