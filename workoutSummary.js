@@ -1,10 +1,16 @@
+const devModeFlag = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  main();
+  if(devModeFlag == null) {
+    main();
+  }
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-      main();
+  if(devModeFlag == null) {
+    main();
+  }
   });
 }
+
 
 async function main() {
 
