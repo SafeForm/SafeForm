@@ -151,7 +151,7 @@ function main() {
   var linksOnPage = document.querySelectorAll("a");
 
   //Check if there is no gym filter
-  if (gymName == '' && savedGymName == null) {
+  if (gymName == 'utm_campaign') {
 
     //Switch off gym filter
     document.getElementById("utm_campaign").click();
@@ -161,9 +161,9 @@ function main() {
         linksOnPage[i].href += `?fromLibrary=true`;
       }
     }
-  } else {
+  } else if(savedGymName != "null" && savedGymName != null) {
     var currentGym = '';
-    if(gymName != '') {
+    if(gymName != 'utm_campaign') {
       currentGym = gymName;
     } else {
       currentGym = savedGymName;
