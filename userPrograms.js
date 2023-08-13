@@ -15,26 +15,25 @@ function mainFunc() {
   }
 
   showInstructions();
-    //Loop through all list items and assign href to each workout
-    const programWorkoutList = document.getElementById("programWorkoutList").children;
+  //Loop through all list items and assign href to each workout
+  const programWorkoutList = document.getElementById("programWorkoutList").children;
 
-    for (var i = 0; i < programWorkoutList.length; i++) {
-      //Get link from workout summary information and set thumbnail link
-      var workoutSummaryLink = programWorkoutList[i].querySelector("#svgPersonLink");
-      workoutSummaryLink.href += "?fromProgram=true";
-      programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
-      programWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
-    }
+  for (var i = 0; i < programWorkoutList.length; i++) {
+    //Get link from workout summary information and set thumbnail link
+    var workoutSummaryLink = programWorkoutList[i].querySelector("#svgPersonLink");
+    workoutSummaryLink.href += "?fromProgram=true";
+    programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
+    programWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
 
-    MemberStack.onReady.then(async function(member) {  
-      const gymName = member["current-gym"];
-      localStorage.setItem("fromGym", gymName)
+  }
 
-    });
+  MemberStack.onReady.then(async function(member) {  
+    const gymName = member["current-gym"];
+    localStorage.setItem("fromGym", gymName)
 
+  });
 
   //Add week buttons to paginate through workout, based on number of workouts
-  //var numWeeks = document.getElementById("programWeeks").innerText;
   var numWeeks = document.getElementById("programWeeks").innerText;
   var weekButton = document.getElementById("week-1");
   var parentDiv = document.getElementById("weekParentDiv");
@@ -51,6 +50,8 @@ function mainFunc() {
   weekButton.remove();
 
   const programs = JSON.parse(document.getElementById("programEventData").innerText);
+  //Also save in session storage
+  sessionStorage.setItem("currentProgram", document.getElementById("programEventData").innerText);
   var workouts = null;
   //iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
@@ -60,10 +61,6 @@ function mainFunc() {
     }
   }
 
-  if(workouts == null) {
-    console.log("NO PROGRAMS");
-    return;
-  }
 
   //Sort the workouts array based on the 'Start Date' field
   workouts.sort((a, b) => {
@@ -74,7 +71,12 @@ function mainFunc() {
   
   const weeks = [];
   let currentWeek = [];
-  
+  var thisWeek = null;
+
+  const currentDate = new Date(); // This gets the current date and time
+  const formattedDate = moment(currentDate).format('YYYY-MM-DD');
+
+  var weekCount = 1;
   for (const workout of workouts) {
     const startDate = moment(workout['start']);
 
@@ -83,6 +85,10 @@ function mainFunc() {
     // Get end of week for current array
     if (currentWeek.length > 0) {
       endOfWeek = getEndOfWeek(currentWeek[0]['start']);
+      if(moment(formattedDate).isSameOrAfter(moment(currentWeek[0]['start'])) && moment(formattedDate).isSameOrBefore(moment(endOfWeek))) {
+        thisWeek = weekCount;
+      }
+
     }
 
     if (currentWeek.length === 0 || startDate.isBefore(moment(endOfWeek))) {
@@ -90,9 +96,10 @@ function mainFunc() {
     } else {
       weeks.push(currentWeek);
       currentWeek = [workout];
+      weekCount++;
     }
   }
-  
+
   // Push the last week
   if (currentWeek.length > 0) {
     weeks.push(currentWeek);
@@ -113,6 +120,10 @@ function mainFunc() {
   });
 
   weekButton = document.getElementById("week-1");
+  
+  if(thisWeek != null) {
+    weekButton = document.getElementById(`week-${thisWeek}`);
+  }
 
   weekButton.click();
 
@@ -204,6 +215,8 @@ function mainFunc() {
 
   });
   */
+ 
+
 
   // Function to check if the device is iOS
   function isIOS() {
@@ -298,6 +311,19 @@ function mainFunc() {
         newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
         workoutList.appendChild(newElement);
         addedWorkout += 1;
+
+        const newElementParent = newElement.closest(".workoutprogramitem");
+        const workoutIndex = newElementParent.querySelector("#workoutNumber").innerText.split(" ")[1].replace(".","");
+        const programID = document.getElementById("programID").innerText;
+        const programName = document.getElementById("programFullName").innerText;
+        //Set onclick to capture current date and workout id
+        newElement.onclick = (event) => {
+          const workoutID = `${workout.extendedProps.workoutID}+${moment().format('YYYY-MM-DD')}`;
+          sessionStorage.setItem("currentWorkout", workoutID);
+          sessionStorage.setItem("workoutIndex", workoutIndex);
+          sessionStorage.setItem("programID", programID);
+          sessionStorage.setItem("programName", programName);
+        }
 
       }
     });
