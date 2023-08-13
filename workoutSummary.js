@@ -1,17 +1,12 @@
-
 if (document.readyState !== 'loading') {
-  if(devModeFlag != null) {
-    mainFuncLocal();
-  }
+  mainFunc();
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-  if(devModeFlag != null) {
-    mainFuncLocal();
-  }
+    mainFunc();
   });
 }
 
-function mainFuncLocal() {
+function mainFunc() {
 
   //Add inputs for each exercise based on number of sets
   const inputList = document.getElementById("inputList").children;
