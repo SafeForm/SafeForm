@@ -211,40 +211,39 @@ function mainFunc() {
 
       });
 
-
-      document.getElementById("finishWorkout").onclick = async () => {
-        
-        if(member.loggedIn) {
-          //Get user metadata
-          memberJSON = await member.getMetaData();
-
-          //Get program JSON and modify it to include the new workout id
-          const userProgram = JSON.parse(sessionStorage.getItem("currentProgram"));
-          const workoutIndex = sessionStorage.getItem("workoutIndex");
-          const workoutID = sessionStorage.getItem("currentWorkout");
-          var workoutObj = {};
-          workoutObj["memberJSON"] = memberJSON;
-          workoutObj["member"] = member;
-          workoutObj["programName"] = sessionStorage.getItem("programName");
-          workoutObj["programID"] = sessionStorage.getItem("programID");
-          if(userProgram != null) {
-
-            userProgram[0].events[[workoutIndex]]["completedID"] = workoutID;
-            
-            workoutObj["userProgram"] = userProgram;
-
-          } 
-          sendWorkoutDetailsToMake(workoutObj);
-
-        } else {
-          var baseURL = window.location.origin;
-          window.location = baseURL + "/workouts/workout-navigation"
-
-        }
-        
-      };
-
     }
+    
+    document.getElementById("finishWorkout").onclick = async () => {
+      
+      if(member.loggedIn) {
+        //Get user metadata
+        memberJSON = await member.getMetaData();
+
+        //Get program JSON and modify it to include the new workout id
+        const userProgram = JSON.parse(sessionStorage.getItem("currentProgram"));
+        const workoutIndex = sessionStorage.getItem("workoutIndex");
+        const workoutID = sessionStorage.getItem("currentWorkout");
+        var workoutObj = {};
+        workoutObj["memberJSON"] = memberJSON;
+        workoutObj["member"] = member;
+        workoutObj["programName"] = sessionStorage.getItem("programName");
+        workoutObj["programID"] = sessionStorage.getItem("programID");
+        if(userProgram != null) {
+
+          userProgram[0].events[[workoutIndex]]["completedID"] = workoutID;
+          
+          workoutObj["userProgram"] = userProgram;
+
+        } 
+        sendWorkoutDetailsToMake(workoutObj);
+
+      } else {
+        var baseURL = window.location.origin;
+        window.location = baseURL + "/workouts/workout-navigation"
+
+      }
+      
+    };
 
     //Set onclick for start button
     document.getElementById("startWorkout").onclick = () => {
@@ -456,7 +455,6 @@ function mainFunc() {
     MemberStack.onReady.then(async function(member) {  
 
       var metadata = await member.getMetaData();
-      console.log(metadata);
       //Get info from exercise
       var exerciseInfo = metadata[exerciseName];
 
