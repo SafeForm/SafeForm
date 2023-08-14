@@ -1,12 +1,14 @@
+const devModeFlag = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  mainFunc();
+  main();
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    mainFunc();
+    main();
   });
 }
 
-function mainFunc() {
+function main() {
+
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -313,12 +315,18 @@ function mainFunc() {
         addedWorkout += 1;
 
         const newElementParent = newElement.closest(".workoutprogramitem");
-        const workoutIndex = newElementParent.querySelector("#workoutNumber").innerText.split(" ")[1].replace(".","");
+        const workoutIndex = newElementParent.querySelector("#workoutNumber").innerText.split(" ")[1].replace(".","") - 1;
         const programID = document.getElementById("programID").innerText;
         const programName = document.getElementById("programFullName").innerText;
         //Set onclick to capture current date and workout id
         newElement.onclick = (event) => {
-          const workoutID = `${workout.extendedProps.workoutID}+${moment().format('YYYY-MM-DD')}`;
+          var workoutID = null;
+
+          if(workout.extendedProps.completedID !== undefined) {
+            workoutID = workout.extendedProps.completedID;
+          } else {
+            workoutID = `${workout.extendedProps.workoutID}+${moment().format('YYYY-MM-DD')}+${workoutIndex}`;
+          }
           sessionStorage.setItem("currentWorkout", workoutID);
           sessionStorage.setItem("workoutIndex", workoutIndex);
           sessionStorage.setItem("programID", programID);
