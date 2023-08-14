@@ -439,7 +439,6 @@ function main() {
         styleNavButtons("userPage");
       }
       document.getElementById("workoutsPage").onclick = function() {
-        console.log("He;;p");
         //Reset filters on workout summary page
         settingsBody.style.display = "none";
         settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
@@ -705,15 +704,15 @@ function main() {
         // Add event listeners for event drag start and stop
         calendar.on('eventDragStart', function(info) {
           // Get the original date cell
+          console.log(info);
           originalCell = info.jsEvent.target;
           originalCell = originalCell.closest('.fc-daygrid-day-frame');
           originalCellDay = info.event._instance.range.start;
         });
 
         calendar.on('eventDrop', function(info) {
-    
+          console.log(info);
           var stoppedEventDay = info.event._instance.range.start;
-
           if(originalCell) {
             // Find the corresponding delete button element in the original cell
             var originalDeleteButtonEl = originalCell.querySelector(".delete-event-button");
@@ -3319,15 +3318,21 @@ function main() {
     
             }
             obj.events.forEach(event => {
+
               const startDate = new Date(event.start);
-          
+              var extendedProps = {
+                length: event.extendedProps.length,
+                targetArea: event.extendedProps.targetArea,
+                workoutID: event.extendedProps.workoutID
+              };
+
+              if (event.extendedProps.completedID !== undefined) { 
+                extendedProps.completedID = event.extendedProps.completedID;
+              }
+              
               events.push({
                 title: event.title,
-                extendedProps: {
-                  length: event.extendedProps.length,
-                  targetArea: event.extendedProps.targetArea,
-                  workoutID: event.extendedProps.workoutID
-                },
+                extendedProps: extendedProps,
                 start: startDate,
                 allDay: true
               });
@@ -3336,7 +3341,7 @@ function main() {
         } else {
           eventsData.forEach((event, index) => {
             const startDate = new Date(event.start);
-        
+            
             events.push({
               title: event.title,
               extendedProps: {
