@@ -1,13 +1,9 @@
-const devModeFlag = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  if(devModeFlag == null) {
-    main();
-  }
+  main();
+
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-  if(devModeFlag == null) {
     main();
-  }
   });
 }
 
@@ -15,6 +11,7 @@ function main() {
 
   //Add inputs for each exercise based on number of sets
   const inputList = document.getElementById("inputList").children;
+
 
   MemberStack.onReady.then(async function(member) {  
 
@@ -184,6 +181,9 @@ function main() {
 
       //Set onclicks for each complete image
       const completeButtons = document.querySelectorAll("#completeExercise");
+
+      var numberOfSets = completeButtons.length;
+      var completedSets = 0;
      
       //Record in memberstack
       const workoutID = sessionStorage.getItem("currentWorkout");
@@ -207,6 +207,13 @@ function main() {
         button.addEventListener("click", () => {
 
           hideCompleteButton(button);
+
+          //Increment 'completed sets' counter
+          completedSets += 1;
+
+          if(completedSets == numberOfSets) {
+            document.getElementById("finishWorkout").click;
+          }
 
           if(workoutID != null || workoutID != "") {
             updateWorkoutDetails(completedExercisename, workoutID, (index)%3 + 1);
@@ -235,11 +242,12 @@ function main() {
         workoutObj["programID"] = sessionStorage.getItem("programID");
         if(userProgram != null) {
 
-          userProgram[0].events[[workoutIndex]]["completedID"] = workoutID;
+          userProgram[0].events[[workoutIndex]]["extendedProps"]["completedID"] = workoutID;
           
           workoutObj["userProgram"] = JSON.stringify(userProgram);
 
         } 
+
         sendWorkoutDetailsToMake(workoutObj);
 
       } else {
@@ -383,16 +391,14 @@ function main() {
       throw new Error('Something went wrong');
     })
     .then((data) => {
-      //TO DO SEND TO PROGRAM PAGE
-      var baseURL = window.location.origin;
-      window.location = baseURL + "/workouts/workout-navigation"
+      const programPageLink = document.getElementById("myProgram").href;
+      window.location = programPageLink;
 
       
     })
     .catch((error) => {
-      //TO DO SEND TO PROGRAM PAGE
-      var baseURL = window.location.origin;
-      window.location = baseURL + "/workouts/workout-navigation"
+      const programPageLink = document.getElementById("myProgram").href;
+      window.location = programPageLink;
     });
   }
 
