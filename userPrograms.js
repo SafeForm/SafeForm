@@ -52,6 +52,7 @@ function main() {
   weekButton.remove();
 
   const programs = JSON.parse(document.getElementById("programEventData").innerText);
+
   //Also save in session storage
   sessionStorage.setItem("currentProgram", document.getElementById("programEventData").innerText);
   var workouts = null;
@@ -95,6 +96,7 @@ function main() {
 
     if (currentWeek.length === 0 || startDate.isBefore(moment(endOfWeek))) {
       currentWeek.push(workout);
+
     } else {
       weeks.push(currentWeek);
       currentWeek = [workout];
@@ -128,97 +130,6 @@ function main() {
   }
 
   weekButton.click();
-
-/*
-  
-  window.addEventListener('load', (event) => {
-    MemberStack.onReady.then(async function(member) {  
-
-      // Only allow the page if user is logged in
-      if(member.loggedIn === false) {
-        window.location = "https://app.bene-fit.io/user-sign-in";
-      }
-
-      var metadata = await member.getMetaData();
-      var programWorkoutList = document.getElementById("programWorkoutList").children;
-
-      // Extract the workout IDs from the metadata object
-      var completedWorkoutIDs = metadata.completedWorkouts.map(function (workout) {
-        return workout.workout;
-      });
-
-      var currentWorkoutID = metadata.currentWorkout.workout;
-
-      var futureWorkoutIDs = metadata.futureWorkouts.map(function (workout) {
-        return workout.workout;
-      });
-
-      // Loop through each workout in the HTML list
-      for (var i = 0; i < programWorkoutList.length; i++) {
-        var workoutID = programWorkoutList[i].querySelector("#workoutID").innerText;
-
-        // Check the status of the workout based on its ID in the metadata
-        if (completedWorkoutIDs.includes(workoutID)) {
-          programWorkoutList[i].classList.add("complete-workout");
-        } else if (currentWorkoutID == workoutID) {
-          programWorkoutList[i].classList.add("current-workout");
-        } else if (futureWorkoutIDs.includes(workoutID)) {
-          programWorkoutList[i].classList.add("future-workout");
-        }
-      }
-
-      const workouts = JSON.parse(document.getElementById("programEventData").innerText);
-
-      // Sort the workouts array based on the 'Start Date' field
-      workouts.sort((a, b) => {
-        const dateA = moment(a['start'], 'DD/MM/YYYY');
-        const dateB = moment(b['start'], 'DD/MM/YYYY');
-        return dateA - dateB;
-      });
-      
-      const weeks = [];
-      let currentWeek = [];
-      
-      for (const workout of workouts) {
-        const startDate = moment(workout['start'], 'DD/MM/YYYY');
-        let endOfWeek = null;
-        
-        // Get end of week for current array
-        if (currentWeek.length > 0) {
-          endOfWeek = getEndOfWeek(currentWeek[0]['start']);
-        }
-      
-        if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek, 'DD/MM/YYYY'))) {
-          currentWeek.push(workout);
-        } else {
-          weeks.push(currentWeek);
-          currentWeek = [workout];
-        }
-      }
-      
-      // Push the last week
-      if (currentWeek.length > 0) {
-        weeks.push(currentWeek);
-      }
-    
-      const buttons = document.querySelectorAll('a[id^="week-"]');
-      const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
-      const workoutList = document.getElementById('programWorkoutList');
-    
-      
-      // Add event listeners to the buttons
-      buttons.forEach((button, index) => {
-        button.addEventListener('click', () => {
-          displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
-        });
-      });
-
-    })
-
-  });
-  */
- 
-
 
   // Function to check if the device is iOS
   function isIOS() {
@@ -281,6 +192,7 @@ function main() {
   // Function to filter and display the workouts based on the selected week
   function displayWorkouts(weekIndex, workoutList, workoutListWorkouts, weeks) {
 
+
     // Clear the current workout list
     workoutList.innerHTML = '';
 
@@ -292,6 +204,27 @@ function main() {
     for(var i = 0; i < weekIndex; i++) {
       addedWorkout += weeks[i].length;
     }
+
+    // Get the current date using moment.js
+    const currentDate = moment();
+
+    // Find the object with the closest 'start' date to the current date
+    let closestWorkout = null;
+    let minDateDifference = Infinity;
+
+    selectedWeekWorkouts.forEach(workout => {
+        const workoutStartDate = moment(workout.start, "YYYY-MM-DD");
+        const dateDifference = Math.abs(workoutStartDate.diff(currentDate));
+        if(workout.extendedProps.completedID == undefined) {
+          if (dateDifference < minDateDifference) {
+            minDateDifference = dateDifference;
+            closestWorkout = workout;
+          }
+        }
+    });
+
+
+    var completedWorkouts = 0;
     // Iterate over the selected week's workouts
     selectedWeekWorkouts.forEach((workout) => {
       // Get the workout element based on the workout ID
@@ -313,6 +246,20 @@ function main() {
         newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
         workoutList.appendChild(newElement);
         addedWorkout += 1;
+
+        //Check if the workout is complete
+        if(workout.extendedProps.completedID != undefined) {
+          newElement.querySelector(".workoutprogramdiv").style.borderColor = "#08D58B" //make border green if complete
+          completedWorkouts += 1;
+        } else if(workout === closestWorkout) {
+          newElement.querySelector("#workoutNumber").style.display = "block";
+          newElement.querySelector(".workoutprogramdiv").classList.add("current-workout"); //change background colour if current
+        } else {
+          newElement.querySelector(".workoutprogramdiv").classList.add("future-workout"); //change border colour and time image if future
+          //Workout info breaker
+          newElement.querySelector("#workoutInfoBreaker").style.borderRightColor = "#6f6e6e";
+
+        }
 
         const newElementParent = newElement.closest(".workoutprogramitem");
         const workoutIndex = newElementParent.querySelector("#workoutNumber").innerText.split(" ")[1].replace(".","") - 1;
@@ -336,13 +283,22 @@ function main() {
       }
     });
 
+    
+
+    var progressBar = document.getElementById("workoutProgress");
+
+    progressBar.max = selectedWeekWorkouts.length;
+    progressBar.value = completedWorkouts;
+
     // Get the current workout element
     var currentWorkout = document.querySelector('.current-workout');
 
     // Check if the current workout element is not already the first element
     if (currentWorkout && currentWorkout !== workoutList.firstChild) {
       // Move the current workout element to the beginning of the list
+      currentWorkout = currentWorkout.parentElement;
       workoutList.insertBefore(currentWorkout, workoutList.firstChild);
+      currentWorkout.querySelector("#workoutNumber").innerText = "Todays Workout";
     }
 
 
