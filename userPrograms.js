@@ -107,6 +107,7 @@ function main() {
   // Push the last week
   if (currentWeek.length > 0) {
     weeks.push(currentWeek);
+    thisWeek = weekCount;
   }
 
   const buttons = document.querySelectorAll('a[id^="week-"]');
