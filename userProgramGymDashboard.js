@@ -1,9 +1,14 @@
+const devMode = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  main();
-
+  if(devMode == undefined) {
+    main();
+  }
+  
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    main();
+    if(devMode == undefined) {
+      main();
+    }
   });
 }
 
@@ -1565,6 +1570,13 @@ function main() {
 
     //Listen for click events:
     document.addEventListener('click', function (event) {
+
+      if(event.target.id == "machine-parent") {
+        console.log("Ge;l");
+        document.getElementById("pin-checkbox").click();
+        document.getElementById("plate-checkbox").click();
+
+      }
       
       //Check if clicked copy button is selected
       if(clickedCopyButton.src != "") {
