@@ -1668,6 +1668,8 @@ function main() {
       
       } else if(event.target.id == "closeCreateUserModal" || event.target.id == "createUserModal") {
 
+        document.getElementById("linkCopiedTextSignUp").style.display = "none";
+
         //Hide modal
         document.getElementById("createUserModal").style.display = "none";
         //Remove QR code
@@ -1794,7 +1796,7 @@ function main() {
         }
         
 
-      } else if(event.target.id == "staffName" || event.target.id == "staffDiv") {
+      } else if(event.target.closest("#createUser")) {
 
         //Get button
         const createUserGymName = document.getElementById("gymFullName").innerText;
@@ -1803,18 +1805,22 @@ function main() {
         var staffInfo = event.target.closest("#staffDiv");
 
         if(staffInfo == null) {
-          staffInfo = event.target;
+          //staffInfo = event.target;
+        } else {
+          //Get staff email
+          const staffEmail = staffInfo.querySelector("#staffEmail").innerText;
         }
 
-        //Get staff email
-        const staffEmail = staffInfo.querySelector("#staffEmail").innerText;
+
 
         var link = ``;
         //Create QR Code
-        if(createUserGymName.toLowerCase() == "uts - activatefit gym") {
-          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
+        if(createUserGymName.toLowerCase() == "uts - activatefit gym" || createUserGymName.toLowerCase() == "sam druce - fitness") {
+          //link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
+          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&payment=false`;
         } else {
-          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
+          //link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
+          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}`;
         }
         
         generateQRCode(link);
@@ -1875,6 +1881,7 @@ function main() {
         }
         
         document.getElementById("linkCopiedText").style.display = "none";
+
         if(event.target.id == "modalWrapper") {
           document.getElementById("modalWrapper").style.display = "none";
           document.getElementById("submitIssueDiv").style.display = "none";
@@ -1918,6 +1925,9 @@ function main() {
         navigator.clipboard.writeText(sessionStorage.getItem("workoutLink"));
         document.getElementById("linkCopiedText").style.display = "block";
         
+      } else if(event.target.id == "shareSignUpLink") {
+        navigator.clipboard.writeText(sessionStorage.getItem("shareSignUpLink"));
+        document.getElementById("linkCopiedTextSignUp").style.display = "block";
       } else if(event.target.id == "removeExercise") {
 
         const workoutList = document.getElementById("workoutList");
@@ -2839,19 +2849,20 @@ function main() {
           colorLight : "#FFFFFF",
           correctLevel : QRCode.CorrectLevel.L
         });
+        //Set link in session storage
+        sessionStorage.setItem("workoutLink", `${link}?utm_campaign=${gymName}`);
       } else {
         var qrcode = new QRCode(document.querySelector("#createUserQrCode"), {
           text: `${link}`,
-          width: 128, //default 128
-          height: 128,
+          width: 260, //default 128
+          height: 260,
           colorDark : "#0C08D5",
           colorLight : "#FFFFFF",
           correctLevel : QRCode.CorrectLevel.L
         });
+        sessionStorage.setItem("shareSignUpLink", `${link}`);
       }
 
-      //Set link in session storage
-      sessionStorage.setItem("workoutLink", `${link}?utm_campaign=${gymName}`);
 
     }
     
