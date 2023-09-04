@@ -287,7 +287,7 @@ async function main() {
 
         attributeValue = {"custom:height": attributeValue.height, "custom:weight": attributeValue.weight, "gender": attributeValue.gender, "custom:dob": attributeValue.dob, "custom:currentGym": gymName};
 
-        await updateAttributes(member["email"], member["cognito-password"], attributeKey, attributeValue, nextPage);
+        await updateAttributes(member["email"], atob(member["cognito-password"]), attributeKey, attributeValue, nextPage);
         return;
 
       } else if(attributeKey == "physical-limitations") {
@@ -330,7 +330,7 @@ async function main() {
         cognitoKey = attributeKey;
       }
       
-      await updateAttributes(member["email"], member["cognito-password"], cognitoKey, attributeValue, nextPage);
+      await updateAttributes(member["email"], atob(member["cognito-password"]), cognitoKey, attributeValue, nextPage);
 
       if(userProfile) {
         updateUserWebflow(member);
