@@ -29,10 +29,11 @@ function main() {
       .then((data) => {
         if(data != "Accepted") {
           //Update details in cognito
-          resetPassword(member["email"], member["cognito-password"], data)
-          //Update details in memberstack
+          const tempPW = atob(member["cognito-password"]);
+          resetPassword(member["email"], tempPW, data)
+          // Update details in memberstack
           member.updateProfile({
-            "cognito-password": data,
+            "cognito-password": btoa(data),
           }, false)
         }
       })
@@ -42,11 +43,10 @@ function main() {
       localStorage.setItem("resetPassword", "false");
     }
 
-
-
   });
 
   async function resetPassword(username, tempPassword, newPassword) {
+    
     const userPool = await getUserPool(); // Get the user pool instance
     const cognitoUser = new AmazonCognitoIdentity.CognitoUser({ Username: username, Pool: userPool });
     const authenticationData = { Username: username, Password: tempPassword };
@@ -65,7 +65,8 @@ function main() {
       },
       onFailure: function(err) {
         console.error(err);
-        alert('Failed to authenticate user');
+        alert('Failed to authenticate user. Please contact your trainer.');
+        localStorage.setItem("resetPassword", "true");
       }
     });
   }
