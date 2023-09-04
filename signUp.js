@@ -103,7 +103,7 @@ pwTextBox.addEventListener('change', function(event) {
     this.dataset.originalValue = newValue;
 
     //Set cognito textbox value
-    document.getElementById('cognitoPasswordField').value = newValue;
+    document.getElementById('cognitoPasswordField').value = btoa(newValue);
   }
 });
 
@@ -121,7 +121,7 @@ signUpForm.addEventListener('click', async function(event) {
     const username = document.getElementById('email').value;
     const usernameValidation = document.getElementById("email").reportValidity();
 
-    const cognitoPw = document.getElementById('cognitoPasswordField').value;
+    const cognitoPw = atob(document.getElementById('cognitoPasswordField').value);
     
     const firstName = document.getElementById('firstName').value;
     const firstNameValidation = document.getElementById("firstName").reportValidity();
