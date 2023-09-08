@@ -264,6 +264,8 @@ function main() {
 
       copyOfGuide.id = "guideCopy";
 
+
+
       //Add guide to workout exercise template
       workoutItem.querySelector("#guidePlaceHolder").append(copyOfGuide);
       //If extra information is provided fill in fields
@@ -368,7 +370,10 @@ function main() {
         workoutItem.querySelector(".setrestinput").setAttribute("required", "");
         workoutItem.querySelector(".setrestinputm").setAttribute("required", "");
         //Hide superset button at the end
-        workoutItem.previousSibling.querySelector(".supersetparent").style.display = "block";
+        if(!programWorkout) {
+          workoutItem.previousSibling.querySelector(".supersetparent").style.display = "block";
+        }
+       
 
       }
       
@@ -447,15 +452,28 @@ function main() {
       if(workoutItem.querySelectorAll("#exerciseInfo").length >= 2) {
         workoutItem.querySelector("#exerciseInfo").remove();
       }
+
+      //Remove unecessary things in workout program builder
+      if(programWorkout) {
+        workoutItem.querySelector("#removeFullExercise").style.display = "none";
+        workoutItem.querySelector("#moveDown").style.display = "none";
+        workoutItem.querySelector("#moveUp").style.display = "none";
+        workoutItem.querySelector(".supersetparent").style.display = "none";
+        workoutItem.querySelector(".addset").style.display = "none";
+      }
       
     }
 
 
     function handleSupersetClick(event) {
       const supersetImage = event.target;
+
       if(event.target.classList.contains("supersetimageopen")) {
         const supersetParent = supersetImage.closest('.exercise-list-item');
         const nextSibling = supersetParent.nextElementSibling;
+
+        supersetParent.querySelector("#removeFullExercise").style.display = "none";
+        nextSibling.querySelector("#removeFullExercise").style.display = "none";
         
         //Make sure not end of list and the next element isn't already in a superset
         if(nextSibling != null && !nextSibling.classList.contains("exercise-list-item-superset")) {
@@ -478,6 +496,7 @@ function main() {
           if (nextSibling) {
             newDiv.appendChild(nextSibling);
           }
+          
 
           //Hide superset button in second exercise added
           nextSibling.querySelector(".supersetparent").style.display = "none";
@@ -512,6 +531,8 @@ function main() {
         exercisesToRestore.reverse();
         // Insert exercises back into the workout list
         exercisesToRestore.forEach(exercise => {
+
+          exercise.querySelector("#removeFullExercise").style.display = "block";
           workoutList.insertBefore(exercise, supersetParent.nextSibling);
           if(exercise.nextSibling != null) {
             exercise.querySelector(".supersetparent").style.display = "block";
@@ -878,14 +899,12 @@ function main() {
         // Add event listeners for event drag start and stop
         calendar.on('eventDragStart', function(info) {
           // Get the original date cell
-          console.log(info);
           originalCell = info.jsEvent.target;
           originalCell = originalCell.closest('.fc-daygrid-day-frame');
           originalCellDay = info.event._instance.range.start;
         });
 
         calendar.on('eventDrop', function(info) {
-          console.log(info);
           var stoppedEventDay = info.event._instance.range.start;
           if(originalCell) {
             // Find the corresponding delete button element in the original cell
@@ -2176,6 +2195,7 @@ function main() {
         if (listLength == 1) {
           document.getElementById("firstExercisePlaceholder").style.display = "block";
           document.getElementById("experience").innerText = "Beginner";
+          
         } else if(listLength >= 2) {
           if(listLength == 2) {
             //Hide workout button if there is only one exercise in list
@@ -2183,9 +2203,9 @@ function main() {
           }
           const firstElement = workoutList.querySelector("ul > li:nth-child(2)");
           const lastElement = workoutList.querySelector(`ul > li:nth-child(${listLength})`);
-
+          
           if(firstElement) {
-
+            firstElement.querySelector(".supersetparent").style.display = "none";
             if(firstElement.querySelector("#moveUp")) {
               firstElement.querySelector("#moveUp").style.display = "none";
             }	
@@ -3923,7 +3943,6 @@ function main() {
         if(workout.workoutJSON != "") {
           workoutJSON = JSON.parse(workout.workoutJSON);
         }
-        console.log(workoutJSON);
         
       } else {
         var workout = workoutSummary;
@@ -3931,7 +3950,7 @@ function main() {
 
       var listOfGuideIDs = [];
       var count = 0;
-      console.log(workout.exercises.length);
+
       //Copy guide template and replace all values with exercise from workout
       for(var i = 0; i < workout.exercises.length; i++) {
 
@@ -3954,12 +3973,9 @@ function main() {
         //Add guide ID to list
         
         listOfGuideIDs.push(workout.exercises[i].exerciseGuideID);
-        
-        if(!programWorkout) {
-          addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true, exerciseThumbnail, svgPersonDiv, false, jsonExercises, exerciseList);
-        } else {
-          addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true, exerciseThumbnail, svgPersonDiv, true, jsonExercises, exerciseList);
-        }
+
+        addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
+
         
       }
       if(!programWorkout) {
