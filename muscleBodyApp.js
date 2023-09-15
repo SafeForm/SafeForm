@@ -216,6 +216,17 @@ function main() {
 
   //Listen for click events:
   document.addEventListener('click', function (event) {
+
+    if(event.target.id == "machine-parent") {
+      document.getElementById("pin-checkbox").click();
+      document.getElementById("plate-checkbox").click();
+    }
+
+    if(event.target.id == "machine-parent-mobile") {
+      document.getElementById("pin-checkbox-mobile").click();
+      document.getElementById("plate-checkbox-mobile").click();
+    }
+
     if (event.target.nodeName == "path") {
       var muscleFilter = sessionStorage.getItem("muscleFilter");
       
