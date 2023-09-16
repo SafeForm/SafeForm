@@ -20,6 +20,12 @@ function main() {
     // Moment.js is not loaded yet, wait for a brief moment and try again
     location.reload();
   }
+
+  moment.updateLocale('en', {
+    week: {
+      dow: 1, // Monday
+    },
+  });
   
   //document.getElementById("workoutsPage").click();
 
@@ -570,7 +576,7 @@ function main() {
     document.getElementById("workoutRadio").click();
     checkProgramWorkoutCheckBox();
 
-    document.getElementById("summaryRadioButton").click();
+    document.getElementById("trainingRadio").click();
     checkSummaryTrainingCheckBox();
 
 
@@ -764,7 +770,9 @@ function main() {
       views: {
         dayGridFourWeek: {
           dayHeaderContent: function(info) {
-            return info.date.getDate() - 3; // Display day number
+            var dayOfWeek = info.date.getDay();
+            return dayOfWeek === 0 ? 7 : dayOfWeek; // Convert Sunday (0) to 7    
+
           },
           type: 'dayGrid',
         }
@@ -772,6 +780,7 @@ function main() {
       editable: true,
       dayCellContent: function(info) {
         // Return an empty string to hide the date of the month
+
         return '';
       },
       headerToolbar: {
@@ -782,7 +791,7 @@ function main() {
         // Do something when the user clicks on a date
 
         //Don't show workout modal if user is in paste state or delete / copy button is pressed
-        if(!(isPasteState || isEventPasteState || addProgram) && info.jsEvent.target.tagName != "IMG") {
+        if(!(isPasteState || isEventPasteState || addProgram) && (info.jsEvent.target.tagName != "IMG" || info.jsEvent.target.closest(".add-event-button"))) {
 
           //Check if day already has date in it
           var clickedDay = info.dayEl; // Get the DOM element of the clicked day
@@ -804,6 +813,7 @@ function main() {
 
       },
       eventDidMount: function(info) {
+
         var eventEl = info.el;
         var eventElParent = eventEl.closest(".fc-daygrid-day-frame");
 
@@ -917,24 +927,25 @@ function main() {
             }
           }
 
-
         });
 
         return eventEl;
       },
 
       eventContent: function(info) {
-
         var targetArea = info.event.extendedProps.targetArea;
         var duration = info.event.extendedProps.length;
-
+        
+        var eventContentHTML = '<div class="fc-content">' +
+            '<div class="fc-title">' + info.event.title + '</div>' +
+            '<div class="fc-details">' + targetArea + '<br>' + duration + '</div>' +
+            '</div>';
+    
         return {
-          html: '<div class="fc-content">' +
-                  '<div class="fc-title">' + info.event.title + '</div>' +
-                  '<div class="fc-details">' + targetArea + '<br>' + duration + '</div>' +
-                '</div>',
+            html: eventContentHTML,
         };
       },
+
       viewDidMount: function(view) {
         var index = 0;
         $(view.el).find('[role=row]').each(function() {
@@ -973,7 +984,7 @@ function main() {
           index++;
         });
       },
-      
+      firstDay: 1, // Monday
     });
     
     calendar.render();
@@ -1154,7 +1165,7 @@ function main() {
 
       document.getElementById("programList").style.display = "none";
 
-      //Add a week to the calenda
+      //Add a week to the calendar
       document.getElementById("addWeekButton").click();
 
 
@@ -1243,14 +1254,11 @@ function main() {
           //Hide user summary list
           document.getElementById("userSummaryPage").style.display = "none";
 
-          //Show user details
+          // //Show user details
           document.getElementById("userDetailsPage").style.display = "block";
 
-          //Show user button
-          // document.getElementById("saveUserDetails").style.display = "flex";
-          // document.getElementById("saveUserDetails").style.alignContent = "center";
-          // document.getElementById("saveUserDetails").style.justifyContent = "center";
-
+          //Show user program
+          document.getElementById("trainingRadio").click();
 
         }
       })(userSummaryList[i]);
@@ -1265,16 +1273,26 @@ function main() {
 
     //Catching mouse over and out events for showing the thumbnail and svg person
     document.addEventListener('mouseover', function (event) {
-      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') ) && (isPasteState || isEventPasteState || addProgram)) {
-        var hoveredRow = event.target.closest('[role="row"]');
-        var hoveredDay = event.target.closest('.fc-daygrid-day-frame');
-        
-        if(isPasteState || addProgram) {
-          toggleRowPasteStateCSS(hoveredRow, true);
-        } else {
-          toggleDayPasteStateCSS(hoveredDay, true);
+      
+      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') || event.target.closest(".add-event-button")) ) {
+
+        //Check if cell has an event
+        var eventElement = event.target.closest(".fc-daygrid-day-frame");
+        if(eventElement) {
+          eventElement = eventElement.querySelector(".fc-event-main");
         }
-        
+        const hoveredRow = event.target.closest('[role="row"]');
+        const hoveredDay = event.target.closest('.fc-daygrid-day-frame');
+
+        if(isPasteState || isEventPasteState || addProgram) {
+          if(isPasteState || addProgram) {
+            toggleRowPasteStateCSS(hoveredRow, true);
+          } else {
+            toggleDayPasteStateCSS(hoveredDay, true);
+          }
+        } else if(eventElement == null) {
+          toggleBorderCSS(hoveredDay, true);
+        }
 
       } else if(event.target.id == "workoutExercisename") {
           
@@ -1311,9 +1329,12 @@ function main() {
 
     document.addEventListener('mouseout', function (event) {
 
-      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events'))) {
+      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') || event.target.closest(".add-event-button"))) {
         var hoveredRow = event.target.closest('[role="row"]');
+        const hoveredDay = event.target.closest('.fc-daygrid-day-frame');
+
         toggleRowPasteStateCSS(hoveredRow, false);
+        toggleBorderCSS(hoveredDay, false);
 
       } else if(event.target.id == "workoutExercisename") {
         event.target.parentElement.parentElement.parentElement.parentElement.querySelector("#thumbnailAndMuscleDiv").style.display = "none";
@@ -1586,7 +1607,6 @@ function main() {
 
       //Check if in paste state and anywhere in the row is clicked
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') || event.target.classList.contains('fc-daygrid-day-events')) && (isPasteState || isEventPasteState || addProgram)) {
-
         //Get entire row of paste button
         var weekRow = event.target.closest('[role="row"]');
         var dayCell = event.target.closest('.fc-daygrid-day-frame');
@@ -1802,10 +1822,8 @@ function main() {
     document.addEventListener('click', function (event) {
 
       if(event.target.id == "machine-parent") {
-        console.log("Ge;l");
         document.getElementById("pin-checkbox").click();
         document.getElementById("plate-checkbox").click();
-
       }
       
       //Check if clicked copy button is selected
@@ -2465,7 +2483,6 @@ function main() {
         }
 
         if (document.getElementById("userFilterBody").style.display == "flex" && !event.target.classList.value.includes("checkbox-field")) {
-          console.log("adsadd");
           document.getElementById("userFilterBody").style.display = "none";
 
           //Rotate arrow back:
@@ -2794,6 +2811,44 @@ function main() {
         }
       }
     }
+
+    function toggleBorderCSS(hoveredDay, toggleState) {
+
+      if(hoveredDay) {
+        var eventElParent = hoveredDay.closest(".fc-daygrid-day-frame");
+
+        //Add plus button if it doesnt exist
+        if(!eventElParent.querySelector('.add-event-button')) {
+  
+          // Create a copy and delete button element
+          var addButtonEl = document.createElement('button');
+  
+          addButtonEl.className = 'add-event-button';
+  
+          // Create an image element for the delete button
+          var addImageEl = document.createElement('img');
+          addImageEl.src = 'https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/650444503758530596912def_addWorkout.png';
+        
+          // Append the image element to the delete button
+          addButtonEl.appendChild(addImageEl);
+  
+          // Append the delete button to the event element
+          eventElParent.appendChild(addButtonEl);
+        
+        }
+        if (toggleState) {
+          // Add the grey border with the specified width and color
+          hoveredDay.style.border = '1px solid #6D6D6F';
+
+          hoveredDay.querySelector('.add-event-button').style.display = "block";
+        } else {
+          // Remove the border when toggleState is false
+          hoveredDay.style.border = 'none';
+          hoveredDay.querySelector('.add-event-button').style.display = "none";
+        }
+      }
+
+    }
     
     async function resetFilters(onlyCheckboxes=false) {
       window.fsAttributes = window.fsAttributes || [];
@@ -3100,8 +3155,8 @@ function main() {
       } else {
         var qrcode = new QRCode(document.querySelector("#createUserQrCode"), {
           text: `${link}`,
-          width: 128, //default 128
-          height: 128,
+          width: 250, //default 128
+          height: 250,
           colorDark : "#0C08D5",
           colorLight : "#FFFFFF",
           correctLevel : QRCode.CorrectLevel.L
@@ -3281,7 +3336,6 @@ function main() {
           var dateB = moment(b.start, "YYYY-MM-DD");
           return dateA - dateB;
         });
-
 
         // Update the start and end week fields of the object
         if (events.length > 0) {
