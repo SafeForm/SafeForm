@@ -193,7 +193,7 @@ function main() {
         const completedExercisename = button.closest("#inputSectionBlock").querySelector("#exerciseNameInput").innerText;
 
         var exerciseInfo = memberJSON[completedExercisename];
-        if(exerciseInfo.workouts != undefined) {
+        if(exerciseInfo && exerciseInfo.workouts != undefined) {
           var numCompletedSets = exerciseInfo.workouts[workoutID];
           if((index%3 + 1) <= numCompletedSets) {
 
