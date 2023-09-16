@@ -16,6 +16,12 @@ function main() {
     location.reload();
   }
 
+  moment.updateLocale('en', {
+    week: {
+      dow: 1, // Monday
+    },
+  });
+
   showInstructions();
   //Loop through all list items and assign href to each workout
   const programWorkoutList = document.getElementById("programWorkoutList").children;
@@ -58,79 +64,92 @@ function main() {
   var workouts = null;
   //iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
-    if(new Date() <  moment(programs[i].endWeek).toDate()) {
+
+    if(new Date().setHours(0, 0, 0, 0) <=  moment(programs[i].endWeek).toDate()) {
       workouts = programs[i].events;
       break;
     }
   }
+  //Check if workouts exist
+  if(workouts != null) {
 
-
-  //Sort the workouts array based on the 'Start Date' field
-  workouts.sort((a, b) => {
-    const dateA = moment(a['start']);
-    const dateB = moment(b['start']);
-    return dateA - dateB;
-  });
-  
-  const weeks = [];
-  let currentWeek = [];
-  var thisWeek = null;
-
-  const currentDate = new Date(); // This gets the current date and time
-  const formattedDate = moment(currentDate).format('YYYY-MM-DD');
-
-  var weekCount = 1;
-  for (const workout of workouts) {
-    const startDate = moment(workout['start']);
-
-    let endOfWeek = null;
+    //Sort the workouts array based on the 'Start Date' field
+    workouts.sort((a, b) => {
+      const dateA = moment(a['start']);
+      const dateB = moment(b['start']);
+      return dateA - dateB;
+    });
     
-    // Get end of week for current array
-    if (currentWeek.length > 0) {
-      endOfWeek = getEndOfWeek(currentWeek[0]['start']);
-      if(moment(formattedDate).isSameOrAfter(moment(currentWeek[0]['start'])) && moment(formattedDate).isSameOrBefore(moment(endOfWeek))) {
-        thisWeek = weekCount;
+    const weeks = [];
+    let currentWeek = [];
+    var thisWeek = null;
+
+    const currentDate = new Date(); // This gets the current date and time
+    const formattedDate = moment(currentDate).format('YYYY-MM-DD');
+
+    var weekCount = 1;
+    for (const workout of workouts) {
+      const startDate = moment(workout['start']);
+
+      let endOfWeek = null;
+      let startOfWeek = null;
+      
+      // Get end of week for current array
+      if (currentWeek.length > 0) {
+        endOfWeek = getEndOfWeek(currentWeek[0]['start']);
+        startOfWeek = moment(endOfWeek).subtract(6, 'days').format('YYYY-MM-DD');
+
+        if(moment(formattedDate).isSameOrAfter(moment(startOfWeek)) && moment(formattedDate).isSameOrBefore(moment(endOfWeek))) {
+          thisWeek = weekCount;
+        }
+
       }
 
+      if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
+        currentWeek.push(workout);
+      } else {
+        weeks.push(currentWeek);
+        currentWeek = [workout];
+        weekCount++;
+      }
     }
 
-    if (currentWeek.length === 0 || startDate.isBefore(moment(endOfWeek))) {
-      currentWeek.push(workout);
-
-    } else {
+    // Push the last week
+    if (currentWeek.length > 0) {
       weeks.push(currentWeek);
-      currentWeek = [workout];
-      weekCount++;
     }
-  }
 
-  // Push the last week
-  if (currentWeek.length > 0) {
-    weeks.push(currentWeek);
-    thisWeek = weekCount;
-  }
+    const buttons = document.querySelectorAll('a[id^="week-"]');
+    const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
+    const workoutList = document.getElementById('programWorkoutList');
 
-  const buttons = document.querySelectorAll('a[id^="week-"]');
-  const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
-  const workoutList = document.getElementById('programWorkoutList');
-
-  // Add event listeners to the buttons
-  buttons.forEach((button, index) => {
-    button.addEventListener('click', (event) => {
-      displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
-      $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
-      event.target.classList.remove("week-button");
-      event.target.classList.add("current-week");
+    // Add event listeners to the buttons
+    buttons.forEach((button, index) => {
+      button.addEventListener('click', (event) => {
+        displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
+        $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
+        event.target.classList.remove("week-button");
+        event.target.classList.add("current-week");
+      });
     });
-  });
 
-  weekButton = document.getElementById("week-1");
-  
-  if(thisWeek != null) {
-    weekButton = document.getElementById(`week-${thisWeek}`);
+    weekButton = document.getElementById("week-1");
+
+    //Check if there are workouts in this week, otherwise show empty state
+    if(thisWeek != null) {
+      weekButton = document.getElementById(`week-${thisWeek}`);
+      weekButton.click();
+    } else {
+      document.getElementById("guideListParent").style.display = "none";
+      document.getElementById("workout-empty-state").style.display = "flex";
+    }
+  } else {
+    document.getElementById("guideListParent").style.display = "none";
+    document.getElementById("workout-empty-state").style.display = "flex";
   }
 
-  weekButton.click();
+
+  
 
   // Function to check if the device is iOS
   function isIOS() {
@@ -182,10 +201,9 @@ function main() {
 
     // Calculate the end of the week (Sunday) using Moment.js
     const endOfWeek = inputDate.endOf('week').isoWeekday(7);
-
+    
     // Format the end of the week as a string in the format "DD/MM/YYYY"
     const formattedEndOfWeek = endOfWeek.format('YYYY-MM-DD');
-
     // Return the formatted end of the week
     return formattedEndOfWeek;
   }
@@ -284,12 +302,17 @@ function main() {
       }
     });
 
-    
-
     var progressBar = document.getElementById("workoutProgress");
 
     progressBar.max = selectedWeekWorkouts.length;
     progressBar.value = completedWorkouts;
+    //Check if all complete
+    if(progressBar.max/progressBar.value == 1) {
+      document.getElementById("guideListParent").style.display = "none";
+      document.getElementById("workout-empty-state").style.display = "flex";
+      document.getElementById("emptyStateText").innerText = "This weeks workouts have been completed - great work!";
+
+    }
 
     // Get the current workout element
     var currentWorkout = document.querySelector('.current-workout');
