@@ -1532,6 +1532,7 @@ function main() {
           //If it is, iterate through each item in the superset
           for(var k = 0; k < supersetExercises.length; k++) {
             const setInformation = supersetExercises[k].querySelectorAll("#exerciseInfo");
+            const exerciseName = supersetExercises[k].querySelector("#workoutExercisename");
             exerciseList = [];
             workoutExercise = {};
             for(var j = 0; j < setInformation.length; j++) {
@@ -1542,9 +1543,10 @@ function main() {
               exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value;
               exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
               exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
+              
               exerciseList.push(exerciseInformation);
             }
-
+            workoutExercise["exerciseName"] = exerciseName.innerText;
             workoutExercise["exerciseNotes"] = supersetExercises[k].querySelector("#exerciseNotes").value;
             workoutExercise["sets"] = setInformation.length;
             workoutExercise["exercises"] = exerciseList;
@@ -1559,7 +1561,7 @@ function main() {
 
         } else {
           const setInformation = workoutList[i].querySelectorAll("#exerciseInfo");
-
+          const exerciseName = workoutList[i].querySelector("#workoutExercisename");
           for(var j = 0; j < setInformation.length; j++) {
             var exerciseInformation = {};
             exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
@@ -1569,6 +1571,7 @@ function main() {
             exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
             exerciseList.push(exerciseInformation);
           }
+          workoutExercise["exerciseName"] = exerciseName.innerText;
           workoutExercise["exerciseNotes"] = workoutList[i].querySelector("#exerciseNotes").value;
           workoutExercise["sets"] = setInformation.length;
           workoutExercise["exercises"] = exerciseList;
@@ -1581,7 +1584,6 @@ function main() {
 
         
       }
-
       workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
 
       //Make sure they have selected a duration and focus area
