@@ -62,6 +62,7 @@ function main() {
   var workoutIndexCount = [];
   var userInputsChanged = false;
   var addStaffMemberFromSettings = false;
+  var tableArr = [];
 
     
   //Object to keep track of the guide -> exercise workout mapping
@@ -1249,6 +1250,9 @@ function main() {
           //Fill calendar
           prefillProgramBuilder(userSummary, "userProgramInitial");
           //TODO: Fill program name
+
+          prefillProgramTable(userSummary, "create");
+
           currentUserProgram = userSummary;
 
           //Hide user summary list
@@ -1498,7 +1502,6 @@ function main() {
       } 
 
       sendProgramToMake(program);
-
 
     }
 
@@ -1827,6 +1830,34 @@ function main() {
         document.getElementById("pin-checkbox").click();
         document.getElementById("plate-checkbox").click();
       }
+      
+      
+      if(event.target.id == "programSheetImg" || event.target.id == "programCalendarImg" ) {
+
+        //Style buttons
+        checkCalendarSheetButtons(event.target.id);
+
+        if(event.target.id == "programSheetImg") {
+
+          //Show program sheet view
+          document.getElementById("programSheet").style.display = "flex";
+          document.getElementById("programSheet").style.flexDirection = "column";
+
+          prefillProgramTable(null, action="update")
+
+          //Hide program calendar view
+          document.getElementById("programCalendar").style.display = "none";
+
+        } else {
+            //Show program calendar view
+            document.getElementById("programCalendar").style.display = "block";
+  
+            //Hide program sheet view
+            document.getElementById("programSheet").style.display = "none";
+            calendar.render();
+        }
+
+      } 
       
       //Check if clicked copy button is selected
       if(clickedCopyButton.src != "") {
@@ -2878,6 +2909,47 @@ function main() {
       ]);
     }
 
+    function checkCalendarSheetButtons(destination) {
+
+      var programSheetButton = document.getElementById("programSheetImg");
+      var programCalendarButton = document.getElementById("programCalendarImg");
+      if(destination == "programSheetImg") {
+
+        //Change images of both
+        programSheetButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65114d1a3b1baa67e77633ed_clickedSheet.png";
+        programCalendarButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65114d1a22f0acaafdf46d4f_nonClickedCalendar.webp";
+
+        //Apply styles for each
+        programSheetButton.classList.add("programsheetradioclicked");
+        programSheetButton.classList.remove("programsheetradionotclicked");
+        
+        programCalendarButton.classList.add("programcalendarradionotclicked");
+        programCalendarButton.classList.remove("programcalendarradioclicked");
+
+        //Change body overflow to scroll
+        document.querySelector(".body-33").style.overflow = 'scroll';
+        
+      } else if(destination == "programCalendarImg") {
+
+        //Change images of both
+        programSheetButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65114d1d4705805c41288167_nonClickedSheet.webp";
+        programCalendarButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65114d1f80f5beddfae1a599_clickedCalendar.png";
+
+        //Apply styles for each
+        programSheetButton.classList.add("programsheetradionotclicked");
+        programSheetButton.classList.remove("programsheetradioclicked");
+        
+        programCalendarButton.classList.add("programcalendarradioclicked");
+        programCalendarButton.classList.remove("programcalendarradionotclicked");
+
+        //Change body overflow to hidden
+        document.querySelector(".body-33").style.overflow = 'hidden';
+  
+
+      }
+
+    }
+
     function checkSummaryTrainingCheckBox() {
       //Style if going to workouts
       const checkedRadioInput = document.querySelector('input[type="radio"][name="summaryTraining"]:checked');
@@ -3298,6 +3370,19 @@ function main() {
         userProgram["workoutList"] = userProgramWorkouts;
       } 
 
+      //Check if program sheet modified
+      if(sessionStorage.getItem("programSheetChanged") == "true") {
+
+        var fullTableData = [];
+
+        for(table of tableArr) {
+          fullTableData = fullTableData.concat(table.getData());
+        }
+
+        userProgram["fullTableData"] = JSON.stringify(fullTableData);
+        sessionStorage.setItem("programSheetChanged", "false");
+      }
+
       sendUserProgramToMake(userProgram, "update");
 
     }
@@ -3594,6 +3679,95 @@ function main() {
       });
     }
 
+    function prefillProgramTable(program, action="create") {
+
+      //If first time filling table when page is loaded
+
+      let tableData;
+
+      //Check if sheet hasnt been updated and cms is empty
+      if(action == "create") {
+
+        //Check if table data doesnt exist
+
+        if(program.querySelector("#summaryFullEventData") != null) {
+          tableData = program.querySelector("#summaryFullEventData").innerText;
+          tableData = JSON.parse(tableData);
+        } else {
+          // The rest
+        }
+
+        const summaryEventData = program.querySelector("#summaryEventData");
+
+        const eventJSON = JSON.parse(summaryEventData.innerText);
+  
+        const updatedProgram = addFullWorkoutsToProgram(eventJSON);
+  
+        tableData = translateProgramDataToTable(updatedProgram);
+
+        fillProgramTable(tableData,false);
+
+      } else if(action == "update") {
+
+        // Get new json data from calendar
+        getUserTrainingPlan();
+
+        // Get table data version of this
+        const updatedProgram = addFullWorkoutsToProgram(userTrainingPlan);
+  
+        const newTableData = translateProgramDataToTable(updatedProgram);
+
+        // Compare against existing saved data - check from tablearr or from cms json
+        if(sessionStorage.getItem("programSheetChanged") == "true" || tableArr.length > 0) {
+          //Check if program sheet modified
+          var fullTableData = [];
+
+          for(table of tableArr) {
+            fullTableData = fullTableData.concat(table.getData());
+          }
+          
+        } else if(program && program.querySelector("#summaryFullEventData") != null) {
+          var fullTableData = program.querySelector("#summaryFullEventData").innerText;
+          fullTableData = JSON.parse(fullTableData);
+        }
+
+        // Fill in new table data from calendar based on existing data
+        tableData = fillNewTableData(newTableData, fullTableData);
+        fillProgramTable(tableData,true);
+
+      }
+
+    }
+
+    function fillNewTableData(newData, oldData) {
+      // Loop through each item in newData
+      for (let i = 0; i < newData.length; i++) {
+        const newItem = newData[i];
+
+        // Find a matching item in oldData based on week, workoutName, and exercise
+        const matchingItem = oldData.find((oldItem) => {
+          return (
+            oldItem.week === newItem.week &&
+            oldItem.workoutName === newItem.workoutName &&
+            oldItem.exercise === newItem.exercise && 
+            oldItem.workoutNumber === newItem.workoutNumber &&
+            oldItem.setNumber === newItem.setNumber
+          );
+        });
+
+        // If a matching item is found, copy values from oldData to newData
+        if (matchingItem) {
+          newItem.reps = matchingItem.reps;
+          newItem.load = matchingItem.load;
+          newItem.notes = matchingItem.notes;
+          newItem.results = matchingItem.results;
+        }
+      }
+
+      return newData;
+
+    }
+
     function prefillProgramBuilder(program, programType="builder") {
 
       // Convert the Start Date strings to Date objects
@@ -3748,7 +3922,179 @@ function main() {
         }
       }
 
+    }
 
+    // Function to group data by week
+    function groupDataByWeek(data) {
+      const groupedData = {};
+      data.forEach(item => {
+        const week = item.week;
+        if (!groupedData[week]) {
+          groupedData[week] = [];
+        }
+        groupedData[week].push(item);
+      });
+      return groupedData;
+    }
+
+    function fillProgramTable(tabledata, reset=false) {
+      // Create Tabulator tables for each week's data
+      const groupedData = groupDataByWeek(tabledata);
+      const weekTablesContainer = document.querySelector(".week-tables"); // Updated selector
+
+      if(reset) {
+        //Remove existing tables
+        const tables = document.querySelectorAll('.week-table');
+        tableArr = [];
+        for(const table of tables) {
+          table.remove();
+        }
+      }
+
+      const weeksWidth = Object.keys(groupedData).length * 600;
+      weekTablesContainer.style.width = `${weeksWidth}px`;
+
+      let weekNumber = 1;
+      var numberOfWeeks = Object.keys(groupedData).length;
+      for (const week in groupedData) {
+          const weekData = groupedData[week];
+          const tableDiv = document.createElement("div");
+          tableDiv.className = "week-table";
+
+          const table = new Tabulator(tableDiv, {
+            data: weekData,
+            layout: "fitColumns", // Set the layout option to 'fitData'
+            groupBy: ["workoutNumber", "workoutName", "exercise"],
+            groupHeader:function(value, count, data, group){
+              if (group.getField() === "workoutName") {
+                return `<span style='font-family: Manrope; color: black; font-size: 16px; font-weight: 600'>${value}</span>`;
+              } else if(group.getField() == "workoutNumber") {
+                return "";
+              } else {
+                return `<span style='font-family: Manrope; color: black; font-size: 14px'>${value}</span>`;
+              }
+            },
+            columns: [
+              {
+                title: `Week ${weekNumber}`, headerHozAlign:"center",// Dynamically set the title
+                columns: [
+                  { title: "Reps", field: "reps", hozAlign: "center", headerHozAlign:"center", width: 80, headerSort: false, resizable:false },
+                  { title: "Load", field: "load", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false },
+                  { title: "Notes", field: "notes", hozAlign: "center",  headerHozAlign:"center", width: 250, headerSort: false, editor:"input", resizable:true, cellEdited:function(cell){
+
+                    //Set edited flag to true for checking
+                    sessionStorage.setItem("programSheetChanged", "true");
+
+                  }},
+                  { title: "Results", field: "results", hozAlign: "center" , headerHozAlign:"center",  headerSort: false, resizable:false },
+                ],
+              },
+            ],
+          });   
+          
+          if(tableArr.length < numberOfWeeks) {
+            tableArr.push(table);
+          }
+
+          weekTablesContainer.appendChild(tableDiv);
+          weekNumber++;
+      }
+    }
+
+    function translateProgramDataToTable(updatedProgram) {
+
+      // Extract the startWeek from the first program
+      var startWeek = updatedProgram[0].startWeek;
+
+      // Initialize an empty array to store the converted data
+      var convertedData = [];
+
+      // Iterate over each program in updatedProgram
+      for (var programIndex = 0; programIndex < updatedProgram.length; programIndex++) {
+        var program = updatedProgram[programIndex];
+        
+        // Iterate over the events in the current program
+        for (var i = 0; i < program.events.length; i++) {
+          var event = program.events[i];
+          
+          // Calculate the week number based on the difference between event start and startWeek
+          var week = moment(event.start).diff(moment(startWeek), 'weeks') + 1;
+         
+
+          // Use the 'title' as the workoutName
+          var workoutName = event.title;
+          var workoutJSON = event.workoutJSON;
+
+          // Iterate over the workoutJSON and create objects for each exercise
+          for (var j = 0; j < workoutJSON.length; j++) {
+            var exerciseData = workoutJSON[j];
+
+            // Iterate over all exercises within exerciseData
+            for (var k = 0; k < exerciseData.length; k++) {
+              var individualExercise = exerciseData[k];
+
+              // Iterate over all exercises within individualExercise
+              for (var l = 0; l < individualExercise.exercises.length; l++) {
+                var exercise = individualExercise.exercises[l];
+
+                // Create an exercise object for each exercise
+                var exerciseObject = {
+                  "week": "Week " + week,
+                  "workoutName": workoutName,
+                  "exercise": individualExercise.exerciseName,
+                  "reps": exercise.reps,
+                  "load": exercise.measure,
+                  "notes": individualExercise.exerciseNotes,
+                  "workoutNumber": i,
+                  "setNumber": l,
+                  "results": "" // You can add logic here to extract results if available
+                };
+
+                // Push the exercise object to the convertedData array
+                convertedData.push(exerciseObject);
+              }
+            }
+          }
+        }
+      }
+
+
+      // Now 'convertedData' contains the converted data in the format of your first JSON object
+      return convertedData;
+    }
+
+    function addFullWorkoutsToProgram(programJSON) {
+
+      var workouts = [];
+      for(program of programJSON) {
+
+        var index = 0;
+        for(const workout of program.events) {
+          const workoutID = workout.extendedProps.workoutID;
+          const workoutElem = getWorkoutElement(workoutID);
+          const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
+          workout.workoutJSON = JSON.parse(workoutJSON);
+          index += 1;
+        }
+      }
+      return programJSON;
+
+    }
+
+    function getWorkoutElement(workoutID) {
+
+      const workoutSummaryList = document.getElementById("workoutSummaryList").children;
+
+      for(const workout of workoutSummaryList) {
+        const workoutListID = workout.querySelector("#workoutID").innerText;
+
+        if(workoutListID == workoutID) {
+          //Found id now return the workout element
+          return workout;
+        }
+      }
+
+      return null;
 
     }
 
