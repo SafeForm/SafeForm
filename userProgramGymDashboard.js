@@ -1251,6 +1251,15 @@ function main() {
           prefillProgramBuilder(userSummary, "userProgramInitial");
           //TODO: Fill program name
 
+          //Clear tables if any exist:
+          if(document.querySelector(".week-tables") != null) {
+            const tables = document.querySelectorAll('.week-table');
+            tableArr = [];
+            for(const table of tables) {
+              table.remove();
+            }
+          }
+
           prefillProgramTable(userSummary, "create");
 
           currentUserProgram = userSummary;
@@ -1843,7 +1852,19 @@ function main() {
           document.getElementById("programSheet").style.display = "flex";
           document.getElementById("programSheet").style.flexDirection = "column";
 
-          prefillProgramTable(null, action="update")
+          //Get current user ID and find their program
+          const userID  = document.getElementById("userID").innerText;
+          //Get user list and find user info based on ID
+          let program = null;
+          var userSummaryList = document.querySelectorAll("#userSummary");
+          for(let i = 0; i < userSummaryList.length; i++) {
+            if(userSummaryList[i].querySelector("#summaryItemId").innerText == userID) {
+              program = userSummaryList[i];
+              break;
+            }
+          }
+
+          prefillProgramTable(program, action="update");
 
           //Hide program calendar view
           document.getElementById("programCalendar").style.display = "none";
@@ -3379,6 +3400,7 @@ function main() {
           fullTableData = fullTableData.concat(table.getData());
         }
 
+        console.log(fullTableData);
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
       }
@@ -3682,28 +3704,31 @@ function main() {
     function prefillProgramTable(program, action="create") {
 
       //If first time filling table when page is loaded
-
       let tableData;
 
       //Check if sheet hasnt been updated and cms is empty
       if(action == "create") {
 
         //Check if table data doesnt exist
-
-        if(program.querySelector("#summaryFullEventData") != null) {
+        if(program.querySelector("#summaryFullEventData") != null && program.querySelector("#summaryFullEventData").innerText != "") {
           tableData = program.querySelector("#summaryFullEventData").innerText;
           tableData = JSON.parse(tableData);
         } else {
           // The rest
+          const summaryEventData = program.querySelector("#summaryEventData");
+
+          //Ensure a program exists
+          if(summaryEventData.innerText != "") {
+            const eventJSON = JSON.parse(summaryEventData.innerText);
+    
+            const updatedProgram = addFullWorkoutsToProgram(eventJSON);
+      
+            tableData = translateProgramDataToTable(updatedProgram);
+          } else {
+            //Hide god mode button
+          }
+
         }
-
-        const summaryEventData = program.querySelector("#summaryEventData");
-
-        const eventJSON = JSON.parse(summaryEventData.innerText);
-  
-        const updatedProgram = addFullWorkoutsToProgram(eventJSON);
-  
-        tableData = translateProgramDataToTable(updatedProgram);
 
         fillProgramTable(tableData,false);
 
@@ -3711,29 +3736,41 @@ function main() {
 
         // Get new json data from calendar
         getUserTrainingPlan();
-
+        var fullTableData = null;
         // Get table data version of this
         const updatedProgram = addFullWorkoutsToProgram(userTrainingPlan);
-  
-        const newTableData = translateProgramDataToTable(updatedProgram);
+
+        let newTableData;
+        if(updatedProgram.length > 0) {
+          newTableData = translateProgramDataToTable(updatedProgram);
+        } else {
+          newTableData = [];
+        }
+        
 
         // Compare against existing saved data - check from tablearr or from cms json
         if(sessionStorage.getItem("programSheetChanged") == "true" || tableArr.length > 0) {
           //Check if program sheet modified
-          var fullTableData = [];
+          fullTableData = [];
 
           for(table of tableArr) {
             fullTableData = fullTableData.concat(table.getData());
           }
           
-        } else if(program && program.querySelector("#summaryFullEventData") != null) {
-          var fullTableData = program.querySelector("#summaryFullEventData").innerText;
+        } else if(program && program.querySelector("#summaryFullEventData").innerText != "") {
+          fullTableData = program.querySelector("#summaryFullEventData").innerText;
           fullTableData = JSON.parse(fullTableData);
+        } 
+
+
+        if(fullTableData != null)  {
+          // Fill in new table data from calendar based on existing data
+          tableData = fillNewTableData(newTableData, fullTableData);
+          fillProgramTable(tableData,true);
+        } else {
+          fillProgramTable(newTableData,false);
         }
 
-        // Fill in new table data from calendar based on existing data
-        tableData = fillNewTableData(newTableData, fullTableData);
-        fillProgramTable(tableData,true);
 
       }
 
@@ -3927,6 +3964,10 @@ function main() {
     // Function to group data by week
     function groupDataByWeek(data) {
       const groupedData = {};
+      
+      if(data == undefined || data == null) {
+        return [];
+      }
       data.forEach(item => {
         const week = item.week;
         if (!groupedData[week]) {
@@ -3940,23 +3981,27 @@ function main() {
     function fillProgramTable(tabledata, reset=false) {
       // Create Tabulator tables for each week's data
       const groupedData = groupDataByWeek(tabledata);
-      const weekTablesContainer = document.querySelector(".week-tables"); // Updated selector
 
-      if(reset) {
-        //Remove existing tables
-        const tables = document.querySelectorAll('.week-table');
-        tableArr = [];
-        for(const table of tables) {
-          table.remove();
+
+      if(groupedData != []) {
+        const weekTablesContainer = document.querySelector(".week-tables"); // Updated selector
+
+        if(reset) {
+          //Remove existing tables
+          const tables = document.querySelectorAll('.week-table');
+          tableArr = [];
+          for(const table of tables) {
+            table.remove();
+          }
         }
-      }
+  
+        const weeksWidth = Object.keys(groupedData).length * 600;
+        weekTablesContainer.style.width = `${weeksWidth}px`;
+  
+        let weekNumber = 1;
+        var numberOfWeeks = Object.keys(groupedData).length;
 
-      const weeksWidth = Object.keys(groupedData).length * 600;
-      weekTablesContainer.style.width = `${weeksWidth}px`;
-
-      let weekNumber = 1;
-      var numberOfWeeks = Object.keys(groupedData).length;
-      for (const week in groupedData) {
+        for (const week in groupedData) {
           const weekData = groupedData[week];
           const tableDiv = document.createElement("div");
           tableDiv.className = "week-table";
@@ -3998,7 +4043,10 @@ function main() {
 
           weekTablesContainer.appendChild(tableDiv);
           weekNumber++;
-      }
+        }
+      } 
+
+
     }
 
     function translateProgramDataToTable(updatedProgram) {
