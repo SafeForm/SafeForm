@@ -1,24 +1,34 @@
+const devMode = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  main();
-
+  if(devMode == undefined) {
+    main();
+  }
+  
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    main();
+    if(devMode == undefined) {
+      main();
+    }
   });
 }
 
 function main() {
-
   //Add inputs for each exercise based on number of sets
   const inputList = document.getElementById("inputList").children;
-
+  
+  //Get and filter down full program to this exact workout
+  const currentProgram = JSON.parse(sessionStorage.getItem("currentFullProgram"));
+  const weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
+  const weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
+  const workoutName = document.querySelector(".workout-summary-header h1").innerText
+  const currentWorkoutIndex = sessionStorage.getItem("workoutIndex") - 1;
+  const workoutInformation = weekWorkouts.filter(item => item.workoutNumber === currentWorkoutIndex && item.workoutName === workoutName);
 
   MemberStack.onReady.then(async function(member) {  
 
     if(member.loggedIn) {
 
       var memberJSON = await member.getMetaData();
-
 
       for(var i = 0; i < inputList.length; i++) {
 
@@ -95,7 +105,7 @@ function main() {
           }
           
         }
-
+        console.log(numberOfSets)
         for (var j = 0; j < numberOfSets - 1; j++) {
           (function(j) {
 
@@ -344,7 +354,13 @@ function main() {
   //Get all workout names and store them
   for(var i = 0; i < exerciseList.length; i++) {
 
+    //Set reps input
     var shortName = exerciseList[i].querySelector("#exerciseShortName").innerText;
+    const exerciseInformation = workoutInformation.filter(item => item.exercise === shortName);
+    exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
+    exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+    // exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].reps;
+    // exerciseList[i].querySelector("#restSeconds").innerText = 
     var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
     workoutExercises.push(`${shortName},${loadingMechanism}`);
 
