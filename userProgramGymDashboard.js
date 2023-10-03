@@ -3343,6 +3343,7 @@ function main() {
         }
         userProgram["workoutList"] = userProgramWorkouts;
       } 
+
       sendUserProgramToMake(userProgram, "create");
 
     }
@@ -3400,7 +3401,6 @@ function main() {
           fullTableData = fullTableData.concat(table.getData());
         }
 
-        console.log(fullTableData);
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
       }
@@ -4023,15 +4023,41 @@ function main() {
               {
                 title: `Week ${weekNumber}`, headerHozAlign:"center",// Dynamically set the title
                 columns: [
-                  { title: "Reps", field: "reps", hozAlign: "center", headerHozAlign:"center", width: 80, headerSort: false, resizable:false },
-                  { title: "Load", field: "load", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false },
+                  { title: "Quantity", field: "reps", hozAlign: "center", headerHozAlign:"center", width: 80, headerSort: false, editor:"input", resizable:false, formatter: function(cell, formatterParams, onRendered) {
+                    // Get the data from the row
+                    var data = cell.getRow().getData();
+                    
+                    // Combine "reps" and "quantityUnit" into a single string
+                    var combinedValue = data.reps + " " + data.quantityUnit;
+    
+                    // Return the combined value for display
+                    return combinedValue;
+                }, cellEdited:function(cell){
+
+                  //Set edited flag to true for checking
+                  sessionStorage.setItem("programSheetChanged", "true");
+
+                },},
+                  { title: "Minutes Rest", field: "exerciseRestMinutes", visible: false },
+                  { title: "Seconds Rest", field: "exerciseRestSeconds", visible: false },
+                  { title: "Load", field: "load", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
+
+                    //Set edited flag to true for checking
+                    sessionStorage.setItem("programSheetChanged", "true");
+
+                  }},
                   { title: "Notes", field: "notes", hozAlign: "center",  headerHozAlign:"center", width: 250, headerSort: false, editor:"input", resizable:true, cellEdited:function(cell){
 
                     //Set edited flag to true for checking
                     sessionStorage.setItem("programSheetChanged", "true");
 
                   }},
-                  { title: "Results", field: "results", hozAlign: "center" , headerHozAlign:"center",  headerSort: false, resizable:false },
+                  { title: "Results", field: "results", hozAlign: "center" , headerHozAlign:"center",  headerSort: false, resizable:false , cellEdited:function(cell){
+
+                    //Set edited flag to true for checking
+                    sessionStorage.setItem("programSheetChanged", "true");
+
+                  }}
                 ],
               },
             ],
@@ -4068,7 +4094,6 @@ function main() {
           // Calculate the week number based on the difference between event start and startWeek
           var week = moment(event.start).diff(moment(startWeek), 'weeks') + 1;
          
-
           // Use the 'title' as the workoutName
           var workoutName = event.title;
           var workoutJSON = event.workoutJSON;
@@ -4084,7 +4109,6 @@ function main() {
               // Iterate over all exercises within individualExercise
               for (var l = 0; l < individualExercise.exercises.length; l++) {
                 var exercise = individualExercise.exercises[l];
-
                 // Create an exercise object for each exercise
                 var exerciseObject = {
                   "week": "Week " + week,
@@ -4092,6 +4116,9 @@ function main() {
                   "exercise": individualExercise.exerciseName,
                   "reps": exercise.reps,
                   "load": exercise.measure,
+                  "exerciseRestMinutes": exercise.exerciseRestMinutes,
+                  "exerciseRestSeconds": exercise.exerciseRestSeconds,
+                  "quantityUnit": exercise.quantityUnit,
                   "notes": individualExercise.exerciseNotes,
                   "workoutNumber": i,
                   "setNumber": l,
