@@ -1,9 +1,14 @@
-const devModeFlag = localStorage.getItem("devMode");
+const devMode = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  main();
+  if(devMode == undefined) {
+    main();
+  }
+  
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    main();
+    if(devMode == undefined) {
+      main();
+    }
   });
 }
 
@@ -61,6 +66,8 @@ function main() {
 
   //Also save in session storage
   sessionStorage.setItem("currentProgram", document.getElementById("programEventData").innerText);
+  sessionStorage.setItem("currentFullProgram", document.getElementById("programFullEventData").innerText);
+  
   var workouts = null;
   //iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
@@ -139,6 +146,7 @@ function main() {
     if(thisWeek != null) {
       weekButton = document.getElementById(`week-${thisWeek}`);
       weekButton.click();
+      sessionStorage.setItem("currentWeekNumber", thisWeek)
     } else {
       document.getElementById("guideListParent").style.display = "none";
       document.getElementById("workout-empty-state").style.display = "flex";
