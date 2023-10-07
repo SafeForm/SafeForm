@@ -3713,6 +3713,7 @@ function main() {
         if(program.querySelector("#summaryFullEventData") != null && program.querySelector("#summaryFullEventData").innerText != "") {
           tableData = program.querySelector("#summaryFullEventData").innerText;
           tableData = JSON.parse(tableData);
+          console.log(tableData)
         } else {
           // The rest
           const summaryEventData = program.querySelector("#summaryEventData");
@@ -3724,6 +3725,7 @@ function main() {
             const updatedProgram = addFullWorkoutsToProgram(eventJSON);
       
             tableData = translateProgramDataToTable(updatedProgram);
+
           } else {
             //Hide god mode button
           }
@@ -3731,6 +3733,10 @@ function main() {
         }
 
         fillProgramTable(tableData,false);
+
+              //Now iterate through week titles to highlight current week
+        const weekTitles = document.querySelector(".tabulator-col-content");
+        console.log(weekTitles);
 
       } else if(action == "update") {
 
@@ -3742,7 +3748,11 @@ function main() {
 
         let newTableData;
         if(updatedProgram.length > 0) {
+          
           newTableData = translateProgramDataToTable(updatedProgram);
+
+          newTableData = ensureSameRowCount(newTableData);
+
         } else {
           newTableData = [];
         }
@@ -3776,6 +3786,113 @@ function main() {
 
     }
 
+    function ensureSameRowCount(jsonData) {
+      // Sort the JSON data by the 'week' attribute
+      jsonData.sort((a, b) => a.week.localeCompare(b.week));
+
+      var groupedData = {};
+      var currentWeek = null;
+      var currentWorkout = null;
+      var currentWorkoutNumber = 1;
+
+      // Loop through the sorted JSON data
+      jsonData.forEach(function (obj, index) {
+        var curWeek = obj.week;
+        var curWorkout = obj.workoutNumber;
+
+        // Increment the workout number for the next iteration
+        if((currentWorkout !== curWorkout) && index != 0) {
+          currentWorkoutNumber++;
+        }
+
+        // Check if the current week is different from the previous week
+        if (curWeek !== currentWeek && index != 0) {
+          // Reset the workout number for the new week
+          currentWorkoutNumber = 1;
+          currentWeek = curWeek;
+        }
+
+        // Use 'currentWorkoutNumber' as the index for 'groupedData'
+        if (!groupedData[currentWorkoutNumber]) {
+          groupedData[currentWorkoutNumber] = [];
+        }
+        groupedData[currentWorkoutNumber].push(obj);
+        
+        currentWeek = obj.week;
+        currentWorkout = obj.workoutNumber
+      });
+
+      // Loop through each workoutNumber group
+      for (var workoutNumber in groupedData) {
+        if (groupedData.hasOwnProperty(workoutNumber)) {
+          var workoutData = groupedData[workoutNumber];
+          // Find the week with the maximum number of objects
+          var maxWeekLength = Math.max.apply(
+            null,
+            workoutData.map(function (obj) {
+              var weekData = workoutData.filter(function (item) {
+                return item.week === obj.week;
+              });
+              var uniqueExercises = new Set(weekData.map(function (item) {
+                return item.exercise;
+              }));
+              return weekData.length + uniqueExercises.size;
+            })
+          );
+
+
+          // Fill in missing rows in each week to match the maximum
+          workoutData.forEach(function (obj) {
+            var currentWeekLength = workoutData.filter(function (item) {
+              return item.week === obj.week;
+            }).length;
+            
+            var uniqueExercises = new Set(
+              workoutData
+                .filter(function (item) {
+                  return item.week === obj.week;
+                })
+                .map(function (item) {
+                  return item.exercise;
+                })
+            );
+            
+            currentWeekLength += uniqueExercises.size;
+
+            var rowsToAdd = maxWeekLength - currentWeekLength;
+            if (rowsToAdd > 0) {
+              for (var i = 0; i < rowsToAdd; i++) {
+                // Create a blank object and push it to the group
+                var blankObj = {
+                  week: obj.week,
+                  workoutName: obj.workoutName,
+                  exercise: "",
+                  reps: "",
+                  load: "",
+                  exerciseRestMinutes: "",
+                  exerciseRestSeconds: "",
+                  quantityUnit: "",
+                  notes: "",
+                  workoutNumber: obj.workoutNumber,
+                  setNumber: currentWeekLength + i,
+                  results: "",
+                };
+                workoutData.push(blankObj);
+              }
+            }
+          });
+        }
+      }
+
+      // The updated data with matching row counts
+      var updatedData = Object.values(groupedData).reduce(function (acc, group) {
+        return acc.concat(group);
+      }, []);
+
+      return updatedData;
+
+    }
+    
     function fillNewTableData(newData, oldData) {
       // Loop through each item in newData
       for (let i = 0; i < newData.length; i++) {
@@ -3979,9 +4096,9 @@ function main() {
     }
 
     function fillProgramTable(tabledata, reset=false) {
+
       // Create Tabulator tables for each week's data
       const groupedData = groupDataByWeek(tabledata);
-
 
       if(groupedData != []) {
         const weekTablesContainer = document.querySelector(".week-tables"); // Updated selector
@@ -4012,16 +4129,23 @@ function main() {
             groupBy: ["workoutNumber", "workoutName", "exercise"],
             groupHeader:function(value, count, data, group){
               if (group.getField() === "workoutName") {
-                return `<span style='font-family: Manrope; color: black; font-size: 16px; font-weight: 600'>${value}</span>`;
+                return `<span style='font-family: Manrope; color: black; font-size: 16px; font-weight: 600;'>${value}</span>`;
               } else if(group.getField() == "workoutNumber") {
                 return "";
               } else {
-                return `<span style='font-family: Manrope; color: black; font-size: 14px'>${value}</span>`;
+                // Check if the "exercise" value is empty or null, and don't show the group if it is
+                if (value == "") {
+                  return "";
+                } else {
+                  return `<span class='exerciseGroupName' style='font-family: Manrope; color: black; font-size: 14px'>${value}</span>`;
+                }
+
               }
             },
             columns: [
               {
-                title: `Week ${weekNumber}`, headerHozAlign:"center",// Dynamically set the title
+                title: `Week ${weekNumber}`,
+                headerHozAlign: "center",
                 columns: [
                   { title: "Quantity", field: "reps", hozAlign: "center", headerHozAlign:"center", width: 80, headerSort: false, editor:"input", resizable:false, formatter: function(cell, formatterParams, onRendered) {
                     // Get the data from the row
@@ -4034,6 +4158,10 @@ function main() {
                     return combinedValue;
                 }, cellEdited:function(cell){
 
+                  var rowData = cell.getRow().getData();
+                  if (rowData.exercise === "") { 
+                    cell.setValue("");
+                  }
                   //Set edited flag to true for checking
                   sessionStorage.setItem("programSheetChanged", "true");
 
@@ -4042,18 +4170,46 @@ function main() {
                   { title: "Seconds Rest", field: "exerciseRestSeconds", visible: false },
                   { title: "Load", field: "load", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
 
+                    const oldValue = cell.getOldValue();
+                    var combinedValue = cell.getValue();
+                    //Check if it is the default value - prefill the unit previously in the field
+                    if ((/^[^0-9]*$/.test(oldValue) || oldValue == "%1RM") && combinedValue != "" && oldValue != "" && !(oldValue.split(" ").length > 1) ) {
+                      if(combinedValue.split(" ").length < 2)
+                      combinedValue = `${cell.getValue()} ${oldValue}`;
+                    } else if(/^[0-9]*$/.test(oldValue)) {
+                      //Check if just numbers
+                      var unit = oldValue.split(" ");
+                      var currentLength = combinedValue.split(" ");
+                      combinedValue = unit.length > 1 && currentLength.length < 3 ? `${oldValue} ${unit[1]}` : `${combinedValue}`;
+                    }
+
+                    if(combinedValue != "") {
+                      cell.setValue(combinedValue);
+                    }
+
+                    var rowData = cell.getRow().getData();
+                    if (rowData.exercise === "") { 
+                      cell.setValue("");
+                    }
+                    
                     //Set edited flag to true for checking
                     sessionStorage.setItem("programSheetChanged", "true");
-
+                    
                   }},
                   { title: "Notes", field: "notes", hozAlign: "center",  headerHozAlign:"center", width: 250, headerSort: false, editor:"input", resizable:true, cellEdited:function(cell){
-
+                    var rowData = cell.getRow().getData();
+                    if (rowData.exercise === "") { 
+                      cell.setValue("");
+                    }
                     //Set edited flag to true for checking
                     sessionStorage.setItem("programSheetChanged", "true");
 
                   }},
                   { title: "Results", field: "results", hozAlign: "center" , headerHozAlign:"center",  headerSort: false, resizable:false , cellEdited:function(cell){
-
+                    var rowData = cell.getRow().getData();
+                    if (rowData.exercise === "") { 
+                      cell.setValue("");
+                    }
                     //Set edited flag to true for checking
                     sessionStorage.setItem("programSheetChanged", "true");
 
@@ -4072,13 +4228,20 @@ function main() {
         }
       } 
 
-
     }
 
     function translateProgramDataToTable(updatedProgram) {
 
       // Extract the startWeek from the first program
-      var startWeek = updatedProgram[0].startWeek;
+      var startWeek = moment(updatedProgram[0].startWeek);
+      // Current date
+      var currentDate = moment();
+
+      // Calculate the difference in weeks
+      var weeksDifference = currentDate.diff(startWeek, 'weeks');
+
+      //Store this in session storage to retreive later
+      sessionStorage.setItem("currentWeek", `Week ${weeksDifference+1}`);
 
       // Initialize an empty array to store the converted data
       var convertedData = [];
@@ -4088,32 +4251,42 @@ function main() {
         var program = updatedProgram[programIndex];
         
         // Iterate over the events in the current program
+        //Iterating through workouts
         for (var i = 0; i < program.events.length; i++) {
           var event = program.events[i];
           
           // Calculate the week number based on the difference between event start and startWeek
-          var week = moment(event.start).diff(moment(startWeek), 'weeks') + 1;
+          var week = moment(event.start).diff(startWeek, 'weeks') + 1;
          
           // Use the 'title' as the workoutName
           var workoutName = event.title;
           var workoutJSON = event.workoutJSON;
 
+          var exerciseCount = 1;
           // Iterate over the workoutJSON and create objects for each exercise
+          //Iterating through exercises in workout - supersets or individual exercises
           for (var j = 0; j < workoutJSON.length; j++) {
             var exerciseData = workoutJSON[j];
 
+            var isSuperset = false;
+            if(exerciseData.length > 1) {
+              isSuperset = true;
+            }
+
             // Iterate over all exercises within exerciseData
+            //Iterating through supersets or exercise
             for (var k = 0; k < exerciseData.length; k++) {
               var individualExercise = exerciseData[k];
 
               // Iterate over all exercises within individualExercise
+              //Iterating through sets in exercise
               for (var l = 0; l < individualExercise.exercises.length; l++) {
                 var exercise = individualExercise.exercises[l];
                 // Create an exercise object for each exercise
                 var exerciseObject = {
                   "week": "Week " + week,
                   "workoutName": workoutName,
-                  "exercise": individualExercise.exerciseName,
+                  "exercise": isSuperset ? k == 0 ? `${exerciseCount}A - ${individualExercise.exerciseName}` : `${exerciseCount}B - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
                   "reps": exercise.reps,
                   "load": exercise.measure,
                   "exerciseRestMinutes": exercise.exerciseRestMinutes,
@@ -4122,13 +4295,14 @@ function main() {
                   "notes": individualExercise.exerciseNotes,
                   "workoutNumber": i,
                   "setNumber": l,
-                  "results": "" // You can add logic here to extract results if available
+                  "results": "" 
                 };
 
                 // Push the exercise object to the convertedData array
                 convertedData.push(exerciseObject);
               }
             }
+            exerciseCount += 1; //Increment exercise count
           }
         }
       }
