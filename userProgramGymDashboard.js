@@ -3713,7 +3713,6 @@ function main() {
         if(program.querySelector("#summaryFullEventData") != null && program.querySelector("#summaryFullEventData").innerText != "") {
           tableData = program.querySelector("#summaryFullEventData").innerText;
           tableData = JSON.parse(tableData);
-          console.log(tableData)
         } else {
           // The rest
           const summaryEventData = program.querySelector("#summaryEventData");
@@ -3733,10 +3732,6 @@ function main() {
         }
 
         fillProgramTable(tableData,false);
-
-              //Now iterate through week titles to highlight current week
-        const weekTitles = document.querySelector(".tabulator-col-content");
-        console.log(weekTitles);
 
       } else if(action == "update") {
 
@@ -4148,6 +4143,14 @@ function main() {
                 headerHozAlign: "center",
                 columns: [
                   { title: "Quantity", field: "reps", hozAlign: "center", headerHozAlign:"center", width: 80, headerSort: false, editor:"input", resizable:false, formatter: function(cell, formatterParams, onRendered) {
+                    var currentWeek = sessionStorage.getItem("currentWeek");
+                    //Get week column
+                    var parentColumn = cell.getColumn().getParentColumn();
+                    //Style if current week
+                    var weekColumnValue = parentColumn.getElement().querySelector(".tabulator-col-title");
+                    if(weekColumnValue.innerText == currentWeek) {
+                      weekColumnValue.style.color = '#0C08D5';
+                    }
                     // Get the data from the row
                     var data = cell.getRow().getData();
                     
