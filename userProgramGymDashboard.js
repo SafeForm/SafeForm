@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -228,7 +227,7 @@ function main() {
     }
 
     function addExerciseToWorkoutList(copyOfGuide, exerciseInformation=null, prefill=null, thumbnail=null, svgPerson=null, programWorkout= false, jsonExercises=null, exerciseList=null) {
-
+      console.log(exerciseInformation)
       //Get current guide and add to workout list
       var workoutList = "";
       if(!programWorkout) {
@@ -239,7 +238,7 @@ function main() {
 
       if(jsonExercises != null && exerciseList != null) {
         for(var i = 0; i < exerciseList.length; i++) {
-          createWorkoutExerciseElement(exerciseList[i][0], workoutList, exerciseInformation, prefill, exerciseList[i][1], exerciseList[i][2], programWorkout, i, jsonExercises[i]); 
+          createWorkoutExerciseElement(exerciseList[i][0], workoutList, exerciseInformation[i], prefill, exerciseList[i][1], exerciseList[i][2], programWorkout, i, jsonExercises[i]); 
         }
       } else {
         createWorkoutExerciseElement(copyOfGuide, workoutList, exerciseInformation, prefill, thumbnail, svgPerson, programWorkout); 
@@ -248,6 +247,7 @@ function main() {
     }
 
     function createWorkoutExerciseElement(copyOfGuide, workoutList, exerciseInformation, prefill, thumbnail, svgPerson, programWorkout, index=0, jsonExercises=null) {
+
       const workoutItemTemplate = workoutList.querySelector("ul > li:first-child");
       
       var workoutItem = workoutItemTemplate.cloneNode(true);
@@ -271,11 +271,14 @@ function main() {
 
       copyOfGuide.id = "guideCopy";
 
-
+      //Remove the first occurances of item id and name for workout for each set
+      copyOfGuide.querySelector("#workoutExerciseItemID").remove();
+      copyOfGuide.querySelector("#workoutExerciseFullName").remove();
 
       //Add guide to workout exercise template
       workoutItem.querySelector("#guidePlaceHolder").append(copyOfGuide);
       //If extra information is provided fill in fields
+      console.log(copyOfGuide)
       if(exerciseInformation != null) {
         if(!programWorkout) {
           workoutItem.querySelector(".repsinput").value = exerciseInformation.exerciseReps;
@@ -286,10 +289,8 @@ function main() {
           workoutItem.querySelector(".setrestinputm").innerText = exerciseInformation.exerciseRestMins;
           workoutItem.querySelector(".setrestinput").innerText = exerciseInformation.exerciseRestSecs;
         }
-
-        workoutExerciseItemID.innerText = exerciseInformation.exerciseItemID;
-        workoutExerciseFullName.innerText = exerciseInformation.exerciseFullName;
-  
+        copyOfGuide.querySelector("#workoutExerciseItemID").innerText = exerciseInformation.exerciseItemID;
+        copyOfGuide.querySelector("#workoutExerciseFullName").innerText = exerciseInformation.exerciseFullName;
       }
 
       workoutItem.querySelector(".supersetparent img").addEventListener('click', handleSupersetClick);
@@ -301,6 +302,7 @@ function main() {
       workoutItem.querySelector("#workoutExerciseFullName").remove();
       workoutItem.querySelector("#workoutExerciseItemID").remove();
       workoutItem.querySelector("#exerciseInfo").remove();
+
 
       //Prefill rest values
       workoutItem.querySelector("#exerciseRestMin").value = 3;
@@ -388,14 +390,18 @@ function main() {
       if (sessionStorage.getItem("editWorkout")) {
         saveWorkout.value = "Save Changes";
       }
-      
+
       //Hiding and showing move icons and break icon between exercises
-      if(listLength == 2) {
+      if(listLength == 1) {
+        saveWorkout.style.display = "block";
+        document.getElementById("firstExercisePlaceholder").style.display = "none";
+
+      } else if(listLength == 2) {
         if(!programWorkout) {
           workoutItem.querySelector("#moveUp").style.display = "block";
           workoutItem.querySelector("#moveDown").style.display = "none";
         }
-        saveWorkout.style.display = "none";
+        
         document.getElementById("firstExercisePlaceholder").style.display = "none";
       } else if(listLength == 3) {
 
@@ -2267,12 +2273,12 @@ function main() {
         if (listLength == 1) {
           document.getElementById("firstExercisePlaceholder").style.display = "block";
           document.getElementById("experience").innerText = "Beginner";
+
+          //Hide workout button if there is only one exercise in list
+          saveWorkout.style.display = "none";
           
         } else if(listLength >= 2) {
-          if(listLength == 2) {
-            //Hide workout button if there is only one exercise in list
-            saveWorkout.style.display = "none";
-          }
+
           const firstElement = workoutList.querySelector("ul > li:nth-child(2)");
           const lastElement = workoutList.querySelector(`ul > li:nth-child(${listLength})`);
           
@@ -3393,7 +3399,7 @@ function main() {
       } 
 
       //Check if program sheet modified
-      if(sessionStorage.getItem("programSheetChanged") == "true") {
+      if(sessionStorage.getItem("programSheetLoaded") == "true") {
 
         var fullTableData = [];
 
@@ -4221,6 +4227,9 @@ function main() {
               },
             ],
           });   
+
+          //Set flag to confirm table loaded:
+          sessionStorage.setItem("programSheetLoaded", "true");
           
           if(tableArr.length < numberOfWeeks) {
             tableArr.push(table);
@@ -4607,7 +4616,7 @@ function main() {
 
       //Copy guide template and replace all values with exercise from workout
       for(var i = 0; i < workout.exercises.length; i++) {
-
+        var incrementIndex = false;
         var jsonExercises = null;
         var exerciseList = null;
         //Get superset if it exists
@@ -4615,7 +4624,7 @@ function main() {
           jsonExercises = workoutJSON[count];
           exerciseList = [createGuideCopy(workout, i), createGuideCopy(workout, i+1)];
           count += 1;
-          i += 1;
+          incrementIndex = true;
           //TODO: FIX WHEN SINGLE EXERCISE IS THE LAST AFTER A SUPERSET, WHY DOES IT CAP IT AT 5 WORKOUT EXERCISES IN THE MULTI REF COLL. LIST, this is a webflow limit look at finsweet solutions
         } else if (workoutJSON != "" && count <= workoutJSON.length) {
           jsonExercises = workoutJSON[count];
@@ -4628,8 +4637,14 @@ function main() {
         
         listOfGuideIDs.push(workout.exercises[i].exerciseGuideID);
 
-        addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
-
+        if(incrementIndex) { //check if superset
+          addExerciseToWorkoutList(copyOfGuide, [workout.exercises[i], workout.exercises[i+1]], true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
+        } else {
+          addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
+        }
+        if(incrementIndex) {
+          i += 1;
+        }
         
       }
       if(!programWorkout) {
