@@ -18,22 +18,46 @@ function main() {
   
   //Get and filter down full program to this exact workout
   const currentProgram = JSON.parse(sessionStorage.getItem("currentFullProgram"));
-  const weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
-  const weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
-  const workoutName = document.querySelector(".workout-summary-header h1").innerText
-  const currentWorkoutIndex = sessionStorage.getItem("workoutIndex");
-  const workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
+  weekToFilter = "";
+  workoutName = "";
+  weekWorkouts = "";
+  currentWorkoutIndex = "";
+  workoutInformation = "";
+  if(currentProgram != undefined && currentProgram != null) {
+    weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
+    workoutName = document.querySelector(".workout-summary-header h1").innerText
+    weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
+    currentWorkoutIndex = sessionStorage.getItem("workoutIndex");
+    workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
+  } else {
+    //workoutInformation = JSON.parse(document.getElementById("workoutJSON").innerText);
+  }
+
+
   MemberStack.onReady.then(async function(member) {  
 
     if(member.loggedIn) {
+
+      //Iterate through existing exercise list and change names
+      for(var i = 0; i < inputList.length; i++) {
+        var exerciseName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
+        
+        for (const exercise of workoutInformation) {
+          if(exercise.exercise.includes(exerciseName)) {
+            inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
+            //inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
+            break;
+          }
+        }
+      }
 
       var memberJSON = await member.getMetaData();
 
       for(var i = 0; i < inputList.length; i++) {
 
         var inputShortName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
-
-        const exerciseInformation = workoutInformation.filter(item => item.exercise === inputShortName);
+        const exerciseInformation = workoutInformation.filter(item => item.exercise.includes(inputShortName));
+        
         //Get number of sets for that exercise
         const numberOfSets = parseInt(inputList[i].querySelector("#setsInput").innerText);
         //Get rest info for that exercise
@@ -107,22 +131,24 @@ function main() {
           }
           
         }
+        //Check if it is an empty filler exercise from god mode:
+        if(exerciseInformation[0].exercise != "") {
+          //Set placeholder of the first rep input text box for each exercise
+          inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
 
-        //Set placeholder of the first rep input text box for each exercise
-        inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
+          //Set value of notes
+          inputList[i].querySelector("#notes").innerText = `${exerciseInformation[0].notes}`;
 
-        //Set value of notes
-        inputList[i].querySelector("#notes").innerText = `${exerciseInformation[0].notes}`;
+          //Check if load has inputs from PT
+          if(exerciseInformation[0].load.toLowerCase() != "kg") {
+            inputList[i].querySelector("#weight").value = `${exerciseInformation[0].load}`;
+          }
 
-        //Check if load has inputs from PT
-        console.log(exerciseInformation[0].load)
-        if(exerciseInformation[0].load.toLowerCase() != "kg") {
-          inputList[i].querySelector("#weight").value = `${exerciseInformation[0].load}`;
+          //Fill in rest fields
+          inputList[i].querySelector("#inputRest").innerText = `${exerciseInformation[0].exerciseRestMinutes}m ${exerciseInformation[0].exerciseRestSeconds}s`;
+          inputList[i].querySelector("#inputRest").classList.add("rest-input")
         }
 
-        //Fill in rest fields
-        inputList[i].querySelector("#inputRest").innerText = `${exerciseInformation[0].exerciseRestMinutes}m ${exerciseInformation[0].exerciseRestSeconds}s`;
-        inputList[i].querySelector("#inputRest").classList.add("rest-input")
 
         for (var j = 0; j < numberOfSets - 1; j++) {
           (function(j) {
@@ -137,18 +163,20 @@ function main() {
             const completeButton = newInputSection.querySelector("#completeExercise");
             completeButton.style.display = "none";
 
-            //Set quantity/reps field
-            newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`
+            //Check if it is an empty filler exercise from god mode:
+            if(exerciseInformation[j+1].exercise != "") {
+              //Set quantity/reps field
+              newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`
 
-            //Set weight field if exists
-            //Check if load has inputs from PT
-            if(exerciseInformation[0].load.toLowerCase() != "kg") {
-              newWeightInput.value = `${exerciseInformation[j+1].load}`;
+              //Set weight field if exists
+              //Check if load has inputs from PT
+              if(exerciseInformation[0].load.toLowerCase() != "kg") {
+                newWeightInput.value = `${exerciseInformation[j+1].load}`;
+              }
+
+              //Set rest
+              newRestDiv.innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s`;
             }
-
-            //Set rest
-            newRestDiv.innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s`;
-
     
             newWeightInput.addEventListener('blur', function(event) {
 
@@ -384,18 +412,52 @@ function main() {
   var workoutExercises = [];
   //Get all workout names and store them
   for(var i = 0; i < exerciseList.length; i++) {
-
     //Set reps input
     var shortName = exerciseList[i].querySelector("#exerciseShortName").innerText;
-    const exerciseInformation = workoutInformation.filter(item => item.exercise === shortName);
-    exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
-    exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
-    exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
-    exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
-    exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
-    exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
-    var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
-    workoutExercises.push(`${shortName},${loadingMechanism}`);
+        
+    // for (const exercise of workoutInformation) {
+
+    //   if(exercise.exercise.includes(shortName)) {
+    //     console.log(shortName)
+    //     console.log(exercise.exercise)
+    //     exerciseList[i].querySelector("#exerciseShortName").innerText = exercise.exercise;
+    //     break;
+    //   }
+    // }
+
+    if(workoutInformation != "") {
+      const exerciseInformation = workoutInformation.filter(item => item.exercise.includes(shortName));
+
+      //Check if it is an empty filler exercise from god mode:
+      if(exerciseInformation[0].exercise != "") {
+        exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
+        exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
+        exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+        var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
+        workoutExercises.push(`${shortName},${loadingMechanism}`);
+      } else {
+        exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
+        exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
+        exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+        var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
+        workoutExercises.push(`${shortName},${loadingMechanism}`);
+      }
+    } else {
+      //Set default values
+      exerciseList[i].querySelector("#repInput").innerText = 10;
+      exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+      exerciseList[i].querySelector("#restMinutes").innerText = 3;
+      exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
+      exerciseList[i].querySelector("#restSeconds").innerText = 0;
+      exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+    }
+
 
   }
 
