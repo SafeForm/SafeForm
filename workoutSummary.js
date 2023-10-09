@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   //Add inputs for each exercise based on number of sets
   const inputList = document.getElementById("inputList").children;
   
@@ -57,6 +58,8 @@ function main() {
 
         var inputShortName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
         const exerciseInformation = workoutInformation.filter(item => item.exercise.includes(inputShortName));
+
+
         
         //Get number of sets for that exercise
         const numberOfSets = parseInt(inputList[i].querySelector("#setsInput").innerText);
@@ -132,7 +135,7 @@ function main() {
           
         }
         //Check if it is an empty filler exercise from god mode:
-        if(exerciseInformation[0].exercise != "") {
+        if(exerciseInformation.length > 0 && exerciseInformation[0].exercise != "") {
           //Set placeholder of the first rep input text box for each exercise
           inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
 
@@ -164,7 +167,7 @@ function main() {
             completeButton.style.display = "none";
 
             //Check if it is an empty filler exercise from god mode:
-            if(exerciseInformation[j+1].exercise != "") {
+            if(exerciseInformation.length > 0 && exerciseInformation[j+1].exercise != "") {
               //Set quantity/reps field
               newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`
 
@@ -414,18 +417,17 @@ function main() {
   for(var i = 0; i < exerciseList.length; i++) {
     //Set reps input
     var shortName = exerciseList[i].querySelector("#exerciseShortName").innerText;
-        
-    // for (const exercise of workoutInformation) {
-
-    //   if(exercise.exercise.includes(shortName)) {
-    //     console.log(shortName)
-    //     console.log(exercise.exercise)
-    //     exerciseList[i].querySelector("#exerciseShortName").innerText = exercise.exercise;
-    //     break;
-    //   }
-    // }
-
+    
     if(workoutInformation != "") {
+      
+      for (const exercise of workoutInformation) {
+        
+        if(exercise.exercise.includes(shortName)) {
+          
+          exerciseList[i].querySelector("#exerciseShortName").innerText = exercise.exercise;
+          break;
+        }
+      }
       const exerciseInformation = workoutInformation.filter(item => item.exercise.includes(shortName));
 
       //Check if it is an empty filler exercise from god mode:
