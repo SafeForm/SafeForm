@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -72,6 +71,7 @@ function main() {
   //List to keep track of users training plan (list of programs added to their schedule)
   //Structure is each element in list is an object of the structure {"programID": "value", "programName": "value", "events": "value"}
  var userTrainingPlan = [];
+
 
   //Populate gym name text box value
   document.getElementById("gymNameTextBox").value = document.getElementById("gymFullName").innerText;
@@ -1972,24 +1972,30 @@ function main() {
         
         isPasteState = true;
 
-        //Get entire row of copy button
+        // Get the week row
         var weekRow = event.target.closest('[role="row"]');
-        //Get first cell of that week
-        var weekStart = new Date(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
-        var weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000); // Add 7 days to get the end of the week
-
-        //Minus 10 hours from week start & end
-        weekStart = new Date(weekStart.setHours(weekStart.getHours() - 10));
-        weekEnd = new Date(weekEnd.setHours(weekEnd.getHours() - 10));
+        // Get the start date of the week
+        var weekStart = moment(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
+        console.log(weekStart);
+        // Calculate the end date of the week by adding 7 days
+        var weekEnd = weekStart.clone().add(7, 'days');
+        console.log(weekEnd);
         
-        //List all events then filter to specific week
+        // Adjust for timezone offset (assuming it's in hours, e.g., +10 for Sydney)
+        var timezoneOffset = 11; // Adjust this to match your timezone offset
+        
+        weekStart.subtract(timezoneOffset, 'hours');
+        weekEnd.subtract(timezoneOffset, 'hours');
+        
+        // List all events, then filter for events within the week
         var allEvents = calendar.getEvents();
-        var weekEvents = allEvents.filter(function(event) {
-          return event.start >= weekStart && event.start < weekEnd;
+        var weekEvents = allEvents.filter(function (event) {
+          return moment(event.start).isBetween(weekStart, weekEnd, null, '[]'); // '[]' to include the start and end dates
         });
-    
+        
+        // Store the week events in session storage
         sessionStorage.setItem('copiedEvents', JSON.stringify(weekEvents));
-
+        
       } else if (event.target.classList.contains('delete-events-button')) {
 
         // Get the week row
