@@ -76,6 +76,24 @@ function main() {
   //Populate gym name text box value
   document.getElementById("gymNameTextBox").value = document.getElementById("gymFullName").innerText;
 
+  //Request and get extra workout summary details for workouts that have more than 5 exercises
+  const workoutSummaryListItems = document.querySelectorAll("#workoutSummaryList .workoutsummaryitem");
+
+  for (var i = 0; i < workoutSummaryListItems.length; i++) {
+
+    var workoutSummaryElement = workoutSummaryListItems[i];
+    //Check if number of workouts is more than 5
+    var nestedCollectionItems = workoutSummaryElement.querySelectorAll(".w-dyn-item");
+
+    //Add each item into the new div so far:
+    for(var j = 0; j < nestedCollectionItems.length; j++) {
+      var clonedItem = nestedCollectionItems[j].cloneNode(true);
+      workoutSummaryElement.querySelector("#newCollectionList").appendChild(clonedItem)
+    }
+  }
+
+  addMoreThanFiveWorkouts();
+
   /*
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
@@ -157,6 +175,74 @@ function main() {
     //Colour div
     destinationDiv.classList.add("clickednavbutton");
     destinationDiv.style.backgroundColor = "#0C08D5";
+  }
+
+  async function addMoreThanFiveWorkouts() {
+
+    //Request and get extra workout summary details for workouts that have more than 5 exercises
+    var workoutSummaryListItemsList = document.querySelectorAll("#workoutSummaryList .workoutsummaryitem");
+
+    for (var i = 0; i < workoutSummaryListItemsList.length; i++) {
+      var workoutSummaryElement = workoutSummaryListItemsList[i];
+      //Check if number of workouts is more than 5
+      var workoutIDs = workoutSummaryElement.querySelector("#workoutIDs").innerText;
+
+      if(workoutIDs != "" && workoutIDs != null && workoutIDs != undefined) {
+        workoutIDs = workoutIDs.split(/,\s*/);
+        if(workoutIDs.length > 5) {
+
+          var existingIDs = workoutSummaryElement.querySelectorAll("#newCollectionList #exerciseLink");
+
+          var existingIDArr = [];
+          for(var j = 0; j < existingIDs.length; j++) {
+            if(existingIDs[j].href.split("/").length > 4) {
+              existingIDArr.push(existingIDs[j].href.split("/")[4]);
+              
+            }
+          }
+
+          
+
+          const differenceArr = workoutIDs.filter(item => !existingIDArr.includes(item));
+          
+          for(var x = 0; x < differenceArr.length; x++) {
+            if(differenceArr[x] != "") {
+              var workoutSlug = differenceArr[x];
+              var url = 'https://app.bene-fit.io/workout-exercise/' + workoutSlug; // Construct the URL
+
+              // Capture the reference to workoutSummaryElement before entering the asynchronous context
+              var currentWorkoutElement = workoutSummaryElement;
+
+              //Use jquery .get to get the remaining IDs
+              //Get existing IDs
+              const data = await $.get(url);
+              var $page = await $(data);
+            
+              // Extract information from the retrieved page
+              var workoutName = $page.find('#workoutName').text();
+              var exerciseFullName = $page.find('#exerciseFullName').text();
+              var exerciseGuideID = $page.find('#exerciseGuideID').text();
+              var exerciseItemID = $page.find('#exerciseItemID').text();
+              var exerciseThumbnailURL = $page.find('#exerciseThumbnailURL').text();
+              var exerciseSets = $page.find('#exerciseSets').text();
+              var muscleHighlightImage = $page.find('#muscleHighlightImage').attr('src');
+
+              //Now clone current row, replace values, append to end of cms nested list
+              var clonedRow = currentWorkoutElement.querySelector(".w-dyn-item").cloneNode(true);
+              clonedRow.querySelector("#exerciseShortName").innerText = workoutName;
+              clonedRow.querySelector("#exerciseFullName").innerText = exerciseFullName;
+              clonedRow.querySelector("#exerciseGuideID").innerText = exerciseGuideID;
+              clonedRow.querySelector("#exerciseItemID").innerText = exerciseItemID;
+              clonedRow.querySelector("#exerciseThumbnailURL").innerText = exerciseThumbnailURL;
+              clonedRow.querySelector("#exerciseSets").innerText = exerciseSets;
+              clonedRow.querySelector("#exerciseMuscleImage").innerText = muscleHighlightImage;
+              currentWorkoutElement.querySelector("#newCollectionList").appendChild(clonedRow)
+            }
+          }
+        }
+        
+      }
+    }
   }
 
 
@@ -2536,7 +2622,7 @@ function main() {
         sessionStorage.setItem('editWorkout', 'true');
         sessionStorage.setItem("viewingEditFirstTime", 'true');
         //Prefill workout builder with the selected workout
-        prefillWorkoutBuilder(event.target);
+        prefillWorkoutBuilder(event.target.parentElement);
 
       } else if(event.target.id == "workoutTitleDiv" || event.target.id == "workoutDifficulty" || event.target.id == "workoutDuration" || event.target.id == "workoutLastEdited") {
 
@@ -2544,7 +2630,7 @@ function main() {
         sessionStorage.setItem('editWorkout', 'true');
         sessionStorage.setItem("viewingEditFirstTime", 'true');
         //Prefill workout builder with the selected workout
-        prefillWorkoutBuilder(event.target.parentElement);
+        prefillWorkoutBuilder(event.target.closest("#workoutSummary").parentElement);
 
       } else if(event.target.id == "workoutSummaryName" || event.target.id == "workoutSummaryDescription") {
         
@@ -2552,14 +2638,14 @@ function main() {
         sessionStorage.setItem('editWorkout', 'true');
         sessionStorage.setItem("viewingEditFirstTime", 'true');
         //Prefill workout builder with the selected workout
-        prefillWorkoutBuilder(event.target.parentElement.parentElement);
+        prefillWorkoutBuilder(event.target.closest("#workoutSummary").parentElement);
 
       } else if (event.target.id == "duplicateWorkout") {
         //Note that this is dupicating an existing workout
         sessionStorage.setItem('duplicateWorkout', 'true');
 
         //Prefill workout builder with the selected workout
-        prefillWorkoutBuilder(event.target.parentElement.parentElement.parentElement.parentElement);
+        prefillWorkoutBuilder(event.target.closest("#workoutSummary").parentElement);
 
       } else if(event.target.id == "keepEditing" || event.target.id == "closeBuilderModal" || event.target.id == "closeBuilderModalImage") {
         //Close modal
@@ -4680,6 +4766,7 @@ function main() {
     function prefillWorkoutBuilder(workoutSummary, programWorkout=false) {
 
       var workoutJSON = "";
+
       if(!programWorkout) {
         //Get all necessary values from row selected
         var workout = getWorkoutExerciseInformation(workoutSummary);
@@ -4811,8 +4898,7 @@ function main() {
 
   
       var exercises = [];
-  
-      const workoutListElements = selectedWorkout.querySelector("#workoutExerciseList").children;
+      const workoutListElements = selectedWorkout.querySelector("#newCollectionList").children;
       for(var i = 0; i < workoutListElements.length; i++) {
         const workoutDetails = workoutListElements[i];
         var exercise = {};
