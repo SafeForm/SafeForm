@@ -3048,11 +3048,9 @@ function main() {
 
       //Check if base program - then hide god mode button otherwise show it
       if(sessionStorage.getItem("createUserProgram") == "false") {
-        document.querySelector(".calendarsheetswitchparent").style.display = "none";
-        document.querySelector(".programinfodiv").style.marginLeft = "1VW";
+        document.querySelector(".programinfodiv").style.display = "none";
       } else {
-        document.querySelector(".calendarsheetswitchparent").style.display = "flex";
-        document.querySelector(".programinfodiv").style.marginLeft = "0VW";
+        document.querySelector(".programinfodiv").style.display = "flex";
       }
 
       //Ensure that calendar view always shows first
