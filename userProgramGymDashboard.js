@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -62,6 +63,7 @@ function main() {
   var userInputsChanged = false;
   var addStaffMemberFromSettings = false;
   var tableArr = [];
+  sessionStorage.setItem("createUserProgram", "false");
 
     
   //Object to keep track of the guide -> exercise workout mapping
@@ -471,7 +473,7 @@ function main() {
       }
       
       const saveWorkout = document.getElementById("saveWorkout");
-      if (sessionStorage.getItem("editWorkout")) {
+      if (sessionStorage.getItem("editWorkout") == "true") {
         saveWorkout.value = "Save Changes";
       } 
 
@@ -1102,6 +1104,8 @@ function main() {
 
             //Set edit program flag
             sessionStorage.setItem("editProgram", 'true');
+
+            hideOrShowGodModeSwitch();
           }
 
 
@@ -1262,8 +1266,6 @@ function main() {
 
       }
 
-      //getProgramBreakers();
-
       // Hide modal
       document.getElementById("modalWrapper").style.display = "none";
       document.getElementById("workoutsList").style.display = "none";
@@ -1399,6 +1401,8 @@ function main() {
 
           //Show user program
           document.getElementById("trainingRadio").click();
+
+          hideOrShowGodModeSwitch();
 
         }
       })(userSummaryList[i]);
@@ -1912,8 +1916,10 @@ function main() {
                   });
   
                 }
-  
-                getProgramBreakers();
+
+                if(sessionStorage.getItem("createUserProgram") == "true" ) {
+                  getProgramBreakers();
+                }
                 
                 // Clear program list
                 clearProgramModalList();
@@ -2025,6 +2031,9 @@ function main() {
           //Hide program calendar view
           document.getElementById("programCalendar").style.display = "none";
 
+          //Hide assign program button
+          document.querySelector(".assignprogrambutton").style.display = "none";
+
         } else {
             //Show program calendar view
             document.getElementById("programCalendar").style.display = "block";
@@ -2032,6 +2041,9 @@ function main() {
             //Hide program sheet view
             document.getElementById("programSheet").style.display = "none";
             calendar.render();
+
+            //Show assign program button
+            document.querySelector(".assignprogrambutton").style.display = "";
         }
 
       } 
@@ -2062,10 +2074,8 @@ function main() {
         var weekRow = event.target.closest('[role="row"]');
         // Get the start date of the week
         var weekStart = moment(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
-        console.log(weekStart);
         // Calculate the end date of the week by adding 7 days
         var weekEnd = weekStart.clone().add(7, 'days');
-        console.log(weekEnd);
         
         // Adjust for timezone offset (assuming it's in hours, e.g., +10 for Sydney)
         var timezoneOffset = 11; // Adjust this to match your timezone offset
@@ -2508,6 +2518,10 @@ function main() {
       } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText" ||
       event.target.id == "createWorkoutTablet" || event.target.id == "createWorkoutImageTablet" || event.target.id == "createWorkoutTextTablet") {
 
+        //Change text for submit button
+        const saveWorkout = document.getElementById("saveWorkout");
+        saveWorkout.value = "Create Workout";
+
         //Set create workout flag
         sessionStorage.setItem("createWorkout", true);
         //Go to workout builder
@@ -2536,6 +2550,8 @@ function main() {
         refreshCalendarLayout();
         document.getElementById("workoutSummaryDiv").style.display = "none";
         document.getElementById("programPage").style.display = "none";
+
+        hideOrShowGodModeSwitch();
 
       } else if(event.target.id == "reset-filters" || event.target.id == "reset-filters-ipad" || event.target.id == "reset-filters-modal" || event.target.id == "reset-filters-program-modal" || event.target.id == "reset-filters-users" ) {
         resetGeneralFilters(true);
@@ -3026,6 +3042,21 @@ function main() {
           }
         }
       }
+    }
+
+    function hideOrShowGodModeSwitch() {
+
+      //Check if base program - then hide god mode button otherwise show it
+      if(sessionStorage.getItem("createUserProgram") == "false") {
+        document.querySelector(".calendarsheetswitchparent").style.display = "none";
+        document.querySelector(".programinfodiv").style.marginLeft = "1VW";
+      } else {
+        document.querySelector(".calendarsheetswitchparent").style.display = "flex";
+        document.querySelector(".programinfodiv").style.marginLeft = "0VW";
+      }
+
+      //Ensure that calendar view always shows first
+      document.getElementById("programCalendarImg").click()
     }
 
     function toggleDayPasteStateCSS(day, toggleState) {
@@ -3702,7 +3733,6 @@ function main() {
       newCell.appendChild(textDiv); // Append the div to the cell
     
       newRow.appendChild(newCell);
-
       // Insert the new row before the current row
       weekRow.parentNode.insertBefore(newRow, weekRow);
 
@@ -3726,7 +3756,6 @@ function main() {
               weekRows.push([weekRow, obj.programName]);
             }
           });
-
           for(var i = 0; i < weekRows.length; i++) {
             const [weekRow, programName] = weekRows[i];
             addProgramNameBreaker(weekRow, programName);
@@ -4099,6 +4128,7 @@ function main() {
     }
 
     function prefillProgramBuilder(program, programType="builder") {
+
 
       // Convert the Start Date strings to Date objects
       var eventsData = "";
@@ -4747,8 +4777,11 @@ function main() {
         eventCells[i].style.height = "110px";
         eventCells[i].style.minHeight = "110px";
       }
+
       if(overrideWeeks == 0) {
-        document.querySelector('.fc-scrollgrid-sync-table').scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+        document.querySelector('.fc-scrollgrid-sync-table').scrollIntoView(false) //{behavior: "smooth", block: "end", inline: "nearest"});
+        document.querySelector('.fc-scrollgrid-sync-table').scrollBy(0, 150); // Adjust the second parameter (50) to control the extra scroll amount
+
       }
       
       calendar.render();
