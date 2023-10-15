@@ -1623,8 +1623,7 @@ function main() {
       var numWeeks = Math.ceil((events[events.length-1].start.getTime() - events[0].start.getTime()) / (1000 * 60 * 60 * 24 * 7));
 
       program["workouts"] = programWorkoutsArr;
-      console.log(programWorkoutsArr);
-      return;
+
       program["eventData"] = JSON.stringify(events);
 
       const dates = events.map(obj => obj.start);
