@@ -1608,16 +1608,23 @@ function main() {
       program["programDescription"] = document.getElementById("programDescription").value;
       program["experience"] = document.getElementById("programExperience").value;
       program["programGoal"] = document.getElementById("programGoal").value;
-      
-      // Loop through the events and log their titles to the console
-      for (var i = 0; i < events.length; i++) {
-        programWorkoutsArr.push(events[i].extendedProps.workoutID);
+
+      // Loop through the events and remove events with empty workoutID
+      for (var i = events.length - 1; i >= 0; i--) {
+        var event = events[i];
+        if (event.extendedProps.workoutID === "") {
+          event.remove();
+        } else {
+          programWorkoutsArr.push(event.extendedProps.workoutID);
+        }
       }
 
       // Calculate number of weeks between start of first event and end of last event
       var numWeeks = Math.ceil((events[events.length-1].start.getTime() - events[0].start.getTime()) / (1000 * 60 * 60 * 24 * 7));
 
       program["workouts"] = programWorkoutsArr;
+      console.log(programWorkoutsArr);
+      return;
       program["eventData"] = JSON.stringify(events);
 
       const dates = events.map(obj => obj.start);
