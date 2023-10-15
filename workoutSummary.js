@@ -79,7 +79,7 @@ function main() {
         weightInput.addEventListener('blur', function(event) {
           const inputValue = event.target.value;
           if(!event.target.value.toLowerCase().includes("kg") && event.target.value != "") {
-            event.target.value = `${inputValue} kg`;
+            event.target.value = `${inputValue} Kg`;
           }
     
           const exerciseBlock = event.target.closest("#inputSectionBlock");
@@ -120,7 +120,7 @@ function main() {
             if (memberJSONExerciseName.weight[arrayLength-1].toLowerCase().includes("kg")) {
               weightInput.value = `${memberJSONExerciseName.weight[arrayLength-1]}`;
             } else {
-              weightInput.value = `${memberJSONExerciseName.weight[arrayLength-1]} kg`;
+              weightInput.value = `${memberJSONExerciseName.weight[arrayLength-1]} Kg`;
             }
           }
 
@@ -187,7 +187,7 @@ function main() {
 
               const inputValue = event.target.value;
               if(!event.target.value.toLowerCase().includes("kg") && event.target.value != "") {
-                event.target.value = `${inputValue} kg`;
+                event.target.value = `${inputValue} Kg`;
               }
               const exerciseBlock = event.target.closest("#inputSectionBlock");
               const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
@@ -227,7 +227,7 @@ function main() {
                   if (memberJSONExerciseName.weight[j+1].toLowerCase().includes("kg")) {
                     newWeightInput.value = `${memberJSONExerciseName.weight[j+1]}`;
                   } else {
-                    newWeightInput.value = `${memberJSONExerciseName.weight[j+1]} kg`;
+                    newWeightInput.value = `${memberJSONExerciseName.weight[j+1]} Kg`;
                   }
 
                 }
@@ -604,14 +604,13 @@ function main() {
           } else {
             repsArr.push(inputValue)
           }
-          console.log(repsArr)
           var exerciseRepsObj = repsArr;
           
         }
         exerciseInfo.reps = exerciseRepsObj;
         
         const updatedJSON = {[exerciseName] : exerciseInfo};
-        console.log(updatedJSON);
+
         member.updateMetaData(updatedJSON);
 
       } else {
