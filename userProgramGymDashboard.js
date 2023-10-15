@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -1686,6 +1685,8 @@ function main() {
               exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value;
               exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
               exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
+              exerciseInformation["loadAmount"] = "";
+              
               
               exerciseList.push(exerciseInformation);
             }
@@ -1712,6 +1713,7 @@ function main() {
             exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value;
             exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
             exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
+            exerciseInformation["loadAmount"] = "";
             exerciseList.push(exerciseInformation);
           }
           workoutExercise["exerciseName"] = exerciseName.innerText;
@@ -4072,6 +4074,7 @@ function main() {
                   exercise: "",
                   reps: "",
                   load: "",
+                  loadAmount: "",
                   exerciseRestMinutes: "",
                   exerciseRestSeconds: "",
                   quantityUnit: "",
@@ -4118,6 +4121,12 @@ function main() {
           newItem.load = matchingItem.load;
           newItem.notes = matchingItem.notes;
           newItem.results = matchingItem.results;
+          if(matchingItem.loadAmount != undefined && matchingItem.loadAmount != "") {
+            newItem.loadAmount = matchingItem.loadAmount;
+          } else {
+            newItem.loadAmount = "";
+          }
+          
         }
       }
 
@@ -4369,7 +4378,6 @@ function main() {
                       combinedValue = data.reps + " " + data.quantityUnit;
                     }
                     
-    
                     // Return the combined value for display
                     return combinedValue;
                 }, cellEdited:function(cell){
@@ -4384,34 +4392,31 @@ function main() {
                 },},
                   { title: "Minutes Rest", field: "exerciseRestMinutes", visible: false },
                   { title: "Seconds Rest", field: "exerciseRestSeconds", visible: false },
-                  { title: "Load", field: "load", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
-
-                    const oldValue = cell.getOldValue();
-                    var combinedValue = cell.getValue();
-                    //Check if it is the default value - prefill the unit previously in the field
-                    if ((/^[^0-9]*$/.test(oldValue) || oldValue == "%1RM") && combinedValue != "" && oldValue != "" && !(oldValue.split(" ").length > 1) ) {
-                      if(combinedValue.split(" ").length < 2)
-                      combinedValue = `${cell.getValue()} ${oldValue}`;
-                    } else if(/^[0-9]*$/.test(oldValue)) {
-                      //Check if just numbers
-                      var unit = oldValue.split(" ");
-                      var currentLength = combinedValue.split(" ");
-                      combinedValue = unit.length > 1 && currentLength.length < 3 ? `${oldValue} ${unit[1]}` : `${combinedValue}`;
-                    }
-
-                    if(combinedValue != "") {
-                      cell.setValue(combinedValue);
-                    }
-
+                  { title: "Load", field: "loadAmount", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
+             
                     var rowData = cell.getRow().getData();
                     if (rowData.exercise === "") { 
                       cell.setValue("");
                     }
-                    
+
                     //Set edited flag to true for checking
                     sessionStorage.setItem("programSheetChanged", "true");
                     
-                  }},
+                  }, formatter: function(cell, formatterParams, onRendered) {
+
+                    // Get the data from the row
+                    var data = cell.getRow().getData();
+                    var value = cell.getValue();
+                    
+                    // Combine "reps" and "quantityUnit" into a single string
+                    var combinedValue = data.loadAmount;
+                    if(data.load != undefined ) {
+                      combinedValue = data.loadAmount + " " + data.load ;
+                    }
+    
+                    // Return the combined value for display
+                    return combinedValue;
+                }},
                   { title: "Notes", field: "notes", hozAlign: "center",  headerHozAlign:"center", width: 250, headerSort: false, editor:"input", resizable:true, cellEdited:function(cell){
                     var rowData = cell.getRow().getData();
                     if (rowData.exercise === "") { 
@@ -4508,6 +4513,7 @@ function main() {
                   "exercise": isSuperset ? k == 0 ? `${exerciseCount}A - ${individualExercise.exerciseName}` : `${exerciseCount}B - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
                   "reps": exercise.reps,
                   "load": exercise.measure,
+                  "loadAmount": (exercise.loadAmount != undefined) ? exercise.loadAmount : "",
                   "exerciseRestMinutes": exercise.exerciseRestMinutes,
                   "exerciseRestSeconds": exercise.exerciseRestSeconds,
                   "quantityUnit": exercise.quantityUnit,
