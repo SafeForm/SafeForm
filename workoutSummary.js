@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+
   //Add inputs for each exercise based on number of sets
   const inputList = document.getElementById("inputList").children;
   
@@ -77,7 +78,7 @@ function main() {
 
         weightInput.addEventListener('blur', function(event) {
           const inputValue = event.target.value;
-          if(!event.target.value.includes("kg") && event.target.value != "") {
+          if(!event.target.value.toLowerCase().includes("kg") && event.target.value != "") {
             event.target.value = `${inputValue} kg`;
           }
     
@@ -115,10 +116,11 @@ function main() {
         
         if(memberJSONExerciseName != undefined) {
           if(memberJSONExerciseName.weight != undefined) {
-            if (memberJSONExerciseName.weight.includes("kg")) {
-              weightInput.value = `${memberJSONExerciseName.weight[0]}`;
+            var arrayLength = memberJSONExerciseName.weight.length;
+            if (memberJSONExerciseName.weight[arrayLength-1].toLowerCase().includes("kg")) {
+              weightInput.value = `${memberJSONExerciseName.weight[arrayLength-1]}`;
             } else {
-              weightInput.value = `${memberJSONExerciseName.weight[0]} kg`;
+              weightInput.value = `${memberJSONExerciseName.weight[arrayLength-1]} kg`;
             }
           }
 
@@ -143,8 +145,8 @@ function main() {
           inputList[i].querySelector("#notes").innerText = `${exerciseInformation[0].notes}`;
 
           //Check if load has inputs from PT
-          if(exerciseInformation[0].load.toLowerCase() != "kg") {
-            inputList[i].querySelector("#weight").value = `${exerciseInformation[0].load}`;
+          if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
+            inputList[i].querySelector("#weight").value = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
           }
 
           //Fill in rest fields
@@ -173,8 +175,8 @@ function main() {
 
               //Set weight field if exists
               //Check if load has inputs from PT
-              if(exerciseInformation[0].load.toLowerCase() != "kg") {
-                newWeightInput.value = `${exerciseInformation[j+1].load}`;
+              if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
+                newWeightInput.value = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
               }
 
               //Set rest
@@ -184,7 +186,7 @@ function main() {
             newWeightInput.addEventListener('blur', function(event) {
 
               const inputValue = event.target.value;
-              if(!event.target.value.includes("kg") && event.target.value != "") {
+              if(!event.target.value.toLowerCase().includes("kg") && event.target.value != "") {
                 event.target.value = `${inputValue} kg`;
               }
               const exerciseBlock = event.target.closest("#inputSectionBlock");
@@ -222,11 +224,12 @@ function main() {
 
               if(memberJSONExerciseName.weight != undefined) {
                 if(memberJSONExerciseName.weight[j+1] != undefined) {
-                  if (memberJSONExerciseName.weight.includes("kg")) {
+                  if (memberJSONExerciseName.weight[j+1].toLowerCase().includes("kg")) {
                     newWeightInput.value = `${memberJSONExerciseName.weight[j+1]}`;
                   } else {
                     newWeightInput.value = `${memberJSONExerciseName.weight[j+1]} kg`;
                   }
+
                 }
 
               }
