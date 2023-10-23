@@ -90,7 +90,12 @@ function main() {
     }
   }
 
+  //Check if any workouts have more than 5 (CMS limit) exercises and add them if not
   addMoreThanFiveWorkouts();
+
+  //Calculate the days until the clients program ends or weight inputs aren't complete
+  calculateWorkoutUrgencyDays();
+  calculateProgramUrgencyDays();
 
   /*
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
@@ -173,6 +178,132 @@ function main() {
     //Colour div
     destinationDiv.classList.add("clickednavbutton");
     destinationDiv.style.backgroundColor = "#0C08D5";
+  }
+
+  function calculateWorkoutUrgencyDays() {
+
+    //Adding urgency to client list
+    const clientList = document.querySelectorAll("#clientList #userSummary");
+
+    for(var i = 0; i < clientList.length; i++) {
+
+      var fullProgramData = clientList[i].querySelector("#summaryFullEventData").innerText;
+
+      var daysDifference = 0;
+
+      if(fullProgramData != null && fullProgramData != "") {
+        daysDifference = findEmptyWorkoutInput(JSON.parse(fullProgramData));
+      }
+       
+      updateUrgencyDayText(clientList[i].querySelector("#customWorkouts"), daysDifference);
+
+      styleWorkoutUrgencyDay(clientList[i].querySelector("#customWorkouts"), daysDifference);
+    }
+  }
+
+  function calculateProgramUrgencyDays() {
+
+    //Adding urgency to client list
+    const clientList = document.querySelectorAll("#clientList #userSummary");
+
+    for(var i = 0; i < clientList.length; i++) {
+
+      //Get program date difference
+      var customProgramDate = clientList[i].querySelector("#customProgram").innerText;
+
+      // Parse the date using Moment.js
+      var programDate = moment(customProgramDate, "YYYY-MM-DD");
+      
+      // Get today's date
+      var today = moment();
+
+      // Calculate the difference in days
+      var daysDifference = programDate.diff(today, 'days');
+
+      updateUrgencyDayText(clientList[i].querySelector("#customProgram"),daysDifference);
+
+      styleProgramUrgencyDay(clientList[i].querySelector("#customProgram"), daysDifference);
+    }
+  }
+
+  function findEmptyWorkoutInput(jsonData) {
+    // Get the current date
+    const currentDate = moment().format("YYYY-MM-DD");
+  
+    let daysUntilStartDate = 0; // Initialise as 0 days
+  
+    // Iterate through the JSON array
+    jsonData.some(item => { // Use .some() to stop iteration when a result is found
+      // Check if 'loadAmount' is an empty string and 'quantityUnit' is not 'RIR' or 'RPE'
+      var isBodyweight = checkIfExerciseIsBodyweight(item.guideID);
+
+      if (item.loadAmount === "" && item.quantityUnit !== "RIR" && item.quantityUnit !== "RPE" && item.quantityUnit !== "%1RM" && !isBodyweight) {
+        // Parse the 'startDate' attribute as a moment date
+        const startDate = moment(item.startDate, "YYYY-MM-DD");
+        console.log(item)
+        // Check if 'startDate' is after the current date
+        if (startDate.isSame(currentDate) || startDate.isAfter(currentDate)) {
+
+          // Calculate the number of days until 'startDate'
+          daysUntilStartDate = startDate.diff(currentDate, 'days');
+          return true; // Exit the loop when a result is found
+        }
+      }
+      return false; // Continue to the next item
+    });
+  
+    return daysUntilStartDate; // Return the result
+  }
+
+  function checkIfExerciseIsBodyweight(guideID) {
+    var guideList = document.querySelectorAll("#guideList .w-dyn-item");
+    var foundBodyweightExercise = false; // Initialize the flag
+  
+    for (var i = 0; i < guideList.length; i++) {
+      if(guideID == guideList[i].querySelector("#itemID").innerText) {
+        var loadingMechanism = guideList[i].querySelector("#loadingMechanism").innerText;
+        if (loadingMechanism == "Bodyweight" || loadingMechanism == "Band") {
+          foundBodyweightExercise = true;
+          break; // Exit the loop
+        }
+      }
+    }
+  
+    return foundBodyweightExercise; // Return the flag's value
+  }
+  
+  
+
+  function updateUrgencyDayText(element, daysDifference) {
+    if(daysDifference > 0) {
+      element.innerText = `${daysDifference} days`;
+    } else if(daysDifference == 1) {
+      element.innerText = "1 day";
+    } else {
+      element.innerText = "0 days";
+    }
+  }
+
+  function styleProgramUrgencyDay(element, daysDifference) {
+    if(daysDifference < 7) {
+      element.style.backgroundColor = "#EE1D29";
+    } else if(daysDifference >= 7 && daysDifference < 14) {
+      element.style.backgroundColor = "#FA7B05";
+    } else {
+      element.style.backgroundColor = "#08D58B";
+    }
+  }
+
+  function styleWorkoutUrgencyDay(element, daysDifference) {
+
+    if(daysDifference < 2) {
+      element.style.backgroundColor = "#EE1D29";
+    } else if(daysDifference >= 2 && daysDifference <= 5) {
+      element.style.backgroundColor = "#FA7B05";
+    } else {
+      element.style.backgroundColor = "#08D58B";
+    }
+    
   }
 
   async function addMoreThanFiveWorkouts() {
@@ -1243,7 +1374,6 @@ function main() {
       // Add the new event to the calendar
       calendar.addEvent(newEvent);
       //Check if no programs have been added - and just workout is added, create program to ensure the data is saved
-      console.log(userTrainingPlan)
       if (Object.keys(userTrainingPlan).length === 0) {
         const startOfWeek = moment(newEvent.start).startOf('week').format('YYYY-MM-DD');
         const endOfWeek = moment(newEvent.start).endOf('week').format('YYYY-MM-DD');
@@ -4554,7 +4684,9 @@ function main() {
                   "notes": individualExercise.exerciseNotes,
                   "workoutNumber": i,
                   "setNumber": l,
-                  "results": "" 
+                  "results": "" ,
+                  "startDate": event.start,
+                  "guideID": individualExercise.guideID
                 };
 
                 // Push the exercise object to the convertedData array
@@ -4566,7 +4698,7 @@ function main() {
         }
       }
 
-
+      console.log(convertedData)
       // Now 'convertedData' contains the converted data in the format of your first JSON object
       return convertedData;
     }
