@@ -44,59 +44,60 @@ var capturedEvent = null; // Variable to store the captured event
 const signUpForm = document.getElementById('sign-up-button');
 signUpForm.addEventListener('click', async function(event) {
 
+  const username = document.getElementById('email').value;
+
+  const cognitoPw = atob(document.getElementById('cognitoPasswordField').value);
+  
+  const firstName = document.getElementById('first-name').value;
+
+  const lastName = document.getElementById('last-name').value;
+
+  const password = document.getElementById('password').value;
+
+  const dob = document.getElementById('dob').value;
+
+  const gender = document.getElementById('gender').value;
+
+  const height = document.getElementById('height').value;
+
+  const weight = document.getElementById('weight').value;
+
+  const experience = document.getElementById('experience').value;
+
+  // Get all radio buttons in the group
+  var radioButtons = document.getElementsByName('trainingType');
+
+  // Initialize a variable to store the selected radio button's value
+  var trainingType = '';
+
+  // Loop through the radio buttons to find the selected one
+  for (var i = 0; i < radioButtons.length; i++) {
+      if (radioButtons[i].checked) {
+          selectedValue = radioButtons[i].value;
+          break; // Exit the loop once a selected radio button is found
+      }
+  }
+
+  const goals = document.getElementById('goals').value;
+
+  const injury = document.getElementById('injury').value;
+
   if (!cognitoComplete && !disableForm) {
 
     event.preventDefault();
     capturedEvent = event;
-    
-    const username = document.getElementById('email').value;
-    const usernameValidation = document.getElementById("email").reportValidity();
 
-    const cognitoPw = atob(document.getElementById('cognitoPasswordField').value);
-    
-    const firstName = document.getElementById('first-name').value;
-    const firstNameValidation = document.getElementById("first-name").reportValidity();
-
-    const lastName = document.getElementById('last-name').value;
-    const lastNameValidation = document.getElementById("last-name").reportValidity();
-
-    const password = document.getElementById('password').value;
-    const passwordValidation = document.getElementById("password").reportValidity();
-
-    const dob = document.getElementById('dob').value;
-    const dobValidation = document.getElementById("dob").reportValidity();
-
-    const gender = document.getElementById('gender').value;
-    const genderValidation = document.getElementById("gender").reportValidity();
-
-    const height = document.getElementById('height').value;
-    const heightValidation = document.getElementById("height").reportValidity();
-
-    const weight = document.getElementById('weight').value;
-    const weightValidation = document.getElementById("weight").reportValidity();
-
-    const experience = document.getElementById('experience').value;
-    const experienceValidation = document.getElementById("experience").reportValidity();
-
-    // Get all radio buttons in the group
-    var radioButtons = document.getElementsByName('trainingType');
-
-    // Initialize a variable to store the selected radio button's value
-    var trainingType = '';
-
-    // Loop through the radio buttons to find the selected one
-    for (var i = 0; i < radioButtons.length; i++) {
-        if (radioButtons[i].checked) {
-            selectedValue = radioButtons[i].value;
-            break; // Exit the loop once a selected radio button is found
-        }
-    }
-
-    const goals = document.getElementById('goals').value;
-    const goalsValidation = document.getElementById("goals").reportValidity();
-
-    const injury = document.getElementById('injury').value;
     const injuryValidation = document.getElementById("injury").reportValidity();
+    const goalsValidation = document.getElementById("goals").reportValidity();
+    const experienceValidation = document.getElementById("experience").reportValidity();
+    const weightValidation = document.getElementById("weight").reportValidity();
+    const heightValidation = document.getElementById("height").reportValidity();
+    const genderValidation = document.getElementById("gender").reportValidity();
+    const dobValidation = document.getElementById("dob").reportValidity();
+    const passwordValidation = document.getElementById("password").reportValidity();
+    const lastNameValidation = document.getElementById("last-name").reportValidity();
+    const firstNameValidation = document.getElementById("first-name").reportValidity();
+    const usernameValidation = document.getElementById("email").reportValidity();
 
     const hasPaid = "false"
     
@@ -110,6 +111,27 @@ signUpForm.addEventListener('click', async function(event) {
     
   } else if(disableForm) {
     event.preventDefault();
+  } else {
+    // Submit data to make webhook
+
+    var client = {};
+    client["gender"] = gender;
+    client["experience"] = experience;
+    client["goals"] = goals;
+    client["email"] = username;
+    client["physical-limitations"] = injury;
+    client["initials"] = firstName[0]+lastName[0];
+    client["first-name"] = firstName;
+    client["last-name"] = lastName;
+    client["height"] = height;
+    client["weight"] = weight;
+    client["dob"] = dob;
+    client["gender"] = gender;
+    client["type"] = trainingType;
+    client["gymId"] = gymId;
+    
+    sendClientToMake(client);
+
   }
 });
 
@@ -133,6 +155,26 @@ function replayEvent() {
     // Reset the captured event
     capturedEvent = null;
   }
+}
+
+async function sendClientToMake(client) {
+  fetch("https://hook.us1.make.com/o78n4v73p7kyr1ow3rvshf1i2kyx1ypj", {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'}, 
+    body: JSON.stringify(client)
+  }).then((res) => {
+    if (res.ok) {
+      return res.text();
+    }
+    throw new Error('Something went wrong');
+  })
+  .then((data) => {
+  
+
+  })
+  .catch((error) => {
+
+  });
 }
 
 
