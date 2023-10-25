@@ -97,6 +97,9 @@ function main() {
   calculateWorkoutUrgencyDays();
   calculateProgramUrgencyDays();
 
+  //Add pending users
+  addPendingUsers();
+
   /*
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
   */
@@ -240,7 +243,7 @@ function main() {
       if (item.loadAmount === "" && item.quantityUnit !== "RIR" && item.quantityUnit !== "RPE" && item.quantityUnit !== "%1RM" && !isBodyweight) {
         // Parse the 'startDate' attribute as a moment date
         const startDate = moment(item.startDate, "YYYY-MM-DD");
-        console.log(item)
+
         // Check if 'startDate' is after the current date
         if (startDate.isSame(currentDate) || startDate.isAfter(currentDate)) {
 
@@ -304,6 +307,68 @@ function main() {
       element.style.backgroundColor = "#08D58B";
     }
     
+  }
+
+  function addPendingUsers() {
+
+    for(var i = 1; i <= 3; i++) {
+      if(localStorage.getItem(`newClientName-${i}`) != undefined) {
+
+        var clientName = localStorage.getItem(`newClientName-${i}`);
+        if(checkIfNameInList(clientName)) {
+          console.log("removing")
+          localStorage.removeItem(`newClientName-${i}`);
+        } else {
+
+          var firstName = clientName.split(' ')[0];
+          var lastName = clientName.split(' ')[1];
+
+          //Add client name to list
+          var clientRow = document.querySelector("#clientList .w-dyn-item").cloneNode(true);
+          clientRow.querySelector("#initials").innerText = firstName[0]+lastName[0];
+          clientRow.querySelector("#userSummaryName").innerText = firstName + " " + lastName;
+          clientRow.querySelector("#clientJoined").innerText = "";
+          clientRow.querySelector("#clientType").innerText = "";
+          clientRow.querySelector("#customWorkouts").innerText = "";
+          clientRow.querySelector("#customWorkouts").style.backgroundColor = "";
+          clientRow.querySelector("#customProgram").innerText = "";
+          clientRow.querySelector("#customProgram").style.backgroundColor = "";
+          clientRow.onclick = null; // Remove the old event
+
+          clientRow.onclick = (event) => { 
+            //Hide user summary list
+            document.getElementById("userSummaryPage").style.display = "block";
+
+            alert("Please wait for your client to fill out the form before making a program"); 
+            document.getElementById("programPage").style.display = "none";
+            document.getElementById("programBuilder").style.display = "none";
+            document.getElementById("userDetailsPage").style.display = "none";
+
+            
+            return
+          };
+
+          document.getElementById("clientList").appendChild(clientRow);
+        }
+
+      }
+
+    }
+
+  }
+
+  function checkIfNameInList(name) {
+
+    var clientList = document.querySelectorAll("#clientList .w-dyn-item");
+    var nameFound = false;
+    for(var i = 0; i < clientList.length; i++) {
+      if(clientList[i].querySelector("#userSummaryName").innerText == name) {
+        nameFound = true;
+        break;
+      }
+    }
+    return nameFound;
+
   }
 
   async function addMoreThanFiveWorkouts() {
@@ -2445,6 +2510,7 @@ function main() {
 
       } else if(event.target.closest("#createUser")) {
 
+        /*
         //Get button
         const createUserGymName = document.getElementById("gymFullName").innerText;
         const createUserGymID = document.getElementById("gymID").innerText;
@@ -2480,6 +2546,7 @@ function main() {
         createUserModal.style.display = "flex";
         createUserModal.style.flexDirection = "column";
         createUserModal.style.alignItems = "center";
+        */
 
       
       } else if(event.target.id == "ipadBackButton") {
@@ -2569,9 +2636,69 @@ function main() {
         navigator.clipboard.writeText(sessionStorage.getItem("workoutLink"));
         document.getElementById("linkCopiedText").style.display = "block";
         
+      } else if(event.target.id == "copyInviteLink") {
+
+        event.preventDefault();
+        navigator.clipboard.writeText(event.target.href);
+        event.target.innerText = "Copied!";
+        event.target.style.backgroundColor = "##0c08d5";
+
       } else if(event.target.id == "shareSignUpLink") {
-        navigator.clipboard.writeText(sessionStorage.getItem("shareSignUpLink"));
-        document.getElementById("linkCopiedTextSignUp").style.display = "block"; 
+        // navigator.clipboard.writeText(sessionStorage.getItem("shareSignUpLink"));
+        // document.getElementById("linkCopiedTextSignUp").style.display = "block"; 
+
+        var firstNameSignUp = document.getElementById("first-name-sign-up").value;
+        var lastNameSignUp = document.getElementById("last-name-sign-up").value;
+
+        if(firstNameSignUp != "" && lastNameSignUp != "") {
+
+          //Check if this place is taken
+          if(localStorage.getItem(`newClientName-1`) == undefined) {
+            localStorage.setItem(`newClientName-1`, firstNameSignUp + " " + lastNameSignUp);
+          } else if(localStorage.getItem(`newClientName-2`) == undefined) {
+            localStorage.setItem(`newClientName-2`, firstNameSignUp + " " + lastNameSignUp);
+          } else if(localStorage.getItem(`newClientName-3`) == undefined) {
+            localStorage.setItem(`newClientName-3`, firstNameSignUp + " " + lastNameSignUp);
+          }
+          
+          event.target.style.display = "none";
+          document.getElementById("copyInviteLink").style.display = "flex";
+
+          //Add client name to list
+          var clientRow = document.querySelector("#clientList .w-dyn-item").cloneNode(true);
+          clientRow.querySelector("#initials").innerText = firstNameSignUp[0]+lastNameSignUp[0];
+          clientRow.querySelector("#userSummaryName").innerText = firstNameSignUp + " " + lastNameSignUp;
+          clientRow.querySelector("#clientJoined").innerText = "";
+          clientRow.querySelector("#clientType").innerText = "";
+          clientRow.querySelector("#customWorkouts").innerText = "";
+          clientRow.querySelector("#customWorkouts").style.backgroundColor = "white";
+          clientRow.querySelector("#customProgram").innerText = "";
+          clientRow.querySelector("#customProgram").style.backgroundColor = "white";
+          clientRow.onclick = null; // Remove the old event
+
+          clientRow.onclick = (event) => { 
+            //Hide user summary list
+            document.getElementById("userSummaryPage").style.display = "block";
+
+            alert("Please wait for your client to fill out the form before making a program"); 
+            document.getElementById("programPage").style.display = "none";
+            document.getElementById("programBuilder").style.display = "none";
+            document.getElementById("userDetailsPage").style.display = "none";
+
+            
+            return
+          };
+
+          document.getElementById("clientList").appendChild(clientRow);
+
+          //Append gym id to onboard form
+          const ptGymID = document.getElementById("gymID").innerText;
+          document.getElementById("copyInviteLink").href += `?pt=${ptGymID}`
+
+        } else {
+          alert("Please fill in first & last name!");
+        }
+
       } else if(event.target.closest(".addset")) {
 
         const workoutItemExercise = event.target.closest(".exercise-list-item");
