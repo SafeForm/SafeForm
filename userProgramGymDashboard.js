@@ -401,7 +401,7 @@ function main() {
             if(differenceArr[x] != "") {
               var workoutSlug = differenceArr[x];
               //var url = 'https://app.bene-fit.io/workout-exercise/' + workoutSlug; // Construct the URL
-              var url = 'https://app.bene-fit.io/guides/' + workoutSlug; // Construct the URL
+              var url = window.location.origin + '/guides/' + workoutSlug; // Construct the URL
 
               // Capture the reference to workoutSummaryElement before entering the asynchronous context
               var currentWorkoutElement = workoutSummaryElement;
@@ -417,6 +417,7 @@ function main() {
               var exerciseGuideID = $page.find('#guideID').text();
               var exerciseItemID = $page.find('#guideID').text();
               var exerciseThumbnailURL = $page.find('#guideThumbnailURL').text();
+              var exerciseMuscles = $page.find('#exerciseMuscles').text(); 
               var exerciseSets = "";
               var muscleHighlightImage = $page.find('#muscleHighlightImage').attr('src');
 
@@ -429,6 +430,9 @@ function main() {
               clonedRow.querySelector("#exerciseThumbnailURL").innerText = exerciseThumbnailURL;
               clonedRow.querySelector("#exerciseSets").innerText = exerciseSets;
               clonedRow.querySelector("#exerciseMuscleImage").innerText = muscleHighlightImage;
+              clonedRow.querySelector("#exerciseMuscles").innerText = exerciseMuscles;
+
+            
               currentWorkoutElement.querySelector("#newCollectionList").appendChild(clonedRow)
             }
           }
@@ -562,6 +566,7 @@ function main() {
           workoutItem.querySelector(".setrestinputm").value = exerciseInformation.exerciseRestMins;
           workoutItem.querySelector(".setrestinput").value = exerciseInformation.exerciseRestSecs;
         } else {
+          workoutItem.querySelector("#removeExercise").style.display = "none";
           workoutItem.querySelector(".repsinput").innerText = exerciseInformation.exerciseReps;
           workoutItem.querySelector(".setrestinputm").innerText = exerciseInformation.exerciseRestMins;
           workoutItem.querySelector(".setrestinput").innerText = exerciseInformation.exerciseRestSecs;
@@ -661,7 +666,6 @@ function main() {
           workoutItem.previousSibling.querySelector(".supersetparent").style.display = "block";
         }
        
-
       }
       
       const saveWorkout = document.getElementById("saveWorkout");
@@ -700,7 +704,7 @@ function main() {
         if(!programWorkout) {
           if(!workoutItem.previousSibling.classList.contains("exercise-list-item")) {
             var previousElement = workoutItem.closest(".exercise-list-item").previousSibling;
-            console.log(previousElement)
+
             var moveDownElements = previousElement.querySelectorAll("#moveDown");
             var moveUpElements = previousElement.querySelectorAll("#moveUp");
             
@@ -762,6 +766,10 @@ function main() {
         workoutItem.querySelector("#moveUp").style.display = "none";
         workoutItem.querySelector(".supersetparent").style.display = "none";
         workoutItem.querySelector(".addset").style.display = "none";
+        var removeButtons = workoutItem.querySelectorAll("#removeExercise");
+        for(var i = 0; i < removeButtons.length; i++) {
+          removeButtons[i].style.display = "none";
+        }
       }
       
     }
@@ -1863,7 +1871,7 @@ function main() {
       workout["listOfExercises"] = [];
       workout["exerciseIDs"] = [];
       workout["exerciseSlugs"] = [];
-      workout["muscleGroups"] = new Set();
+      workout["muscleGroups"] = [];
 
       const workoutList = document.getElementById("workoutList").children;
 
@@ -1878,12 +1886,13 @@ function main() {
           const supersetExercises = workoutList[i].querySelectorAll(".exercise-list-item");
           //If it is, iterate through each item in the superset
           for(var k = 0; k < supersetExercises.length; k++) {
+            
             const setInformation = supersetExercises[k].querySelectorAll("#exerciseInfo");
             const exerciseName = supersetExercises[k].querySelector("#workoutExercisename");
             var exerciseSlug = supersetExercises[k].querySelector("#guideLinkInfo").href.split("/");
             var muscleGroups = supersetExercises[k].querySelectorAll("#scientificPrimaryMuscle");
             for(var m = 0; m < muscleGroups.length; m++) {
-              workout.muscleGroups.add(muscleGroups[m].innerText);
+              workout.muscleGroups.push(muscleGroups[m].innerText);
             }
 
             if(exerciseSlug.length > 4) {
@@ -1926,7 +1935,7 @@ function main() {
           }
           var muscleGroups = workoutList[i].querySelectorAll("#scientificPrimaryMuscle");
           for(var m = 0; m < muscleGroups.length; m++) {
-            workout.muscleGroups.add(muscleGroups[m].innerText);
+            workout.muscleGroups.push(muscleGroups[m].innerText);
           }
          
           const setInformation = workoutList[i].querySelectorAll("#exerciseInfo");
@@ -1957,7 +1966,7 @@ function main() {
       }
       workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
       workout.exerciseSlugs = workout.exerciseSlugs.join(", ")
-      workout.muscleGroups = Array.from(workout.muscleGroups).join(', ');
+      workout.muscleGroups = workout.muscleGroups.join(", ");
 
 
       //Make sure they have selected a duration and focus area
@@ -3606,7 +3615,7 @@ function main() {
       const duplicateWorkout = sessionStorage.getItem('duplicateWorkout');
       const createWorkout = sessionStorage.getItem('createWorkout');
       sessionStorage.setItem("tempWorkout", JSON.stringify(workout));
-      console.log(workout);
+
       if(editWorkout == "true" && workout) {
 
         fetch("https://hook.us1.make.com/itgaod39imi9bt9skusjtrls4etuymhk", {
@@ -5119,6 +5128,7 @@ function main() {
         
       } else {
         var workout = workoutSummary;
+        workoutJSON = JSON.parse(workoutSummary.workoutJSON);
       }
 
       var listOfGuideIDs = [];
@@ -5189,12 +5199,18 @@ function main() {
         //Change ID of exercise name
         copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
 
-        
         //Ensure proper guide ID is set
         copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
   
         //Remove info button
         copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
+
+        //Update link
+        var workoutSlugs = workout.workoutIDs.split(', ');
+        copyOfGuide.querySelector("#guideLinkInfo").href = window.location.origin + '/guides/' + workoutSlugs[i];
+
+        //Update scientific muscle 
+        copyOfGuide.querySelector("#scientificPrimaryMuscle").innerText = workout.exercises[i].exerciseMuscles;
 
         //Copy thumbnail and svg person into a separate div
         var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
@@ -5206,7 +5222,7 @@ function main() {
     //Given a row of a workout, extract all data points within each
     function getWorkoutExerciseInformation(selectedWorkout, programWorkout=false) {
       var workout = {};
-  
+
       // Workout name
       workout["workoutName"] = selectedWorkout.querySelector("#workoutSummaryName").innerText;
       // Workout duration
@@ -5217,6 +5233,10 @@ function main() {
       workout["workoutDifficulty"] = selectedWorkout.querySelector("#workoutDifficulty").innerText;
       // Workout Description
       workout["workoutSummaryDescription"] = selectedWorkout.querySelector("#workoutSummaryDescription").innerText;
+
+      workout["workoutIDs"] = selectedWorkout.querySelector("#workoutIDs").innerText;
+
+      workout["workoutMuscleGroups"] = selectedWorkout.querySelector("#workoutMuscleGroups").innerText;
   
       // Only set ID and full name if user is editing the workout
       if(sessionStorage.getItem('editWorkout') == "true" || programWorkout) {
@@ -5231,6 +5251,7 @@ function main() {
       const workoutListElements = selectedWorkout.querySelector("#newCollectionList").children;
       for(var i = 0; i < workoutListElements.length; i++) {
         const workoutDetails = workoutListElements[i];
+
         var exercise = {};
         // Exercise name
         exercise["exerciseShortName"] = workoutDetails.querySelector("#exerciseShortName").innerText;
@@ -5255,6 +5276,9 @@ function main() {
   
         // Exercise Full Name
         exercise["exerciseFullName"] = workoutDetails.querySelector("#exerciseFullName").innerText;
+
+        // Muscle Groups
+        exercise["exerciseMuscles"] = workoutDetails.querySelector("#exerciseMuscles").innerText;
   
         //Exercise Guide ID
         exercise["exerciseGuideID"] = workoutDetails.querySelector("#exerciseGuideID").innerText;
