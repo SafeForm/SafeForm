@@ -14,6 +14,15 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+  //Hide the first exercise breaker of the exercise list
+  const exerciseList = document.getElementById("listOfExercises").children;
+
+  var utm_campaign = document.getElementById("utm_campaign").innerText;
+  const urlParams = new URLSearchParams(window.location.search);
+  var fromProgram = false;
+  if(urlParams.has("fromProgram")) {
+    fromProgram = true;
+  }
 
   //Add inputs for each exercise based on number of sets
   const inputList = document.getElementById("inputList").children;
@@ -25,20 +34,18 @@ function main() {
   weekWorkouts = "";
   currentWorkoutIndex = "";
   workoutInformation = "";
-  if(currentProgram != undefined && currentProgram != null) {
+  
+  if(fromProgram && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
     workoutName = document.querySelector(".workout-summary-header h1").innerText
     weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
     currentWorkoutIndex = sessionStorage.getItem("workoutIndex");
     workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
-  } else {
-    //workoutInformation = JSON.parse(document.getElementById("workoutJSON").innerText);
-  }
-
+  } 
 
   MemberStack.onReady.then(async function(member) {  
 
-    if(member.loggedIn) {
+    if(fromProgram && member.loggedIn) {
 
       //Iterate through existing exercise list and change names
       for(var i = 0; i < inputList.length; i++) {
@@ -298,6 +305,28 @@ function main() {
 
       });
 
+    } else {
+      //User not signed in or not coming from program
+      document.getElementById("summarySwitch").style.display = "none";
+
+      var workoutJSON = JSON.parse(document.getElementById("workoutJSON").innerText);
+      
+      const flattenedArray = [].concat(...workoutJSON);
+      const exerciseList = document.querySelectorAll("#listOfExercises .w-dyn-item");
+
+      //Fill workout list with values from workout json
+       //Iterate through existing exercise list and change names
+       for(var i = 0; i < exerciseList.length; i++) {
+        exerciseList[i].querySelector("#repInput").innerText = flattenedArray[i].exercises[0].reps;
+        exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#setInput").innerText = flattenedArray[i].sets;
+        exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restMinutes").innerText = 3;
+        exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restSeconds").innerText = 0;
+        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+       }
+
     }
 
     document.getElementById("finishWorkout").onclick = async () => {
@@ -359,17 +388,6 @@ function main() {
 
 
   });
-
-
-  //Hide the first exercise breaker of the exercise list
-  const exerciseList = document.getElementById("listOfExercises").children;
-
-  var utm_campaign = document.getElementById("utm_campaign").innerText;
-  const urlParams = new URLSearchParams(window.location.search);
-  var fromProgram = false;
-  if(urlParams.has("fromProgram")) {
-    fromProgram = true;
-  }
 
   //Check if there is no gym filter
   if (utm_campaign != null && utm_campaign != "utm_campaign") {
@@ -435,8 +453,11 @@ function main() {
 
       //Check if it is an empty filler exercise from god mode:
       if(exerciseInformation[0].exercise != "") {
+
         exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#setInput").innerText = exerciseInformation[0].sets;
+        exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
@@ -444,8 +465,11 @@ function main() {
         var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       } else {
+
         exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#setInput").innerText = exerciseInformation[0].sets;
+        exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
@@ -457,6 +481,8 @@ function main() {
       //Set default values
       exerciseList[i].querySelector("#repInput").innerText = 10;
       exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+      exerciseList[i].querySelector("#setInput").innerText = 3;
+      exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#restMinutes").innerText = 3;
       exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#restSeconds").innerText = 0;
