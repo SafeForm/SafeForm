@@ -176,7 +176,7 @@ function main() {
             completeButton.style.display = "none";
 
             //Check if it is an empty filler exercise from god mode:
-            if(exerciseInformation.length > 0 && exerciseInformation[j+1].exercise != "") {
+            if(exerciseInformation.length > 0 && exerciseInformation[j+1] && exerciseInformation[j+1].exercise != "") {
               //Set quantity/reps field
               newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`
 
@@ -456,7 +456,7 @@ function main() {
 
         exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#setInput").innerText = exerciseInformation[0].sets;
+        exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
@@ -468,7 +468,7 @@ function main() {
 
         exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#setInput").innerText = exerciseInformation[0].sets;
+        exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
