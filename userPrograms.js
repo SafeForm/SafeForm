@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   const workoutList = document.querySelectorAll(".workoutprogramitem");
   for(var i = 0; i < workoutList.length; i++) {
     workoutList[i].querySelector("#workoutIndex").innerText = i;
