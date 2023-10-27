@@ -14,6 +14,11 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+  const workoutList = document.querySelectorAll(".workoutprogramitem");
+  for(var i = 0; i < workoutList.length; i++) {
+    workoutList[i].querySelector("#workoutIndex").innerText = i;
+  }
+
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -261,7 +266,7 @@ function main() {
 
         const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
         const workoutIndex = workoutListWorkouts[i].querySelector("#workoutNumber").innerText
-        if(workoutListElement.innerText == workout.extendedProps.workoutID /*&& `Workout ${i}.` == workoutIndex*/) {
+        if(workoutListElement.innerText == workout.extendedProps.workoutID) {
           foundIndex = i;
           workoutElement = workoutListElement;
         }
@@ -289,7 +294,7 @@ function main() {
         }
 
         const newElementParent = newElement.closest(".workoutprogramitem");
-        const workoutIndex = newElementParent.querySelector("#workoutNumber").innerText.split(" ")[1].replace(".","") - 1;
+        const workoutIndex = newElementParent.querySelector("#workoutIndex").innerText;
         const programID = document.getElementById("programID").innerText;
         const programName = document.getElementById("programFullName").innerText;
         //Set onclick to capture current date and workout id
