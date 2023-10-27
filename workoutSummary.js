@@ -41,11 +41,7 @@ function main() {
     workoutName = document.querySelector(".workout-summary-header h1").innerHTML;
     weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
     currentWorkoutIndex = sessionStorage.getItem("workoutIndex");
-    console.log(weekWorkouts)
-    console.log(workoutName)
-    console.log(currentWorkoutIndex)
-    workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
-    console.log(workoutInformation)
+    workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
   } 
 
   MemberStack.onReady.then(async function(member) {  
