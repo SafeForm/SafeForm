@@ -14,6 +14,12 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+  //Add workout flag to guide links
+  const exerciseLinks = document.querySelectorAll("#exerciseInfo");
+  for(var i = 0; i < exerciseLinks.length; i++) {
+    exerciseLinks[i].href += "?isWorkout=true";
+  }
+
   //Hide the first exercise breaker of the exercise list
   const exerciseList = document.getElementById("listOfExercises").children;
 
