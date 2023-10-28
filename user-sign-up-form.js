@@ -70,11 +70,14 @@ signUpForm.addEventListener('click', async function(event) {
   // Initialize a variable to store the selected radio button's value
   var trainingType = '';
 
+
   // Loop through the radio buttons to find the selected one
   for (var i = 0; i < radioButtons.length; i++) {
-      if (radioButtons[i].checked) {
-          selectedValue = radioButtons[i].value;
-          break; // Exit the loop once a selected radio button is found
+    if (radioButtons[i].checked) {
+      // Get the label text associated with the selected radio button
+      var labelText = radioButtons[i].nextElementSibling.textContent.trim();
+      trainingType = labelText;
+      break; // Exit the loop once a selected radio button is found
       }
   }
 
