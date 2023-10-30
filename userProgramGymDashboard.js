@@ -63,6 +63,7 @@ function main() {
   var addStaffMemberFromSettings = false;
   var tableArr = [];
   sessionStorage.setItem("createUserProgram", "false");
+  var prefillingProgram = true;
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -333,6 +334,8 @@ function main() {
           clientRow.querySelector("#customWorkouts").style.backgroundColor = "";
           clientRow.querySelector("#customProgram").innerText = "";
           clientRow.querySelector("#customProgram").style.backgroundColor = "";
+          clientRow.querySelector("#status").innerText = "Pending";
+          clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
           clientRow.onclick = null; // Remove the old event
 
           clientRow.onclick = (event) => { 
@@ -1180,12 +1183,16 @@ function main() {
       
         // Add a click event listener to remove the event
         deleteImageEl.addEventListener('click', function(event) {
+
           event.stopPropagation(); // Prevent event propagation to the parent elements
 
           //Remove copy, delete buttons and event
           event.target.parentElement.nextElementSibling.remove();
           info.event.remove();
           event.target.remove();
+
+          //Populate god mode:
+          populateGodMode();
         });
 
         // Add a click event listener to copy the event
@@ -1204,7 +1211,8 @@ function main() {
             extendedProps: {
               length: info.event.extendedProps.length,
               targetArea: info.event.extendedProps.targetArea,
-              workoutID: info.event.extendedProps.workoutID
+              workoutID: info.event.extendedProps.workoutID,
+              uniqueWorkoutID: info.event.extendedProps.uniqueWorkoutID
             },
             start: info.event.start,
             title: info.event.title
@@ -1236,6 +1244,9 @@ function main() {
           }
 
         });
+
+        //Populate god mode:
+        populateGodMode();
 
         return eventEl;
       },
@@ -1373,7 +1384,8 @@ function main() {
               targetArea: selectedWorkout.workoutFocusArea,
               length: selectedWorkout.workoutDuration,
               workoutID: selectedWorkout.workoutSummaryID,
-              difficulty: selectedWorkout.workoutDifficulty
+              difficulty: selectedWorkout.workoutDifficulty,
+              uniqueWorkoutID: uuidv4()
             },
             start: desiredDate,
             allDay: true
@@ -1552,24 +1564,51 @@ function main() {
         userSummary.onclick = () => {
           //Fill user name
           document.getElementById("userFullName").innerText = userSummary.querySelector("#userSummaryName").innerText;
+          var userNameArr = userSummary.querySelector("#userSummaryName").innerText.split(" ");
+          if(userNameArr.length > 0) {
+            document.getElementById("user-firstName").value = userNameArr[0];
+            document.getElementById("user-lastName").value = userNameArr[1];
+          }
+
           //Fill account type
           document.getElementById("accountType").innerText = userSummary.querySelector("#summaryAccountType").innerText;
+
           //Fill program ends
           document.getElementById("programEnds").innerText = userSummary.querySelector("#summaryProgramEnds").innerText;
           //Fill experience
           document.getElementById("experienceLevel").innerText = userSummary.querySelector("#summaryExperience").innerText;
+          document.getElementById("user-experience").value = userSummary.querySelector("#summaryExperience").innerText;
+
           //Fill goals
           document.getElementById("userGoals").innerText = userSummary.querySelector("#summaryGoal").innerText;
+          document.getElementById("user-goals").value = userSummary.querySelector("#summaryGoal").innerText;
+         
           //Fill user created
           document.getElementById("userCreated").innerText = userSummary.querySelector("#summaryUserCreated").innerText;
           //Fill user email
           document.getElementById("userEmail").innerText = userSummary.querySelector("#summaryUserEmail").innerText;
+          document.getElementById("user-email").value = userSummary.querySelector("#summaryUserEmail").innerText;
+
+          //Fill user DOB
+          document.getElementById("user-dob").value = userSummary.querySelector("#dob").innerText;
+
+          //Fill user gender
+          document.getElementById("user-gender").value = userSummary.querySelector("#gender").innerText;
+
+          //Fill user height
+          document.getElementById("user-height").value = userSummary.querySelector("#height").innerText;
+
+          //Fill user weight
+          document.getElementById("user-weight").value = userSummary.querySelector("#weight").innerText;
+
           //Fill mobile phone
           document.getElementById("userPhone").innerText = userSummary.querySelector("#summaryUserPhone").innerText;
           //Fill user notes
           document.getElementById("userNotes").value = userSummary.querySelector("#summaryUserNotes").innerText;
-          //Fill experience
+          //Fill limitations/injuries
           document.getElementById("userLimitations").value = userSummary.querySelector("#summaryUserLimitations").innerText;
+          document.getElementById("user-injury").value = userSummary.querySelector("#summaryUserLimitations").innerText;
+
           //Fill user ID
           document.getElementById("userID").innerText = userSummary.querySelector("#summaryItemId").innerText;
           //Fill user program ID
@@ -1578,6 +1617,15 @@ function main() {
           document.getElementById("userProgramProgramName").innerText = userSummary.querySelector("#summaryProgramName").innerText;
           //Fill user memberstack ID
           document.getElementById("userMemberstackID").innerText = userSummary.querySelector("#summaryUserMemberstackID").innerText;
+
+          var userType = userSummary.querySelector("#type").innerText;
+          if(userType.toLowerCase() == "online") {
+            document.getElementById("user-online").click();
+          } else if(userType.toLowerCase() == "hybrid") {
+            document.getElementById("user-hybrid").click();
+          } else if(userType.toLowerCase() == "in person") {
+            document.getElementById("user-inperson").click();
+          }
           
           //Fill calendar
           prefillProgramBuilder(userSummary, "userProgramInitial");
@@ -1607,6 +1655,16 @@ function main() {
 
           hideOrShowGodModeSwitch();
 
+          prefillingProgram = false;
+
+        }
+        var userStatus = userSummary.querySelector("#status").innerHTML;
+        if(userStatus.toLowerCase() == "active") {
+          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26a948539fdb22c969_Active.webp";
+        } else if(userStatus.toLowerCase() == "pending") {
+          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
+        } else if(userStatus.toLowerCase() == "deactivated") {
+          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d265b3f926a01a4b832_Deactivated.webp";
         }
       })(userSummaryList[i]);
     }
@@ -1971,9 +2029,7 @@ function main() {
 
       //Make sure they have selected a duration and focus area
       if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
-        //Send to make and navigate back to workout summary
-        // console.log(workout);
-        // return;
+
         sendWorkoutToMake(workout);      
       } else {
         if(workout["length"] == "Duration") {
@@ -2336,6 +2392,7 @@ function main() {
         
       } else if (event.target.classList.contains('delete-events-button')) {
 
+
         // Get the week row
         var weekRow = event.target.closest('[role="row"]');
         var weekRowChildren = weekRow.children;
@@ -2376,6 +2433,8 @@ function main() {
         removeEmptyPrograms(weekRow);
         getUserTrainingPlan();
         getProgramBreakers();
+        //Populate god mode:
+        populateGodMode();
 
       } else if(event.target.closest("#addStaffMemberSettings")) {
         addStaffMemberFromSettings = true;
@@ -2433,6 +2492,12 @@ function main() {
         sessionStorage.setItem("muscleFilter", "");
         
       } else if(event.target.closest("#saveTrainingPlan")) {
+
+        //document.getElementById("programSheetImg").click();
+
+        //checkCalendarSheetButtons("programCalendarImg");
+
+        console.log(document.querySelector(".week-tables"));
 
         event.target.closest("#saveTrainingPlan").querySelector("#assignProgramText").innerText = "Please Wait..."
         //Check if existing user program exists
@@ -2668,6 +2733,10 @@ function main() {
             localStorage.setItem(`newClientName-2`, firstNameSignUp + " " + lastNameSignUp);
           } else if(localStorage.getItem(`newClientName-3`) == undefined) {
             localStorage.setItem(`newClientName-3`, firstNameSignUp + " " + lastNameSignUp);
+          } else if(localStorage.getItem(`newClientName-4`) == undefined) {
+            localStorage.setItem(`newClientName-4`, firstNameSignUp + " " + lastNameSignUp);
+          } else if(localStorage.getItem(`newClientName-5`) == undefined) {
+            localStorage.setItem(`newClientName-5`, firstNameSignUp + " " + lastNameSignUp);
           }
           
           event.target.style.display = "none";
@@ -2683,7 +2752,10 @@ function main() {
           clientRow.querySelector("#customWorkouts").style.backgroundColor = "white";
           clientRow.querySelector("#customProgram").innerText = "";
           clientRow.querySelector("#customProgram").style.backgroundColor = "white";
+          clientRow.querySelector("#status").innerText = "Pending";
+          clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
           clientRow.onclick = null; // Remove the old event
+
 
           clientRow.onclick = (event) => { 
             //Hide user summary list
@@ -3328,6 +3400,12 @@ function main() {
 
     }, false);
 
+    function populateGodMode() {
+
+      prefillProgramTable(null, action="update");
+
+    }
+
     function refreshCalendarLayout() {
 
       calendar.render();
@@ -3850,7 +3928,11 @@ function main() {
           userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
         }
         userProgram["workoutList"] = userProgramWorkouts;
-      } 
+      } else {
+        console.log("Empty program")
+        userProgram["endDate"] = moment(new Date).format("YYYY-MM-DD");
+      }
+      
 
       sendUserProgramToMake(userProgram, "create");
 
@@ -3898,20 +3980,27 @@ function main() {
           userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
         }
         userProgram["workoutList"] = userProgramWorkouts;
-      } 
+      } else {
+        userProgram["endDate"] = moment(new Date).format("YYYY-MM-DD");
+      }
 
       //Check if program sheet modified
       if(sessionStorage.getItem("programSheetLoaded") == "true") {
 
         var fullTableData = [];
-
+        console.log(tableArr)
         for(table of tableArr) {
+          console.log(table)
           fullTableData = fullTableData.concat(table.getData());
+          console.log(fullTableData)
         }
-
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
+      } else {
+        console.log("Sheet not loaded");
       }
+
+      console.log(userProgram)
 
       sendUserProgramToMake(userProgram, "update");
 
@@ -4212,7 +4301,6 @@ function main() {
     }
 
     function prefillProgramTable(program, action="create") {
-
       //If first time filling table when page is loaded
       let tableData;
 
@@ -4243,7 +4331,7 @@ function main() {
 
         fillProgramTable(tableData,false);
 
-      } else if(action == "update") {
+      } else if(action == "update" && !prefillingProgram) {
 
         // Get new json data from calendar
         getUserTrainingPlan();
@@ -4266,13 +4354,15 @@ function main() {
         // Compare against existing saved data - check from tablearr or from cms json
         if(sessionStorage.getItem("programSheetChanged") == "true" || tableArr.length > 0) {
           //Check if program sheet modified
-          fullTableData = [];
 
+          fullTableData = [];
           for(table of tableArr) {
+            
             fullTableData = fullTableData.concat(table.getData());
           }
-          
+
         } else if(program && program.querySelector("#summaryFullEventData").innerText != "") {
+
           fullTableData = program.querySelector("#summaryFullEventData").innerText;
           fullTableData = JSON.parse(fullTableData);
         } 
@@ -4382,6 +4472,7 @@ function main() {
                   workoutNumber: obj.workoutNumber,
                   setNumber: currentWeekLength + i,
                   results: "",
+                  uniqueWorkoutID: "",
                 };
                 workoutData.push(blankObj);
               }
@@ -4410,7 +4501,7 @@ function main() {
             oldItem.week === newItem.week &&
             oldItem.workoutName === newItem.workoutName &&
             oldItem.exercise === newItem.exercise && 
-            oldItem.workoutNumber === newItem.workoutNumber &&
+            (oldItem.workoutNumber === newItem.workoutNumber || oldItem.uniqueWorkoutID === newItem.uniqueWorkoutID) &&
             oldItem.setNumber === newItem.setNumber
           );
         });
@@ -4488,7 +4579,8 @@ function main() {
               var extendedProps = {
                 length: event.extendedProps.length,
                 targetArea: event.extendedProps.targetArea,
-                workoutID: event.extendedProps.workoutID
+                workoutID: event.extendedProps.workoutID,
+                uniqueWorkoutID: (event.extendedProps.uniqueWorkoutID != undefined) ? event.extendedProps.uniqueWorkoutID : uuidv4()
               };
 
               if (event.extendedProps.completedID !== undefined) { 
@@ -4506,13 +4598,13 @@ function main() {
         } else {
           eventsData.forEach((event, index) => {
             const startDate = new Date(event.start);
-            
             events.push({
               title: event.title,
               extendedProps: {
                 length: event.extendedProps.length,
                 targetArea: event.extendedProps.targetArea,
-                workoutID: event.extendedProps.workoutID
+                workoutID: event.extendedProps.workoutID,
+                uniqueWorkoutID: (event.extendedProps.uniqueWorkoutID != undefined) ? event.extendedProps.uniqueWorkoutID : uuidv4()
               },
               start: startDate,
               allDay: true
@@ -4635,7 +4727,6 @@ function main() {
           const weekData = groupedData[week];
           const tableDiv = document.createElement("div");
           tableDiv.className = "week-table";
-
           const table = new Tabulator(tableDiv, {
             data: weekData,
             layout: "fitColumns", // Set the layout option to 'fitData'
@@ -4692,6 +4783,7 @@ function main() {
                 },},
                   { title: "Minutes Rest", field: "exerciseRestMinutes", visible: false },
                   { title: "Seconds Rest", field: "exerciseRestSeconds", visible: false },
+                  { title: "Unique Workout ID", field: "uniqueWorkoutID", visible: false },
                   { title: "Load", field: "loadAmount", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
              
                     var rowData = cell.getRow().getData();
@@ -4781,10 +4873,11 @@ function main() {
           
           // Calculate the week number based on the difference between event start and startWeek
           var week = moment(event.start).diff(startWeek, 'weeks') + 1;
-         
+
           // Use the 'title' as the workoutName
           var workoutName = event.title;
           var workoutJSON = event.workoutJSON;
+          var uniqueWorkoutID = event.extendedProps.uniqueWorkoutID;
 
           var exerciseCount = 1;
           // Iterate over the workoutJSON and create objects for each exercise
@@ -4822,7 +4915,8 @@ function main() {
                   "setNumber": l,
                   "results": "" ,
                   "startDate": event.start,
-                  "guideID": individualExercise.guideID
+                  "guideID": individualExercise.guideID,
+                  "uniqueWorkoutID": uniqueWorkoutID
                 };
 
                 // Push the exercise object to the convertedData array
@@ -4834,7 +4928,6 @@ function main() {
         }
       }
 
-      console.log(convertedData)
       // Now 'convertedData' contains the converted data in the format of your first JSON object
       return convertedData;
     }
@@ -5370,6 +5463,11 @@ function main() {
           }
 
           document.getElementById(destinationScreen).style.display = "block";
+
+          if(destinationScreen == "userInfoDetails") {
+            document.getElementById(destinationScreen).style.display = "flex";
+            document.getElementById(destinationScreen).style.justifyContent = "center";
+          }
           
           if(secondaryDestination != null) {
             document.getElementById(secondaryDestination).style.display = "block";
@@ -5408,6 +5506,11 @@ function main() {
 
         
         document.getElementById(destinationScreen).style.display = "block";
+
+        if(destinationScreen == "userInfoDetails") {
+          document.getElementById(destinationScreen).style.display = "flex";
+          document.getElementById(destinationScreen).style.justifyContent = "center";
+        }
 
         if(secondaryDestination != null) {
           document.getElementById(secondaryDestination).style.display = "block";
