@@ -64,6 +64,7 @@ function main() {
   var tableArr = [];
   sessionStorage.setItem("createUserProgram", "false");
   var prefillingProgram = true;
+  var updatingCalendar = false;
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -1212,7 +1213,7 @@ function main() {
               length: info.event.extendedProps.length,
               targetArea: info.event.extendedProps.targetArea,
               workoutID: info.event.extendedProps.workoutID,
-              uniqueWorkoutID: info.event.extendedProps.uniqueWorkoutID
+              uniqueWorkoutID: uuidv4()
             },
             start: info.event.start,
             title: info.event.title
@@ -1458,6 +1459,7 @@ function main() {
 
       // Add the new event to the calendar
       calendar.addEvent(newEvent);
+
       //Check if no programs have been added - and just workout is added, create program to ensure the data is saved
       if (Object.keys(userTrainingPlan).length === 0) {
         const startOfWeek = moment(newEvent.start).startOf('week').format('YYYY-MM-DD');
@@ -2128,6 +2130,7 @@ function main() {
               }
 
               if(isPasteState || !programClash ) {
+
                 sortedCopiedEvents.forEach(function(event, index, events) {
 
                   event.start = new Date(event.start); 
@@ -2184,6 +2187,9 @@ function main() {
                       return existingEvent.start.toDateString() === event.start.toDateString();
                     });
                   }
+
+                  //Update unique workout ID
+                  event.extendedProps.uniqueWorkoutID = uuidv4();
   
                   if(!duplicateEventExists && !addProgram) {
                     // Add event to calendar
@@ -2191,10 +2197,12 @@ function main() {
                   } else if(addProgram) {
                     calendar.addEvent(event);
                   }
+
   
                 });
                 
                 if(addProgram) {
+
                   //add program to global userProgram list
                   var programObj = {};
                   programObj["programName"] = document.getElementById("selectedProgramName").innerText;
@@ -2234,9 +2242,11 @@ function main() {
           var copiedEvent = JSON.parse(sessionStorage.getItem('copiedEvent'));
           var clickedDate = new Date(dayCell.parentElement.getAttribute("data-date"));
           var hasExistingEvent = dayCell.querySelector(".copy-event-button");
-          if ((copiedEvent && clickedDate && hasExistingEvent == null)) { 
-        
+
+          if ((copiedEvent && clickedDate && hasExistingEvent == null)) {
             // Create a new event object with the copied event details
+            //Modify unique workout ID
+            copiedEvent.extendedProps.uniqueWorkoutID = uuidv4();
             var newEvent = {
               title: copiedEvent.title,
               start: clickedDate,
@@ -2244,7 +2254,7 @@ function main() {
               allDay: copiedEvent.allDay,
               extendedProps: copiedEvent.extendedProps
             };
-        
+
             // Add the new event to the calendar
             calendar.addEvent(newEvent);
             setFromPaste = true;
@@ -2638,6 +2648,7 @@ function main() {
         checkAndClearWorkouts("workoutSummaryPage");
 
       } else if(event.target.id == "addWeekButton" || event.target.classList.contains("italic-text-9")) {
+        updatingCalendar = true;
         if(sessionStorage.getItem("createUserProgram") == "true") {
           updateCalendarWeeks(0,"userProgramBuilder");
         } else {
@@ -4331,8 +4342,8 @@ function main() {
 
         fillProgramTable(tableData,false);
 
-      } else if(action == "update" && !prefillingProgram) {
-
+      } else if(action == "update" && !prefillingProgram && !isPasteState && !updatingCalendar && !addProgram) {
+        console.log("Updating table")
         // Get new json data from calendar
         getUserTrainingPlan();
         var fullTableData = null;
@@ -4498,10 +4509,9 @@ function main() {
         // Find a matching item in oldData based on week, workoutName, and exercise
         const matchingItem = oldData.find((oldItem) => {
           return (
-            oldItem.week === newItem.week &&
             oldItem.workoutName === newItem.workoutName &&
             oldItem.exercise === newItem.exercise && 
-            (oldItem.workoutNumber === newItem.workoutNumber || oldItem.uniqueWorkoutID === newItem.uniqueWorkoutID) &&
+            (oldItem.week === newItem.week && oldItem.workoutNumber === newItem.workoutNumber || oldItem.uniqueWorkoutID === newItem.uniqueWorkoutID) &&
             oldItem.setNumber === newItem.setNumber
           );
         });
@@ -4574,8 +4584,8 @@ function main() {
     
             }
             obj.events.forEach(event => {
-
               const startDate = new Date(event.start);
+
               var extendedProps = {
                 length: event.extendedProps.length,
                 targetArea: event.extendedProps.targetArea,
@@ -5142,6 +5152,7 @@ function main() {
       if(sessionStorage.getItem("createUserProgram") == "true" ) {
         getProgramBreakers();
       }
+      updatingCalendar = false;
 
     }
     
@@ -5193,6 +5204,8 @@ function main() {
       if(sessionStorage.getItem("createUserProgram") == "true" ) {
         getProgramBreakers();
       }
+      updatingCalendar = false;
+
     }
 
     function prefillWorkoutBuilder(workoutSummary, programWorkout=false) {
