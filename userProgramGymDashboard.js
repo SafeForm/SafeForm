@@ -1563,101 +1563,109 @@ function main() {
     var userSummaryList = document.querySelectorAll("#userSummary");
     for(let i = 0; i < userSummaryList.length; i++) {
       (function(userSummary) {
-        userSummary.onclick = () => {
-          //Fill user name
-          document.getElementById("userFullName").innerText = userSummary.querySelector("#userSummaryName").innerText;
-          var userNameArr = userSummary.querySelector("#userSummaryName").innerText.split(" ");
-          if(userNameArr.length > 0) {
-            document.getElementById("user-firstName").value = userNameArr[0];
-            document.getElementById("user-lastName").value = userNameArr[1];
-          }
+        userSummary.onclick = (event) => {
+          console.log(event.target.id);
 
-          //Fill account type
-          document.getElementById("accountType").innerText = userSummary.querySelector("#summaryAccountType").innerText;
-
-          //Fill program ends
-          document.getElementById("programEnds").innerText = userSummary.querySelector("#summaryProgramEnds").innerText;
-          //Fill experience
-          document.getElementById("experienceLevel").innerText = userSummary.querySelector("#summaryExperience").innerText;
-          document.getElementById("user-experience").value = userSummary.querySelector("#summaryExperience").innerText;
-
-          //Fill goals
-          document.getElementById("userGoals").innerText = userSummary.querySelector("#summaryGoal").innerText;
-          document.getElementById("user-goals").value = userSummary.querySelector("#summaryGoal").innerText;
-         
-          //Fill user created
-          document.getElementById("userCreated").innerText = userSummary.querySelector("#summaryUserCreated").innerText;
-          //Fill user email
-          document.getElementById("userEmail").innerText = userSummary.querySelector("#summaryUserEmail").innerText;
-          document.getElementById("user-email").value = userSummary.querySelector("#summaryUserEmail").innerText;
-
-          //Fill user DOB
-          document.getElementById("user-dob").value = userSummary.querySelector("#dob").innerText;
-
-          //Fill user gender
-          document.getElementById("user-gender").value = userSummary.querySelector("#gender").innerText;
-
-          //Fill user height
-          document.getElementById("user-height").value = userSummary.querySelector("#height").innerText;
-
-          //Fill user weight
-          document.getElementById("user-weight").value = userSummary.querySelector("#weight").innerText;
-
-          //Fill mobile phone
-          document.getElementById("userPhone").innerText = userSummary.querySelector("#summaryUserPhone").innerText;
-          //Fill user notes
-          document.getElementById("userNotes").value = userSummary.querySelector("#summaryUserNotes").innerText;
-          //Fill limitations/injuries
-          document.getElementById("userLimitations").value = userSummary.querySelector("#summaryUserLimitations").innerText;
-          document.getElementById("user-injury").value = userSummary.querySelector("#summaryUserLimitations").innerText;
-
-          //Fill user ID
-          document.getElementById("userID").innerText = userSummary.querySelector("#summaryItemId").innerText;
-          //Fill user program ID
-          document.getElementById("userProgramID").innerText = userSummary.querySelector("#summaryProgramId").innerText;
-          //Fill program name
-          document.getElementById("userProgramProgramName").innerText = userSummary.querySelector("#summaryProgramName").innerText;
-          //Fill user memberstack ID
-          document.getElementById("userMemberstackID").innerText = userSummary.querySelector("#summaryUserMemberstackID").innerText;
-
-          var userType = userSummary.querySelector("#type").innerText;
-          if(userType.toLowerCase() == "online") {
-            document.getElementById("user-online").click();
-          } else if(userType.toLowerCase() == "hybrid") {
-            document.getElementById("user-hybrid").click();
-          } else if(userType.toLowerCase() == "in person") {
-            document.getElementById("user-inperson").click();
-          }
-          
-          //Fill calendar
-          prefillProgramBuilder(userSummary, "userProgramInitial");
-          //TODO: Fill program name
-
-          //Clear tables if any exist:
-          if(document.querySelector(".week-tables") != null) {
-            const tables = document.querySelectorAll('.week-table');
-            tableArr = [];
-            for(const table of tables) {
-              table.remove();
+          if(!event.target.id.includes("userOptions") && event.target.id != "copyInviteLinkDropdown") {
+              //Fill user name
+            document.getElementById("userFullName").innerText = userSummary.querySelector("#userSummaryName").innerText;
+            var userNameArr = userSummary.querySelector("#userSummaryName").innerText.split(" ");
+            if(userNameArr.length > 0) {
+              document.getElementById("user-firstName").value = userNameArr[0];
+              document.getElementById("user-lastName").value = userNameArr[1];
             }
-          }
 
-          prefillProgramTable(userSummary, "create");
+            //Fill account type
+            document.getElementById("accountType").innerText = userSummary.querySelector("#summaryAccountType").innerText;
 
-          currentUserProgram = userSummary;
+            //Fill program ends
+            document.getElementById("programEnds").innerText = userSummary.querySelector("#summaryProgramEnds").innerText;
+            //Fill experience
+            document.getElementById("experienceLevel").innerText = userSummary.querySelector("#summaryExperience").innerText;
+            document.getElementById("user-experience").value = userSummary.querySelector("#summaryExperience").innerText;
 
-          //Hide user summary list
-          document.getElementById("userSummaryPage").style.display = "none";
+            //Fill goals
+            document.getElementById("userGoals").innerText = userSummary.querySelector("#summaryGoal").innerText;
+            document.getElementById("user-goals").value = userSummary.querySelector("#summaryGoal").innerText;
+          
+            //Fill user created
+            document.getElementById("userCreated").innerText = userSummary.querySelector("#summaryUserCreated").innerText;
+            //Fill user email
+            document.getElementById("userEmail").innerText = userSummary.querySelector("#summaryUserEmail").innerText;
+            document.getElementById("user-email").value = userSummary.querySelector("#summaryUserEmail").innerText;
 
-          // //Show user details
-          document.getElementById("userDetailsPage").style.display = "block";
+            //Fill user DOB
+            document.getElementById("user-dob").value = userSummary.querySelector("#dob").innerText;
 
-          //Show user program
-          document.getElementById("trainingRadio").click();
+            //Fill user gender
+            document.getElementById("user-gender").value = userSummary.querySelector("#gender").innerText;
 
-          hideOrShowGodModeSwitch();
+            //Fill user height
+            document.getElementById("user-height").value = userSummary.querySelector("#height").innerText;
 
-          prefillingProgram = false;
+            //Fill user weight
+            document.getElementById("user-weight").value = userSummary.querySelector("#weight").innerText;
+
+            //Fill mobile phone
+            document.getElementById("userPhone").innerText = userSummary.querySelector("#summaryUserPhone").innerText;
+            //Fill user notes
+            document.getElementById("userNotes").value = userSummary.querySelector("#summaryUserNotes").innerText;
+            //Fill limitations/injuries
+            document.getElementById("userLimitations").value = userSummary.querySelector("#summaryUserLimitations").innerText;
+            document.getElementById("user-injury").value = userSummary.querySelector("#summaryUserLimitations").innerText;
+
+            //Fill user ID
+            document.getElementById("userID").innerText = userSummary.querySelector("#summaryItemId").innerText;
+            //Fill user program ID
+            document.getElementById("userProgramID").innerText = userSummary.querySelector("#summaryProgramId").innerText;
+            //Fill program name
+            document.getElementById("userProgramProgramName").innerText = userSummary.querySelector("#summaryProgramName").innerText;
+            //Fill user memberstack ID
+            document.getElementById("userMemberstackID").innerText = userSummary.querySelector("#summaryUserMemberstackID").innerText;
+
+            var userType = userSummary.querySelector("#type").innerText;
+            if(userType.toLowerCase() == "online") {
+              document.getElementById("user-online").click();
+            } else if(userType.toLowerCase() == "hybrid") {
+              document.getElementById("user-hybrid").click();
+            } else if(userType.toLowerCase() == "in person") {
+              document.getElementById("user-inperson").click();
+            }
+            
+            //Fill calendar
+            prefillProgramBuilder(userSummary, "userProgramInitial");
+            //TODO: Fill program name
+
+            //Clear tables if any exist:
+            if(document.querySelector(".week-tables") != null) {
+              const tables = document.querySelectorAll('.week-table');
+              tableArr = [];
+              for(const table of tables) {
+                table.remove();
+              }
+            }
+
+            prefillProgramTable(userSummary, "create");
+
+            currentUserProgram = userSummary;
+
+            //Hide user summary list
+            document.getElementById("userSummaryPage").style.display = "none";
+
+            // //Show user details
+            document.getElementById("userDetailsPage").style.display = "block";
+
+            //Show user program
+            document.getElementById("trainingRadio").click();
+
+            hideOrShowGodModeSwitch();
+
+            prefillingProgram = false;
+
+        } else {
+          //Reset text on button
+          event.target.closest(".dropdown-3").querySelector("#copyInviteLinkDropdown").innerText = "Copy invite link";
+        }
 
         }
         var userStatus = userSummary.querySelector("#status").innerHTML;
@@ -1668,6 +1676,7 @@ function main() {
         } else if(userStatus.toLowerCase() == "deactivated") {
           userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d265b3f926a01a4b832_Deactivated.webp";
         }
+          
       })(userSummaryList[i]);
     }
 
@@ -2721,12 +2730,17 @@ function main() {
         navigator.clipboard.writeText(sessionStorage.getItem("workoutLink"));
         document.getElementById("linkCopiedText").style.display = "block";
         
-      } else if(event.target.id == "copyInviteLink") {
+      } else if(event.target.id == "copyInviteLink" ) {
 
         event.preventDefault();
         navigator.clipboard.writeText(event.target.href);
         event.target.innerText = "Copied!";
-        event.target.style.backgroundColor = "##0c08d5";
+        event.target.style.backgroundColor = "#0c08d5";
+
+      } else if(event.target.id == "copyInviteLinkDropdown") {
+
+        navigator.clipboard.writeText(document.getElementById("copyInviteLink").href);
+        event.target.innerText = "Copied!";
 
       } else if(event.target.id == "shareSignUpLink") {
         // navigator.clipboard.writeText(sessionStorage.getItem("shareSignUpLink"));
