@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+  //Update workout index
   const workoutList = document.querySelectorAll(".workoutprogramitem");
   for(var i = 0; i < workoutList.length; i++) {
     workoutList[i].querySelector("#workoutIndex").innerText = i;
@@ -67,11 +68,11 @@ function main() {
   weekButton.remove();
 
   const programs = JSON.parse(document.getElementById("programEventData").innerText);
-
+  
   //Also save in session storage
   sessionStorage.setItem("currentProgram", document.getElementById("programEventData").innerText);
   sessionStorage.setItem("currentFullProgram", document.getElementById("programFullEventData").innerText);
-  
+
   var workouts = null;
   //iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
@@ -137,6 +138,7 @@ function main() {
     // Add event listeners to the buttons
     buttons.forEach((button, index) => {
       button.addEventListener('click', (event) => {
+
         displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
         $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
         event.target.classList.remove("week-button");
@@ -223,7 +225,6 @@ function main() {
   // Function to filter and display the workouts based on the selected week
   function displayWorkouts(weekIndex, workoutList, workoutListWorkouts, weeks) {
 
-
     // Clear the current workout list
     workoutList.innerHTML = '';
 
@@ -231,7 +232,7 @@ function main() {
     const selectedWeekWorkouts = weeks[weekIndex];
 
     //Get workout index to start of the selected week
-    var addedWorkout = 1;
+    var addedWorkout = 0;
     for(var i = 0; i < weekIndex; i++) {
       addedWorkout += weeks[i].length;
     }
@@ -243,37 +244,37 @@ function main() {
     let closestWorkout = null;
     let minDateDifference = Infinity;
 
-    selectedWeekWorkouts.forEach(workout => {
-        const workoutStartDate = moment(workout.start, "YYYY-MM-DD");
-        const dateDifference = Math.abs(workoutStartDate.diff(currentDate));
-        if(workout.extendedProps.completedID == undefined) {
-          if (dateDifference < minDateDifference) {
-            minDateDifference = dateDifference;
-            closestWorkout = workout;
-          }
-        }
-    });
-
+    closestWorkout = selectedWeekWorkouts[0];
 
     var completedWorkouts = 0;
     // Iterate over the selected week's workouts
-    selectedWeekWorkouts.forEach((workout) => {
+
+    selectedWeekWorkouts.forEach((workout, index) => {
+
       // Get the workout element based on the workout ID
       var workoutElement = null;
       var foundIndex = "";
+      var workoutIndex = 0;
       for(var i = 0; i < workoutListWorkouts.length; i++) {
 
-        const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
-        const workoutIndex = workoutListWorkouts[i].querySelector("#workoutNumber").innerText
-        if(workoutListElement.innerText == workout.extendedProps.workoutID) {
-          foundIndex = i;
-          workoutElement = workoutListElement;
+        //Only check this weeks workouts
+        if(i >= addedWorkout) {
+          const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
+          workoutIndex = workoutListWorkouts[i].querySelector("#workoutIndex").innerText;
+  
+          if(workoutListElement.innerText == workout.extendedProps.workoutID && i == workoutIndex) {
+            foundIndex = i;
+            workoutElement = workoutListElement;
+            break;
+          }
         }
+
       }
 
       if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID) {
 
         var newElement = workoutElement.closest('.workoutprogramitem').cloneNode(true);
+
         newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
         workoutList.appendChild(newElement);
         addedWorkout += 1;
@@ -289,7 +290,6 @@ function main() {
           newElement.querySelector(".workoutprogramdiv").classList.add("future-workout"); //change border colour and time image if future
           //Workout info breaker
           newElement.querySelector("#workoutInfoBreaker").style.borderRightColor = "#6f6e6e";
-
         }
 
         const newElementParent = newElement.closest(".workoutprogramitem");
@@ -298,14 +298,18 @@ function main() {
         const programName = document.getElementById("programFullName").innerText;
         //Set onclick to capture current date and workout id
         newElement.onclick = (event) => {
-          var workoutID = null;
+          var uniqueWorkoutID = null;
 
           if(workout.extendedProps.completedID !== undefined) {
-            workoutID = workout.extendedProps.completedID;
+            uniqueWorkoutID = workout.extendedProps.completedID;
           } else {
-            workoutID = `${workout.extendedProps.workoutID}+${moment().format('YYYY-MM-DD')}+${workoutIndex}`;
+            if(workout.extendedProps.uniqueWorkoutID != undefined) {
+              uniqueWorkoutID = `${workout.extendedProps.uniqueWorkoutID}+${moment().format('YYYY-MM-DD')}+${workoutIndex}`;
+            } else {
+              uniqueWorkoutID = `${workout.extendedProps.workoutID}+${moment().format('YYYY-MM-DD')}+${workoutIndex}`;
+            }
           }
-          sessionStorage.setItem("currentWorkout", workoutID);
+          sessionStorage.setItem("currentWorkout", uniqueWorkoutID);
           sessionStorage.setItem("workoutIndex", workoutIndex);
           sessionStorage.setItem("programID", programID);
           sessionStorage.setItem("programName", programName);
