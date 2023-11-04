@@ -318,7 +318,6 @@ function main() {
 
         var clientName = localStorage.getItem(`newClientName-${i}`);
         if(checkIfNameInList(clientName)) {
-          console.log("removing")
           localStorage.removeItem(`newClientName-${i}`);
         } else {
 
@@ -1564,7 +1563,6 @@ function main() {
     for(let i = 0; i < userSummaryList.length; i++) {
       (function(userSummary) {
         userSummary.onclick = (event) => {
-          console.log(event.target.id);
 
           if(!event.target.id.includes("userOptions") && event.target.id != "copyInviteLinkDropdown") {
               //Fill user name
@@ -2269,7 +2267,6 @@ function main() {
             setFromPaste = true;
 
             //Check if no programs have been added - and just workout is added, create program to ensure the data is saved
-            console.log(userTrainingPlan)
             if (Object.keys(userTrainingPlan).length === 0) {
               console.log("No programs but workout added")
               /*
@@ -2976,10 +2973,7 @@ function main() {
         }
       } else if(event.target.id == "deleteWorkout") {
         //Get row of clicked element:
-        var currentWorkoutRow = event.target.parentElement.parentElement.parentElement.parentElement;
-
-        //Hide it
-        currentWorkoutRow.style.display = "none";
+        var currentWorkoutRow = event.target.closest("#workoutSummary");
 
         //Build object to send to make
         var workout = {};
@@ -2998,9 +2992,9 @@ function main() {
         for(var i = 0; i < exerciseList.length; i++) {
           workout["workoutExercises"].push(exerciseList[i].querySelector("#exerciseItemID").innerText);
         }
-        
+        event.target.innerText = "Deleting...";
         //Send to make to delete workout
-        deleteWorkout(workout);
+        deleteWorkout(workout, currentWorkoutRow, event.target);
 
 
       } else if(event.target.id == "makeWorkoutOfTheWeek") {
@@ -3794,16 +3788,28 @@ function main() {
     }
 
     //Delete chosen workout and all of its exercises related to it
-    async function deleteWorkout(workout) {
-      console.log("sending");
+    async function deleteWorkout(workout, currentWorkoutRow, deleteButton) {
+
       fetch("https://hook.us1.make.com/eh9374j99jisjiba83t4tl7vulv7c74u", {
         method: "POST",
         headers: {'Content-Type': 'application/json'}, 
         body: JSON.stringify(workout)
       }).then(res => {
-        console.log("Workout deleted");
-        location.reload();
+        deleteButton.innerText = "Delete";
+        if (res.ok) {
+          //Remove workout from list using js - next refresh should delete
+          currentWorkoutRow.remove();
+          return res.text();
+        }
+        throw new Error("Something went wrong")
+      })
+      .then((data) => {
+
+      })
+      .catch((error) => {
+        alert("Could not delete workout - as it exists in a current program");
       });
+
     }
 
     function addWorkoutListEntry(listOfGuideIDs) {
@@ -4013,19 +4019,17 @@ function main() {
       if(sessionStorage.getItem("programSheetLoaded") == "true") {
 
         var fullTableData = [];
-        console.log(tableArr)
+
         for(table of tableArr) {
-          console.log(table)
+
           fullTableData = fullTableData.concat(table.getData());
-          console.log(fullTableData)
+
         }
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
       } else {
-        console.log("Sheet not loaded");
-      }
 
-      console.log(userProgram)
+      }
 
       sendUserProgramToMake(userProgram, "update");
 
@@ -4357,7 +4361,6 @@ function main() {
         fillProgramTable(tableData,false);
 
       } else if(action == "update" && !prefillingProgram && !isPasteState && !updatingCalendar && !addProgram) {
-        console.log("Updating table")
         // Get new json data from calendar
         getUserTrainingPlan();
         var fullTableData = null;
