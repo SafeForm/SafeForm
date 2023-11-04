@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   //Update workout index
   const workoutList = document.querySelectorAll(".workoutprogramitem");
   for(var i = 0; i < workoutList.length; i++) {
@@ -68,7 +69,7 @@ function main() {
   weekButton.remove();
 
   const programs = JSON.parse(document.getElementById("programEventData").innerText);
-  
+  console.log(programs)
   //Also save in session storage
   sessionStorage.setItem("currentProgram", document.getElementById("programEventData").innerText);
   sessionStorage.setItem("currentFullProgram", document.getElementById("programFullEventData").innerText);
@@ -244,11 +245,29 @@ function main() {
     let closestWorkout = null;
     let minDateDifference = Infinity;
 
-    closestWorkout = selectedWeekWorkouts[0];
+    var lastFinishedWorkout = localStorage.getItem("completedWorkout");
+    if(lastFinishedWorkout) {
+      lastFinishedWorkout = lastFinishedWorkout.split("+");
+      var lastFinishedWorkoutIndex = null;
+      if(lastFinishedWorkout.length > 2) {
+        lastFinishedWorkoutIndex = lastFinishedWorkout[2];
+      }
+  
+    }
+
+
+    for (let i = 0; i < selectedWeekWorkouts.length; i++) {
+      const workout = selectedWeekWorkouts[i];
+      console.log(workout)
+      if (workout.extendedProps.completedID === undefined) {
+          closestWorkout = selectedWeekWorkouts[i];
+          break;
+      }
+    }
 
     var completedWorkouts = 0;
     // Iterate over the selected week's workouts
-
+    
     selectedWeekWorkouts.forEach((workout, index) => {
 
       // Get the workout element based on the workout ID
@@ -277,10 +296,9 @@ function main() {
 
         newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
         workoutList.appendChild(newElement);
-        addedWorkout += 1;
-
+        
         //Check if the workout is complete
-        if(workout.extendedProps.completedID != undefined) {
+        if(workout.extendedProps.completedID != undefined || (lastFinishedWorkoutIndex && lastFinishedWorkoutIndex == (addedWorkout))) {
           newElement.querySelector(".workoutprogramdiv").style.borderColor = "#08D58B" //make border green if complete
           completedWorkouts += 1;
         } else if(workout === closestWorkout) {
@@ -291,7 +309,7 @@ function main() {
           //Workout info breaker
           newElement.querySelector("#workoutInfoBreaker").style.borderRightColor = "#6f6e6e";
         }
-
+        addedWorkout += 1;
         const newElementParent = newElement.closest(".workoutprogramitem");
         const workoutIndex = newElementParent.querySelector("#workoutIndex").innerText;
         const programID = document.getElementById("programID").innerText;
