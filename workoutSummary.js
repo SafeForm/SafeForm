@@ -367,6 +367,8 @@ function main() {
 
         sendWorkoutDetailsToMake(workoutObj);
 
+        localStorage.setItem("completedWorkout", workoutID)
+
       } else {
         var baseURL = window.location.origin;
         window.location = baseURL + "/workouts/workout-navigation"
