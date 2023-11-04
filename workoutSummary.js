@@ -46,8 +46,10 @@ function main() {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
     workoutName = document.querySelector(".workout-summary-header h1").innerHTML;
     weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
+
     currentWorkoutIndex = sessionStorage.getItem("workoutIndex");
-    workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
+    workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
+
   } 
 
   MemberStack.onReady.then(async function(member) {  
