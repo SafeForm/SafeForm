@@ -69,7 +69,7 @@ function main() {
   weekButton.remove();
 
   const programs = JSON.parse(document.getElementById("programEventData").innerText);
-  console.log(programs)
+
   //Also save in session storage
   sessionStorage.setItem("currentProgram", document.getElementById("programEventData").innerText);
   sessionStorage.setItem("currentFullProgram", document.getElementById("programFullEventData").innerText);
@@ -258,7 +258,7 @@ function main() {
 
     for (let i = 0; i < selectedWeekWorkouts.length; i++) {
       const workout = selectedWeekWorkouts[i];
-      console.log(workout)
+
       if (workout.extendedProps.completedID === undefined) {
           closestWorkout = selectedWeekWorkouts[i];
           break;
