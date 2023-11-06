@@ -151,12 +151,8 @@ function main() {
                   repsInput.placeholder = `${memberJSONExerciseName.reps[0]} ${exerciseInformation[0].quantityUnit}`;
                 }
               }
-              
             }
-            
           }
-
-
 
           //Set placeholder of the first rep input text box for each exercise
           inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
@@ -331,6 +327,7 @@ function main() {
        //Iterate through existing exercise list and change names
        for(var i = 0; i < exerciseList.length; i++) {
         exerciseList[i].querySelector("#repInput").innerText = flattenedArray[i].exercises[0].reps;
+        exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + flattenedArray[i].exercises[0].quantityUnit;
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = flattenedArray[i].sets;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
@@ -476,18 +473,50 @@ function main() {
       //Check if it is an empty filler exercise from god mode:
       if(exerciseInformation[0].exercise != "") {
 
-        exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
+        //Hide rest div
+        exerciseList[i].querySelector("#restDiv").style.display = "none";
+
+        //Another if to check if the exercise is bodyweight
+        if(checkBodyWeight(exerciseList[i])) {
+          exerciseList[i].querySelector("#load").innerText = "Bodyweight";
+        } else if(checkEmptyLoadAmount(exerciseInformation)) {
+          //Check if there is no quantity amount
+          exerciseList[i].querySelector("#load").innerText = "-";
+        } else if(checkSameLoadAmount(exerciseInformation)) {
+          //Another if to check if the amounts are the same - 'amount unit.. 12 Kg' 
+          exerciseList[i].querySelector("#load").innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+        } else {
+          //Another if statement to check if there is a range - 'amount range unit.. 12-15 Kg' 
+          var minLoad = getLoadAmountMin(exerciseInformation)
+          var maxLoad = getLoadAmountMax(exerciseInformation)
+          exerciseList[i].querySelector("#load").innerText = `${minLoad}-${maxLoad} ${exerciseInformation[0].load}`;
+        }
+
+        //Another if to check if the exercise is bodyweight
+        if(checkEmptyQuantity(exerciseInformation)) {
+          //Check if there is no quantity amount
+          exerciseList[i].querySelector("#quantityUnit").innerText = "-";
+        } else if(checkSameQuantityUnit(exerciseInformation)) {
+          //Another if to check if the amounts are the same - 'amount unit.. 12 Reps'
+          exerciseList[i].querySelector("#repInput").innerText = `${exerciseInformation[0].reps}`;
+          exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + `${exerciseInformation[0].quantityUnit}`;
+        } else {
+          //Another if statement to check if there is a range - 'amount range unit.. 12-15 Kg' 
+          var minLoad = getQuantityAmountMin(exerciseInformation)
+          var maxLoad = getQuantityAmountMax(exerciseInformation)
+          exerciseList[i].querySelector("#repInput").innerText = `${minLoad}-${maxLoad}`;
+          exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + `${exerciseInformation[0].quantityUnit}`;
+        }
+        
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
-        exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
-        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+
         var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       } else {
-
+        //Hide rest div
+        exerciseList[i].querySelector("#weightDiv").style.display = "none";
         exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
@@ -500,7 +529,10 @@ function main() {
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       }
     } else {
+
       //Set default values
+      //Hide rest div
+      exerciseList[i].querySelector("#weightDiv").style.display = "none";
       exerciseList[i].querySelector("#repInput").innerText = 10;
       exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#setInput").innerText = 3;
@@ -510,7 +542,6 @@ function main() {
       exerciseList[i].querySelector("#restSeconds").innerText = 0;
       exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
     }
-
 
   }
 
@@ -534,6 +565,143 @@ function main() {
   localStorage.setItem("currentWorkout", document.URL);
   //Set exercises in storage
   localStorage.setItem("workoutExercises", JSON.stringify(workoutExercises));
+
+  function checkEmptyLoadAmount(exerciseInformation) {
+    // Flag to keep track of empty loadAmount
+    let allEmpty = true;
+
+    // Iterate through each object in the exerciseInformation array
+    for (let exercise of exerciseInformation) {
+        // If any loadAmount is not empty, update the flag and break the loop
+        if (exercise.loadAmount !== "") {
+            allEmpty = false;
+            break;
+        }
+    }
+
+    return allEmpty; // Return the flag indicating whether all loadAmount fields are empty
+  }
+
+  
+  function checkEmptyQuantity(exerciseInformation) {
+    // Flag to keep track of empty loadAmount
+    let allEmpty = true;
+
+    // Iterate through each object in the exerciseInformation array
+    for (let exercise of exerciseInformation) {
+        // If any loadAmount is not empty, update the flag and break the loop
+        if (exercise.reps !== "") {
+            allEmpty = false;
+            break;
+        }
+    }
+
+    return allEmpty; // Return the flag indicating whether all loadAmount fields are empty
+  }
+
+  function checkBodyWeight(exerciseElement) {
+
+    if(exerciseElement) {
+      if(exerciseElement.querySelector("#exerciseLoadingMechanism")) {
+        const loadingMechanism = exerciseElement.querySelector("#exerciseLoadingMechanism").innerText.toLowerCase();
+        if(loadingMechanism == "bodyweight") {
+          return true;
+        }
+      }
+    } 
+    return false;
+  }
+
+  function checkSameLoadAmount(exerciseInformation) {
+
+    const firstLoadAmount = exerciseInformation[0].loadAmount;
+    const firstLoadQuantity = exerciseInformation[0].load;
+
+    // Check if all loadAmounts are the same as the first one
+    for (let exercise of exerciseInformation) {
+        if (firstLoadQuantity == exercise.load && exercise.loadAmount !== firstLoadAmount) {
+          return false; // Return false if any loadAmount is different
+        }
+    }
+    return true; // Return true if all loadAmounts are the same
+  }
+
+  function checkSameQuantityUnit(exerciseInformation) {
+
+    const firstLoadAmount = exerciseInformation[0].reps;
+    const firstQuantityUnit = exerciseInformation[0].quantityUnit;
+
+    // Check if all loadAmounts are the same as the first one
+    for (let exercise of exerciseInformation) {
+        if (firstQuantityUnit == exercise.quantityUnit && exercise.reps !== firstLoadAmount) {
+          return false; // Return false if any loadAmount is different
+        }
+    }
+    return true; // Return true if all loadAmounts are the same
+  }
+
+  function getLoadAmountMin(exerciseInformation) {
+
+    var minLoadAmount = exerciseInformation[0].loadAmount;
+    const firstLoadQuantity = exerciseInformation[0].load;
+
+    // Find the minimum loadAmount
+    for (let exercise of exerciseInformation) {
+        if (firstLoadQuantity == exercise.load && exercise.loadAmount !== "" && exercise.loadAmount < minLoadAmount) {
+            minLoadAmount = exercise.loadAmount;
+        }
+    }
+
+    return minLoadAmount !== "" ? minLoadAmount : null; // Return the minimum loadAmount found or null if none is valid
+  }
+
+  
+  function getQuantityAmountMin(exerciseInformation) {
+
+    var minQuantityAmount = exerciseInformation[0].reps;
+    const firstQuantityAmount = exerciseInformation[0].quantityUnit;
+
+    // Find the minimum loadAmount
+    for (let exercise of exerciseInformation) {
+        if (firstQuantityAmount == exercise.quantityUnit && exercise.reps !== "" && exercise.reps < minQuantityAmount) {
+          minQuantityAmount = exercise.reps;
+        }
+    }
+
+    return minQuantityAmount !== "" ? minQuantityAmount : null; // Return the minimum loadAmount found or null if none is valid
+  }
+
+  function getLoadAmountMax(exerciseInformation) {
+
+    var maxLoadAmount = exerciseInformation[0].loadAmount;
+    const firstLoadQuantity = exerciseInformation[0].load;
+
+    // Find the maximum loadAmount
+    for (let exercise of exerciseInformation) {
+        if (firstLoadQuantity == exercise.load && exercise.loadAmount !== "" && exercise.loadAmount > maxLoadAmount) {
+            maxLoadAmount = exercise.loadAmount;
+        }
+    }
+
+    return maxLoadAmount !== "" ? maxLoadAmount : null; // Return the maximum loadAmount found or null if none is valid
+  }
+
+  function getQuantityAmountMax(exerciseInformation) {
+
+    var maxQuantityAmount = exerciseInformation[0].reps;
+    const firstQuantityAmount = exerciseInformation[0].quantityUnit;
+
+    // Find the minimum loadAmount
+    for (let exercise of exerciseInformation) {
+        if (firstQuantityAmount == exercise.quantityUnit && exercise.reps !== "" && exercise.reps > maxQuantityAmount) {
+          maxQuantityAmount = exercise.reps;
+        }
+    }
+
+    return maxQuantityAmount !== "" ? maxQuantityAmount : null; // Return the minimum loadAmount found or null if none is valid
+  }
+
+
 
   async function showShareNavigation(shareData) {
     try {
