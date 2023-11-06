@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -1313,7 +1314,7 @@ function main() {
     for(let i = 0; i < programList.length; i++) {
       (function(program) {
         program.onclick = (event) => {
-          if(event.target.id != "addUserProgram") {
+          if(event.target.id != "addUserProgram" && event.target.id != "deleteProgram" && !event.target.id.includes("programOptions")) {
             //Prefill program screen
             prefillProgramBuilder(program);
 
@@ -1323,14 +1324,13 @@ function main() {
             hideOrShowGodModeSwitch();
           }
 
-
         }
       })(programList[i]);
     }
 
     //Set onclicks for all workouts
     var programWorkouts = document.querySelectorAll("#workoutSummaryProgram");
-    var mainWorkoutList = document.getElementById("workoutSummaryList").children;
+    var mainWorkoutList = document.querySelectorAll(".workoutsummaryitem");
 
     var desiredDate = "";
     var newEvent = "";
@@ -1346,7 +1346,7 @@ function main() {
 
           //List workout summary list and find matching workout id
           for(var j = 0; j < mainWorkoutList.length; j++) {
-          
+
             if(mainWorkoutList[j].querySelector("#workoutID").innerText == programWorkoutID) {
               //Populate select workout side bar
               var selectedWorkout = getWorkoutExerciseInformation(mainWorkoutList[j], true)
@@ -1522,19 +1522,17 @@ function main() {
       - First check if workout summary list has children
       - Iterate through workout summaries and show the 'workout of the week' icon if set
     */
-    const workoutSummary = document.getElementById("workoutSummaryList");
-    var workoutSummaryList = null;
-    if(workoutSummary) {
-      workoutSummaryList = workoutSummary.children;
-      for(let i = 0; i < workoutSummaryList.length; i++) {
-      
-        const isWorkoutOfTheWeek = workoutSummaryList[i].querySelector("#isWorkoutOfTheWeek").innerText;
-        if(isWorkoutOfTheWeek == "true") {
-          workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
-          break;
-        }
+    const workoutSummaryList = document.querySelectorAll(".workoutsummaryitem");
+
+    for(let i = 0; i < workoutSummaryList.length; i++) {
+    
+      const isWorkoutOfTheWeek = workoutSummaryList[i].querySelector("#isWorkoutOfTheWeek").innerText;
+      if(isWorkoutOfTheWeek == "true") {
+        workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
+        break;
       }
     }
+
     
     const svgPerson = document.getElementById("ajaxContent");
     const guideList = document.getElementById("guideListParent");
@@ -2971,9 +2969,27 @@ function main() {
           document.getElementById("estTime").innerText = event.target.innerText;
           document.getElementById("durationDropdown").style.display = "none";
         }
+      } else if(event.target.id == "deleteProgram") {
+        //Get row of clicked element:
+        var currentProgramRow = event.target.closest(".programsummary");
+
+        //Build object to send to make
+        var program = {};
+
+        //Workout summary ID
+        program["programSummaryID"] = currentProgramRow.querySelector("#programID").innerText;
+
+        //Gym dashboard ID
+        program["gymdashboardID"] = document.getElementById("gymID").innerText;
+
+        event.target.innerText = "Deleting...";
+
+        //Send to make to delete workout
+        deleteProgram(program, currentProgramRow, event.target);
+
       } else if(event.target.id == "deleteWorkout") {
         //Get row of clicked element:
-        var currentWorkoutRow = event.target.closest("#workoutSummary");
+        var currentWorkoutRow = event.target.closest(".workoutsummaryitem");
 
         //Build object to send to make
         var workout = {};
@@ -3787,6 +3803,48 @@ function main() {
       });
     }
 
+    async function deleteProgram(program, currentProgramRow, deleteButton) {
+
+      fetch("https://hook.us1.make.com/863lqxkf6tcsjnn6f4g8a5n421ckdjsu", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(program)
+      }).then(res => {
+        deleteButton.innerText = "Delete";
+        if (res.ok) {
+
+          //Get program ID and remove from program modal list as well
+          const programID = currentProgramRow.querySelector("#programID").innerText;
+
+          const programModalList = document.querySelectorAll(".programmodalitem");
+
+          var foundProgram = null;
+          for(var i = 0; i < programModalList.length; i++) {
+
+            if(programModalList[i].querySelector("#programIDModal").innerText == programID) {
+              foundProgram = programModalList[i];
+              break;
+            }
+          }
+
+          if(foundProgram != null) {
+            foundProgram.remove();
+          }
+
+          //Remove program from list using js - next refresh should delete
+          currentProgramRow.remove();
+          return res.text();
+        }
+        throw new Error("Something went wrong")
+      })
+      .then((data) => {
+
+      })
+      .catch((error) => {
+        alert("Could not delete program - as it is currently assigned to a user");
+      });
+    }
+
     //Delete chosen workout and all of its exercises related to it
     async function deleteWorkout(workout, currentWorkoutRow, deleteButton) {
 
@@ -3797,8 +3855,29 @@ function main() {
       }).then(res => {
         deleteButton.innerText = "Delete";
         if (res.ok) {
+
+          //Get workout ID and remove from workout modal list as well
+          const workoutProgramID = currentWorkoutRow.querySelector("#workoutID").innerText;
+
+          const workoutProgramList = document.querySelectorAll(".workoutmodalitem");
+
+          var foundWorkout = null;
+          for(var i = 0; i < workoutProgramList.length; i++) {
+
+            if(workoutProgramList[i].querySelector("#workoutIDProgram").innerText == workoutProgramID) {
+              foundWorkout = workoutProgramList[i];
+
+              break;
+            }
+          }
+
+          if(foundWorkout != null) {
+            foundWorkout.remove();
+          }
           //Remove workout from list using js - next refresh should delete
           currentWorkoutRow.remove();
+
+
           return res.text();
         }
         throw new Error("Something went wrong")
@@ -4979,7 +5058,7 @@ function main() {
 
     function getWorkoutElement(workoutID) {
 
-      const workoutSummaryList = document.getElementById("workoutSummaryList").children;
+      const workoutSummaryList = document.querySelectorAll(".workoutsummaryitem");
 
       for(const workout of workoutSummaryList) {
         const workoutListID = workout.querySelector("#workoutID").innerText;
@@ -5860,4 +5939,4 @@ function main() {
     $("#estTime").attr("required", true);
     
   });
-}
+} 
