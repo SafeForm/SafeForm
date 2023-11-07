@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -1097,7 +1096,6 @@ function main() {
       },
       dateClick: function(info) {
         // Do something when the user clicks on a date
-
         //Don't show workout modal if user is in paste state or delete / copy button is pressed
         if(!(isPasteState || isEventPasteState || addProgram) && (info.jsEvent.target.tagName != "IMG" || info.jsEvent.target.closest(".add-event-button"))) {
 
@@ -1113,10 +1111,22 @@ function main() {
 
           }
         } else if (setFromPaste) {
+          // if(addProgram) {
+          //   isPasteState = false;
+          //   isEventPasteState = false;
+          //   setFromPaste = false;
+          //   addProgram = false;
+          //   populateGodMode();
+          // } else {
+
+          // }
+
           isPasteState = false;
           isEventPasteState = false;
           setFromPaste = false;
           addProgram = false;
+          populateGodMode();
+
         }
 
       },
@@ -1248,6 +1258,7 @@ function main() {
 
         //Populate god mode:
         populateGodMode();
+
 
         return eventEl;
       },
@@ -2507,14 +2518,9 @@ function main() {
         
       } else if(event.target.closest("#saveTrainingPlan")) {
 
-        //document.getElementById("programSheetImg").click();
-
-        //checkCalendarSheetButtons("programCalendarImg");
-
-        console.log(document.querySelector(".week-tables"));
-
         event.target.closest("#saveTrainingPlan").querySelector("#assignProgramText").innerText = "Please Wait..."
         //Check if existing user program exists
+
         if(document.getElementById("userProgramID").innerText == "") {
           createUserProgram();
         } else {
@@ -2702,9 +2708,13 @@ function main() {
         document.getElementById("confirmCloseBuilder").style.display = "none";
 
         //Check if workouts or program is active
-        if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true") {
+        if(sessionStorage.getItem("createUserProgram")) {
+          //Attempt to submit user program
+          document.getElementById("saveTrainingPlan").click();
 
-          //Attempt to submit workout 
+        } else if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true") {
+
+          //Attempt to submit base program 
           document.getElementById("saveProgram").click();
 
         } else {
@@ -2734,7 +2744,8 @@ function main() {
 
       } else if(event.target.id == "copyInviteLinkDropdown") {
 
-        navigator.clipboard.writeText(document.getElementById("copyInviteLink").href);
+        const ptGymIDLink = document.getElementById("gymID").innerText;
+        navigator.clipboard.writeText(window.location.origin + `/onboarding-form?pt=${ptGymIDLink}`);
         event.target.innerText = "Copied!";
 
       } else if(event.target.id == "shareSignUpLink") {
@@ -3436,7 +3447,7 @@ function main() {
     }, false);
 
     function populateGodMode() {
-
+      
       prefillProgramTable(null, action="update");
 
     }
@@ -4043,6 +4054,20 @@ function main() {
         userProgram["endDate"] = moment(new Date).format("YYYY-MM-DD");
       }
       
+      //Check if program sheet modified
+      if(sessionStorage.getItem("programSheetLoaded") == "true") {
+
+        var fullTableData = [];
+
+        for(table of tableArr) {
+
+          fullTableData = fullTableData.concat(table.getData());
+
+        }
+        userProgram["fullTableData"] = JSON.stringify(fullTableData);
+        sessionStorage.setItem("programSheetChanged", "false");
+      } 
+      console.log(userProgram);
 
       sendUserProgramToMake(userProgram, "create");
 
@@ -4106,9 +4131,7 @@ function main() {
         }
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
-      } else {
-
-      }
+      } 
 
       sendUserProgramToMake(userProgram, "update");
 
@@ -4439,8 +4462,9 @@ function main() {
 
         fillProgramTable(tableData,false);
 
-      } else if(action == "update" && !prefillingProgram && !isPasteState && !updatingCalendar && !addProgram) {
+      } else if(action == "update" && !prefillingProgram && !isPasteState && !updatingCalendar && !addProgram && !isEventPasteState) {
         // Get new json data from calendar
+        console.log("populating god mode");
         getUserTrainingPlan();
         var fullTableData = null;
         // Get table data version of this
@@ -4863,8 +4887,18 @@ function main() {
                     var parentColumn = cell.getColumn().getParentColumn();
                     //Style if current week
                     var weekColumnValue = parentColumn.getElement().querySelector(".tabulator-col-title");
+
                     if(weekColumnValue.innerText == currentWeek) {
                       weekColumnValue.style.color = '#0C08D5';
+                      var weekTable = parentColumn.getElement().closest('.week-table');
+                      const weekTableOffset = weekTable.offsetLeft;
+                      const parentTableOffset = document.querySelector("#programSheet");
+
+                      //document.querySelector("#programSheet").offsetLeft = weekTableOffset;
+                      parentTableOffset.scrollTo({
+                        left: (weekTableOffset - parentTableOffset.offsetLeft),
+                      });
+  
                     }
                     // Get the data from the row
                     var data = cell.getRow().getData();
