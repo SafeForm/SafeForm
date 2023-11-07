@@ -420,7 +420,7 @@ function main() {
   }
 
   //If coming direct to site, only show finish button
-  if ((document.referrer == "" || sessionStorage.getItem("onlyFinish") == "true") && !fromProgram) {
+  if ((document.referrer == "" || sessionStorage.getItem("onlyFinish") == "true") || (!fromProgram || !currentProgram)) {
     sessionStorage.setItem("onlyFinish", "true");
     document.getElementById("workoutNavigation").style.display = "none";
     document.getElementById("shareWorkout").style.display = "block";
