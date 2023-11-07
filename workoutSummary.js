@@ -381,7 +381,7 @@ function main() {
     //Set onclick for start button
     document.getElementById("startWorkout").onclick = () => {
 
-      if(member.loggedIn) {
+      if(currentProgram && member.loggedIn) {
       
         document.getElementById("workoutInput").click();
 
