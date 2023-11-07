@@ -33,8 +33,12 @@ function main() {
   //Add inputs for each exercise based on number of sets
   const inputList = document.getElementById("inputList").children;
   
-  //Get and filter down full program to this exact workout
-  const currentProgram = JSON.parse(sessionStorage.getItem("currentFullProgram"));
+  //Get and filter down full program to this exact workout  
+  var currentProgram = null;
+  if(sessionStorage.getItem("currentFullProgram") != "" && sessionStorage.getItem("currentFullProgram") != null && sessionStorage.getItem("currentFullProgram") != undefined) {
+    currentProgram = JSON.parse(sessionStorage.getItem("currentFullProgram"));
+  }
+
 
   weekToFilter = "";
   workoutName = "";
@@ -54,7 +58,7 @@ function main() {
 
   MemberStack.onReady.then(async function(member) {  
 
-    if(fromProgram && member.loggedIn) {
+    if(fromProgram && member.loggedIn && currentProgram) {
 
       //Iterate through existing exercise list and change names
       for(var i = 0; i < inputList.length; i++) {
