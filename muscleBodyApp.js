@@ -142,8 +142,6 @@ function main() {
     
   }
 
-
-
   //Get utm campaign and store in storage
   const gymName = document.getElementById("utm_campaign").innerText;
 
@@ -151,7 +149,9 @@ function main() {
   var linksOnPage = document.querySelectorAll("a");
 
   //Check if there is no gym filter
-  if (gymName == 'utm_campaign') {
+  if (gymName == 'utm_campaign' || gymName.toLowerCase() == 'sam druce - fitness') {
+
+    document.getElementById("workoutsLink").style.display = "none";
 
     //Switch off gym filter
     document.getElementById("utm_campaign").click();
