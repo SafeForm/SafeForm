@@ -148,8 +148,11 @@ function main() {
   const savedGymName = localStorage.getItem("fromGym");
   var linksOnPage = document.querySelectorAll("a");
 
+  if(gymName.toLowerCase() == 'sam druce - fitness') {
+    document.getElementById("workoutsLink").style.display = "none";
+  }
   //Check if there is no gym filter
-  if (gymName == 'utm_campaign' || gymName.toLowerCase() == 'sam druce - fitness') {
+  if (gymName == 'utm_campaign') {
 
     document.getElementById("workoutsLink").style.display = "none";
 
