@@ -1,475 +1,642 @@
+const devMode = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  main();
+  if(devMode == undefined) {
+    main();
+  }
+  
 } else {
   document.addEventListener('DOMContentLoaded', function () {
+    if(devMode == undefined) {
       main();
+    }
   });
 }
 
 function main() {
-  var muscleMapping = {
-    "pectoralis-major":"Chest",
-    "quadriceps":"Quads",
-    "rectus-abdominis":"Abs",
-    "biceps-brachii":"Biceps",
-    "triceps-brachii":"Triceps",
-    "deltoids":"Shoulders",
-    "obliques":"Obliques",
-    "trapezius":"Traps",
-    "latissimus-dorsi":"Lats",
-    "palmaris-longus":"Forearms",
-    "gluteus-maximus":"Glutes",
-    "hamstrings":"Hamstrings",
-    "gastrocnemius":"Calves",
-    "erector-spinae":"Lower Back"
-  }
-
-  const svgPerson = document.getElementById("ajaxContent");
-  const guideList = document.getElementById("guideListParent");
-  const infoText = document.getElementById("clickForMoreInfoText");
-  const tapMuscleText = document.getElementById("tapMuscleText");
-  const backDiv = document.getElementById("backDiv");
-  const backButton = document.getElementById("clearText");
-
-  url = new URL(window.location.href);
-  var singleCablePressed = false;
-  if (url.searchParams.has("utm_content")) {
-    const utm_content = url.searchParams.get("utm_content");
-
-    if(utm_content == "cable") {
-
-      document.getElementById("cableFilter").click();
-      document.getElementById("mobileCableFilter").click();
-
-      document.getElementById("cableFilter").previousSibling.classList.add("w--redirected-checked");
-      document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
-
-      svgPerson.style.display = 'none';
-      guideList.style.display = 'block';
-      infoText.style.display = 'block';
-      tapMuscleText.style.display = 'none';
-      //Check if ipad and below
-      if(screen.width <= 950) {
-        backDiv.style.display = 'block';
-      } else {
-        backButton.style.display = 'block';
-      }
-
-      //Show filters button
-      document.getElementById("showFiltersBtn").style.display = "block";
-
-    } else if (utm_content == "dumbbell") {
-      document.getElementById("dumbbellFilter").click();
-      document.getElementById("mobileDumbbellFilter").click();
-      document.getElementById("dumbbellFilter").previousSibling.classList.add("w--redirected-checked");
-      document.getElementById("mobileDumbbellFilter").previousSibling.classList.add("w--redirected-checked");
-    } else if (utm_content == "single-cable") {
-
-      //Set Filters
-      document.getElementById("mechanismVariation").click();
-      document.getElementById("mobileMechanismVariation").click();
-
-      document.getElementById("cableFilter").click();
-      document.getElementById("mobileCableFilter").click();
-
-      document.getElementById("cableFilter").previousSibling.classList.add("w--redirected-checked");
-      document.getElementById("mobileCableFilter").previousSibling.classList.add("w--redirected-checked");
-
-      svgPerson.style.display = 'none';
-      guideList.style.display = 'block';
-      infoText.style.display = 'block';
-      tapMuscleText.style.display = 'none';
-
-      //Check if ipad and below
-      if(screen.width <= 950) {
-        backDiv.style.display = 'block';
-      } else {
-        backButton.style.display = 'block';
-      }
-      //Show filters button
-      document.getElementById("showFiltersBtn").style.display = "block";
-      singleCablePressed = true;
-
-    } else if (utm_content == "smith") {
-      document.getElementById("smithFilter").click();
-      document.getElementById("mobileSmithFilter").click();
-
-      document.getElementById("smithFilter").previousSibling.classList.add("w--redirected-checked");
-      document.getElementById("mobileSmithFilter").previousSibling.classList.add("w--redirected-checked");
-
-      svgPerson.style.display = 'none';
-      guideList.style.display = 'block';
-      infoText.style.display = 'block';
-      tapMuscleText.style.display = 'none';
-      //Check if ipad and below
-      if(screen.width <= 950) {
-        backDiv.style.display = 'block';
-      } else {
-        backButton.style.display = 'block';
-      }
-
-      //Show filters button
-      document.getElementById("showFiltersBtn").style.display = "block";
-    }
-
-  }
+  //Add inputs for each exercise based on number of sets
+  const inputList = document.getElementById("inputList").children;
   
-  var tempMuscleFilter = sessionStorage.getItem("savedMuscleFilter");
-  //Go back to where user was browsing if coming back from guides
-  if(url.searchParams.get("backLink") && tempMuscleFilter != "" && tempMuscleFilter) {
+  //Get and filter down full program to this exact workout
+  const currentProgram = JSON.parse(sessionStorage.getItem("currentFullProgram"));
+  weekToFilter = "";
+  workoutName = "";
+  weekWorkouts = "";
+  currentWorkoutIndex = "";
+  workoutInformation = "";
+  if(currentProgram != undefined && currentProgram != null) {
+    weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
+    workoutName = document.querySelector(".workout-summary-header h1").innerText
+    weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
+    currentWorkoutIndex = sessionStorage.getItem("workoutIndex");
+    workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
+  } else {
+    //workoutInformation = JSON.parse(document.getElementById("workoutJSON").innerText);
+  }
+
+
+  MemberStack.onReady.then(async function(member) {  
+
+    if(member.loggedIn) {
+
+      //Iterate through existing exercise list and change names
+      for(var i = 0; i < inputList.length; i++) {
+        var exerciseName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
+        
+        for (const exercise of workoutInformation) {
+          if(exercise.exercise.includes(exerciseName)) {
+            inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
+            //inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
+            break;
+          }
+        }
+      }
+
+      var memberJSON = await member.getMetaData();
+
+      for(var i = 0; i < inputList.length; i++) {
+
+        var inputShortName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
+        const exerciseInformation = workoutInformation.filter(item => item.exercise.includes(inputShortName));
+        
+        //Get number of sets for that exercise
+        const numberOfSets = parseInt(inputList[i].querySelector("#setsInput").innerText);
+        //Get rest info for that exercise
+        const restDiv = inputList[i].querySelector("#inputRest");
+        var newRestDiv = restDiv.cloneNode(true);
+        newRestDiv.style.display = "flex";
     
-    svgPerson.style.display = 'none';
-    guideList.style.display = 'block';
-    infoText.style.display = 'block';
-    tapMuscleText.style.display = 'none';
-    //Check if ipad and below
-    if(screen.width <= 950) {
-      backDiv.style.display = 'block';
-    } else {
-      backButton.style.display = 'block';
+        //Get input section for cloning
+        const inputSectionPlaceholder = inputList[i].querySelector("#inputSection");
+        var exerciseInputSection = inputList[i].querySelector("#inputSectionBlock");
+        const exerciseName = exerciseInputSection.querySelector("#exerciseNameInput").innerText;
+        var weightInput = exerciseInputSection.querySelector("#weight");
+        var repsInput = exerciseInputSection.querySelector("#reps");
+
+        weightInput.addEventListener('blur', function(event) {
+          const inputValue = event.target.value;
+          if(!event.target.value.includes("kg") && event.target.value != "") {
+            event.target.value = `${inputValue} kg`;
+          }
+    
+          const exerciseBlock = event.target.closest("#inputSectionBlock");
+          const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
+    
+          updateExerciseDetails(exerciseName.innerText, inputValue, 0, "weight");
+
+          //Check if reps also has a value then auto complete set
+          const updatedRepsInput = exerciseBlock.querySelector("#reps");
+          if(updatedRepsInput.value != "") {
+            exerciseBlock.querySelector("#completeExercise").click();
+          }
+
+        });
+
+        repsInput.addEventListener('blur', function(event) {
+          const inputValue = event.target.value;
+          if(!event.target.value.includes("reps") && event.target.value != "") {
+            event.target.value = `${inputValue} reps`;
+          }
+    
+          const exerciseBlock = event.target.closest("#inputSectionBlock");
+          const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
+    
+          updateExerciseDetails(exerciseName.innerText, inputValue, 0, "reps");
+          //Check if weight also has a value then auto complete set
+          const updatedWeightInput = exerciseBlock.querySelector("#weight");
+          if(updatedWeightInput != "") {
+            exerciseBlock.querySelector("#completeExercise").click();
+          }
+        });
+
+        var memberJSONExerciseName = memberJSON[exerciseName];
+        
+        if(memberJSONExerciseName != undefined) {
+          if(memberJSONExerciseName.weight != undefined) {
+            if (memberJSONExerciseName.weight.includes("kg")) {
+              weightInput.value = `${memberJSONExerciseName.weight[0]}`;
+            } else {
+              weightInput.value = `${memberJSONExerciseName.weight[0]} kg`;
+            }
+          }
+
+          if(memberJSONExerciseName.reps != undefined) {
+            if(memberJSONExerciseName.reps.length > 0) {
+              if (memberJSONExerciseName.reps[0].includes("reps")) {
+                repsInput.placeholder = `${memberJSONExerciseName.reps[0]}`;
+              } else {
+                repsInput.placeholder = `${memberJSONExerciseName.reps[0]} reps`;
+              }
+            }
+            
+          }
+          
+        }
+        //Check if it is an empty filler exercise from god mode:
+        if(exerciseInformation[0].exercise != "") {
+          //Set placeholder of the first rep input text box for each exercise
+          inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
+
+          //Set value of notes
+          inputList[i].querySelector("#notes").innerText = `${exerciseInformation[0].notes}`;
+
+          //Check if load has inputs from PT
+          if(exerciseInformation[0].load.toLowerCase() != "kg") {
+            inputList[i].querySelector("#weight").value = `${exerciseInformation[0].load}`;
+          }
+
+          //Fill in rest fields
+          inputList[i].querySelector("#inputRest").innerText = `${exerciseInformation[0].exerciseRestMinutes}m ${exerciseInformation[0].exerciseRestSeconds}s`;
+          inputList[i].querySelector("#inputRest").classList.add("rest-input")
+        }
+
+
+        for (var j = 0; j < numberOfSets - 1; j++) {
+          (function(j) {
+
+            newRestDiv = restDiv.cloneNode(true);
+            var newInputSection = inputSectionPlaceholder.cloneNode(true);
+            var newWeightInput = newInputSection.querySelector("#weight");
+            var newRepsInput = newInputSection.querySelector("#reps");
+            newRepsInput.value = "";
+            newRestDiv.style.display = "flex";
+
+            const completeButton = newInputSection.querySelector("#completeExercise");
+            completeButton.style.display = "none";
+
+            //Check if it is an empty filler exercise from god mode:
+            if(exerciseInformation[j+1].exercise != "") {
+              //Set quantity/reps field
+              newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`
+
+              //Set weight field if exists
+              //Check if load has inputs from PT
+              if(exerciseInformation[0].load.toLowerCase() != "kg") {
+                newWeightInput.value = `${exerciseInformation[j+1].load}`;
+              }
+
+              //Set rest
+              newRestDiv.innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s`;
+            }
+    
+            newWeightInput.addEventListener('blur', function(event) {
+
+              const inputValue = event.target.value;
+              if(!event.target.value.includes("kg") && event.target.value != "") {
+                event.target.value = `${inputValue} kg`;
+              }
+              const exerciseBlock = event.target.closest("#inputSectionBlock");
+              const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
+        
+              updateExerciseDetails(exerciseName.innerText, inputValue, j+1, "weight");
+              //Check if weight also has a value then auto complete set
+              const newUpdatedRepsInput = newInputSection.querySelector("#reps");
+
+              if(newUpdatedRepsInput.value != "") {
+                newInputSection.querySelector("#completeExercise").click();
+              }
+            });
+    
+            newRepsInput.addEventListener('blur', function(event) {
+              const inputValue = event.target.value;
+
+              if(!event.target.value.includes("reps") && event.target.value != "") {
+                event.target.value = `${inputValue} reps`;
+              }
+        
+              const exerciseBlock = event.target.closest("#inputSectionBlock");
+              const exerciseName = exerciseBlock.querySelector("#exerciseNameInput");
+        
+              updateExerciseDetails(exerciseName.innerText, inputValue, j+1, "reps");
+              const newUpdatedWeightInput = newInputSection.querySelector("#weight");
+
+              //Check if weight also has a value then auto complete set
+              if(newUpdatedWeightInput.value != "") {
+                newInputSection.querySelector("#completeExercise").click();
+              }
+            });
+            
+            if(memberJSONExerciseName != undefined) {
+
+              if(memberJSONExerciseName.weight != undefined) {
+                if(memberJSONExerciseName.weight[j+1] != undefined) {
+                  if (memberJSONExerciseName.weight.includes("kg")) {
+                    newWeightInput.value = `${memberJSONExerciseName.weight[j+1]}`;
+                  } else {
+                    newWeightInput.value = `${memberJSONExerciseName.weight[j+1]} kg`;
+                  }
+                }
+
+              }
+
+              if(memberJSONExerciseName.reps != undefined) {
+                if(memberJSONExerciseName.reps.length > j+1) {
+                  if (memberJSONExerciseName.reps[j+1].includes("reps")) {
+                    newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]}`;
+                  } else {
+                    newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]} reps`;
+                  }
+                } 
+              }
+            }
+            if(j < numberOfSets - 1) {
+              exerciseInputSection.appendChild(newRestDiv);
+            }
+            
+            exerciseInputSection.appendChild(newInputSection);
+
+          })(j); // Pass the value of j into the immediately-invoked function expression (IIFE)
+        }
+      }
+
+      //Set onclicks for each complete image
+      const completeButtons = document.querySelectorAll("#completeExercise");
+
+      var numberOfSets = completeButtons.length;
+      var completedSets = 0;
+     
+      //Record in memberstack
+      const workoutID = sessionStorage.getItem("currentWorkout");
+      completeButtons.forEach((button, index) => {
+        
+        //Get exercise name
+        const completedExercisename = button.closest("#inputSectionBlock").querySelector("#exerciseNameInput").innerText;
+
+        var exerciseInfo = memberJSON[completedExercisename];
+        if(exerciseInfo && exerciseInfo.workouts != undefined) {
+          var numCompletedSets = exerciseInfo.workouts[workoutID];
+          if((index%3 + 1) <= numCompletedSets) {
+
+            const repsValue = button.closest("#inputSection").querySelector("#reps").placeholder;
+            button.closest("#inputSection").querySelector("#reps").value  = repsValue;
+
+            hideCompleteButton(button);
+          }
+        }
+
+        button.addEventListener("click", () => {
+
+          hideCompleteButton(button);
+
+          //Increment 'completed sets' counter
+          completedSets += 1;
+
+          if(completedSets == numberOfSets) {
+            document.getElementById("finishWorkout").click;
+          }
+
+          if(workoutID != null || workoutID != "") {
+            updateWorkoutDetails(completedExercisename, workoutID, (index)%3 + 1);
+          }
+          
+        });
+
+      });
+
     }
 
-    //Show filters button
-    document.getElementById("showFiltersBtn").style.display = "block";
+    document.getElementById("finishWorkout").onclick = async () => {
+      
+      if(member.loggedIn) {
+        //Get user metadata
+        memberJSON = await member.getMetaData();
 
-    //Populate search box
-    document.getElementById("exerciseSearch").value = muscleMapping[tempMuscleFilter];
+        //Get program JSON and modify it to include the new workout id
+        const userProgram = JSON.parse(sessionStorage.getItem("currentProgram"));
+        const workoutIndex = sessionStorage.getItem("workoutIndex");
+        const workoutID = sessionStorage.getItem("currentWorkout");
+        var workoutObj = {};
+        workoutObj["memberJSON"] = JSON.stringify(memberJSON);
+        workoutObj["member"] = member;
+        workoutObj["programName"] = sessionStorage.getItem("programName");
+        workoutObj["programID"] = sessionStorage.getItem("programID");
+        if(userProgram != null) {
 
-    //Filter
-    tempMuscleFilter = tempMuscleFilter.replaceAll(" ", "-");
-    document.querySelector(`.${tempMuscleFilter}-filter`).click();
+          userProgram[0].events[[workoutIndex]]["extendedProps"]["completedID"] = workoutID;
+          
+          workoutObj["userProgram"] = JSON.stringify(userProgram);
 
-    
+        } 
+
+        sendWorkoutDetailsToMake(workoutObj);
+
+      } else {
+        var baseURL = window.location.origin;
+        window.location = baseURL + "/workouts/workout-navigation"
+
+      }
+      
+    };
+
+    //Set onclick for start button
+    document.getElementById("startWorkout").onclick = () => {
+
+      if(member.loggedIn) {
+      
+        document.getElementById("workoutInput").click();
+
+        document.getElementById("workoutNavigation").style.display = "none";
+        
+        if(document.getElementById("shareWorkout").style.display != "block") {
+          document.getElementById("finishWorkoutDiv").style.display = "block";
+        }
+        
+      } else {
+
+        document.getElementById("workoutNavigation").style.display = "none";
+  
+        if(document.getElementById("shareWorkout").style.display != "block") {
+          document.getElementById("finishWorkoutDiv").style.display = "block";
+        }
+      }
+
+    };
+
+
+  });
+
+
+  //Hide the first exercise breaker of the exercise list
+  const exerciseList = document.getElementById("listOfExercises").children;
+
+  var utm_campaign = document.getElementById("utm_campaign").innerText;
+  const urlParams = new URLSearchParams(window.location.search);
+  var fromProgram = false;
+  if(urlParams.has("fromProgram")) {
+    fromProgram = true;
   }
 
-  //Get utm campaign and store in storage
-  const gymName = document.getElementById("utm_campaign").innerText;
-
-  const savedGymName = localStorage.getItem("fromGym");
-  var linksOnPage = document.querySelectorAll("a");
-
-  if(gymName.toLowerCase() == 'sam druce - fitness') {
-    document.getElementById("workoutsLink").style.display = "none";
-  }
   //Check if there is no gym filter
-  if (gymName == 'utm_campaign') {
-
-    document.getElementById("workoutsLink").style.display = "none";
-
-    //Switch off gym filter
-    document.getElementById("utm_campaign").click();
-
-    for(var i = 0; i < linksOnPage.length; i++) {
-      if(linksOnPage[i].id != "clearExperienceExerciseFilters" && linksOnPage[i].id != "showFiltersBtn") {
-        linksOnPage[i].href += `?fromLibrary=true`;
-      }
-    }
-  } else if(savedGymName != "null" && savedGymName != null) {
-    var currentGym = '';
-    if(gymName != 'utm_campaign') {
-      currentGym = gymName;
-    } else {
-      currentGym = savedGymName;
-    }
-    localStorage.setItem("fromGym", currentGym);
-    //Ensure utm campaign parameter is passed to all other links
-    for(var i = 0; i < linksOnPage.length; i++) {
-
-      if(linksOnPage[i].id != "clearExperienceExerciseFilters" && linksOnPage[i].id != "showFiltersBtn") {
-        linksOnPage[i].href += `?utm_campaign=${currentGym}&fromLibrary=true`;
+  if (utm_campaign != null && utm_campaign != "utm_campaign") {
+    localStorage.setItem('gym_name', utm_campaign);
+    //Find all links on the page and add utm parameter for future filtering
+    var pageLinks = document.querySelectorAll("a");
+    for(var i = 0; i < pageLinks.length; i++) {
+      if(pageLinks[i].id != "shareLink" && pageLinks[i].id != "closeMenu" && pageLinks[i].id != "clearFilters") {
+        pageLinks[i].href = pageLinks[i].href += `?utm_campaign=${utm_campaign}`;
+      } else if (pageLinks[i].id == "clearFilters") {
+        pageLinks[i].href = pageLinks[i].href;
       }
     }
   }
 
-  const muscleGroups = ["quadriceps", "gluteusmaximus", "tricepsbrachii", "pectoralismajor", "palmarislongus", "epigastrium","pyramidalis","bicepsbrachii","deltoids","gastrocnemius","trapezius","latissimusdorsi","hamstrings","obliques","adductors"];
-  const muscles = document.querySelectorAll(".svg-parent")[0].getElementsByTagName('path');
+  //If coming direct to site, only show finish button
+  if (document.referrer == "" || sessionStorage.getItem("onlyFinish") == "true") {
+    sessionStorage.setItem("onlyFinish", "true");
+    document.getElementById("workoutNavigation").style.display = "none";
+    document.getElementById("shareWorkout").style.display = "block";
+  } else {
+    sessionStorage.setItem("onlyFinish", "false");
+  }
 
-
-  //If search box changes, show list and hide svg man:
-  const searchBox = document.getElementById("exerciseSearch");
-  searchBox.oninput = function() {
-    if(searchBox.value != "") {
-      svgPerson.style.display = 'none';
-      guideList.style.display = 'block';
-      infoText.style.display = 'block';
-      tapMuscleText.style.display = 'none';
-      //Check if ipad and below
-      if(screen.width <= 950) {
-        backDiv.style.display = 'block';
+  //Setting destination of back button
+  document.getElementById('backFromWorkout').onclick = function() {
+    if(fromProgram) {
+      const myProgramLink = document.getElementById("myProgram").href;
+      window.location = myProgramLink;
+    } else if (localStorage.getItem("initialWorkoutPage") == "wow") {
+      if (utm_campaign != null && utm_campaign != "utm_campaign") {
+        window.location = `${window.location.origin}/workouts/workout-navigation?utm_campaign=${utm_campaign}`;
       } else {
-        backButton.style.display = 'block';
+       window.location = `${window.location.origin}/workouts/workout-navigation`;
       }
-      //Show filters button
-      document.getElementById("showFiltersBtn").style.display = "block";
     } else {
-      svgPerson.style.display = 'block';
-      guideList.style.display = 'none';
-      infoText.style.display = 'none';
-      tapMuscleText.style.display = 'block';
-      if(screen.width <= 950) {
-        backDiv.style.display = 'none';
+      if (utm_campaign != null && utm_campaign != "utm_campaign") {
+        window.location = `${window.location.origin}/workouts/workout-summary?utm_campaign=${utm_campaign}`;
       } else {
-        backButton.style.display = 'none';
+        window.location = `${window.location.origin}/workouts/workout-summary`;
       }
-      resetFilters(true);
-      //Hide filters button
-      document.getElementById("showFiltersBtn").style.display = "none";
+
     }
   }
 
-  //Listen for click events:
+  var workoutExercises = [];
+  //Get all workout names and store them
+  for(var i = 0; i < exerciseList.length; i++) {
+    //Set reps input
+    var shortName = exerciseList[i].querySelector("#exerciseShortName").innerText;
+        
+    // for (const exercise of workoutInformation) {
+
+    //   if(exercise.exercise.includes(shortName)) {
+    //     console.log(shortName)
+    //     console.log(exercise.exercise)
+    //     exerciseList[i].querySelector("#exerciseShortName").innerText = exercise.exercise;
+    //     break;
+    //   }
+    // }
+
+    if(workoutInformation != "") {
+      const exerciseInformation = workoutInformation.filter(item => item.exercise.includes(shortName));
+
+      //Check if it is an empty filler exercise from god mode:
+      if(exerciseInformation[0].exercise != "") {
+        exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
+        exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
+        exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+        var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
+        workoutExercises.push(`${shortName},${loadingMechanism}`);
+      } else {
+        exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
+        exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
+        exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+        var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
+        workoutExercises.push(`${shortName},${loadingMechanism}`);
+      }
+    } else {
+      //Set default values
+      exerciseList[i].querySelector("#repInput").innerText = 10;
+      exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
+      exerciseList[i].querySelector("#restMinutes").innerText = 3;
+      exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
+      exerciseList[i].querySelector("#restSeconds").innerText = 0;
+      exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+    }
+
+
+  }
+
   document.addEventListener('click', function (event) {
 
-    if(event.target.id == "machine-parent") {
-      document.getElementById("pin-checkbox").click();
-      document.getElementById("plate-checkbox").click();
+    if(event.target.id == "shareLink" || event.target.id == "shareImage") {
+
+      const shareData = {
+        title: 'BeneFit Workout',
+        text: 'Try out my latest workout called {{wf {&quot;path&quot;:&quot;short-name&quot;,&quot;type&quot;:&quot;PlainText&quot;\} }}!',
+        url: location.href
+      }
+      showShareNavigation(shareData);
+    } else if (event.target.id == "home" || event.target.id == "homeImage" || event.target.id == "exerciseLibrary" || event.target.id == "workouts") {
+      localStorage.setItem("onlyFinish", "false");
     }
 
-    if(event.target.id == "machine-parent-mobile") {
-      document.getElementById("pin-checkbox-mobile").click();
-      document.getElementById("plate-checkbox-mobile").click();
-    }
-
-    if (event.target.nodeName == "path") {
-      var muscleFilter = sessionStorage.getItem("muscleFilter");
-      
-      //Ensure muscle filter exists
-      if(muscleFilter && muscleFilter != "") {
-        muscleFilter = muscleFilter.replaceAll(" ", "-");
-        document.querySelector(`.${muscleFilter}-filter`).click();
-        //Click ab/adductors if quads are selected
-        if(muscleFilter == "quadriceps") {
-          document.querySelector(".adductors-filter").click();
-          document.querySelector(".abductors-filter").click();
-        }
-        // hide SVG man:
-        svgPerson.style.display = 'none';
-        guideList.style.display = 'block';
-        infoText.style.display = 'block';
-        tapMuscleText.style.display = 'none';
-        if(screen.width <= 950) {
-          backDiv.style.display = 'block';
-        } else {
-          backButton.style.display = 'block';
-        }
-
-        //Show filters button
-        document.getElementById("showFiltersBtn").style.display = "block";
-
-        //Populate search box
-        document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
-      }
-      //Reset storage filter for next click
-      sessionStorage.setItem("muscleFilter", "");
-      sessionStorage.setItem("savedMuscleFilter", muscleFilter);
-
-    } else if(event.target.id == "cableFilterText" || event.target.id == "cableFilter" || event.target.id == "cableFilterDiv" || event.target.id == "mobileCableFilterText" || event.target.id == "mobileCableFilter" || event.target.id == "mobileCableFilterDiv") {
-      if(singleCablePressed) {
-        //Remove single cable filter
-        document.getElementById("mechanismVariation").click();
-        document.getElementById("mobileMechanismVariation").click();
-        singleCablePressed = false;
-      }
-    
-    } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
-      svgPerson.style.display = 'block';
-      guideList.style.display = 'none';
-      if(screen.width <= 950) {
-        backDiv.style.display = 'none';
-      } else {
-        backButton.style.display = 'none';
-      }
-      infoText.style.display = 'none';
-      tapMuscleText.style.display = 'block';
-
-      //Hide filters button
-      document.getElementById("showFiltersBtn").style.display = "none";
-      resetFilters();
-    } else if(event.target.id == "prev") {
-      svgPerson.style.display = 'block';
-      guideList.style.display = 'none';
-
-      if(screen.width <= 950) {
-        backDiv.style.display = 'none';
-      } else {
-        backButton.style.display = 'none';
-      }
-      infoText.style.display = 'none';
-      tapMuscleText.style.display = 'block';
-      //Hide filters button
-      document.getElementById("showFiltersBtn").style.display = "none";
-      resetFilters();
-    } else if(event.target.id == "clearExperienceExerciseFilters") {
-      resetGeneralFilters();
-    } else if(event.target.id == "menu-clearExperienceExerciseFilters") {
-      resetGeneralFilters();
-    } else if (event.target.id == "exerciseLibraryHeading") {
-      svgPerson.style.display = 'block';
-      guideList.style.display = 'none';
-      resetFilters();
-    } else if (event.target.id == "showFiltersBtn") {
-    
-      //Show page cover divs
-      document.getElementById("pageCoverDiv").style.display = "block";
-      document.getElementById("pageCoverDivLowerHalf").style.display = "block";
-      
-    
-    } else if (event.target.id == "pageCoverDiv" || event.target.id == "pageCoverDivLowerHalf") {
-      //Hide page cover divs
-      document.getElementById("pageCoverDiv").style.display = "none";
-      document.getElementById("pageCoverDivLowerHalf").style.display = "none";
-
-    }
   }, false);
 
-  //Listen for change events:
-  document.addEventListener('change', function (event) {
-    if (event.target.type) {
-      checkCheckboxFilters().then(res => { 
-        //Check if the amount of active filters is more than 0
-        if(res > 0) {
-          document.getElementById("clearExperienceExerciseFilters").style.display = "block";
-          document.getElementById("menu-clearExperienceExerciseFilters").style.display = "block";
-          document.getElementById("showFiltersBtn").style.borderColor = "#08D58B";
-        } else {
-          document.getElementById("clearExperienceExerciseFilters").style.display = "none";
-          document.getElementById("menu-clearExperienceExerciseFilters").style.display = "none";
-          document.getElementById("showFiltersBtn").style.borderColor = "#0C08D5";
-        }
+  //Set current workout link in storage
+  localStorage.setItem("currentWorkout", document.URL);
+  //Set exercises in storage
+  localStorage.setItem("workoutExercises", JSON.stringify(workoutExercises));
 
-      });
-    }
-  }, false);
-
-  /*
-    Splitting up if there is multiple gym & muscle values to make sure we are filtering each
-  */
-  //Iterate through list
-  var exerciseList = document.querySelectorAll("#exerciseInfoDiv");
-
-  for(let i = 0; i < exerciseList.length; i++) {
-    
-    //Obtain the gym text field
-    var gymElement = exerciseList[i].querySelector("#gymField");
-    var muscleElement = exerciseList[i].querySelector("#scientificPrimaryMuscle");
-
-    if (gymElement) {
-      
-      //Split the gym field by comma
-      var gymElementArr = gymElement.innerText.split(',');
-      
-      //Obtain the original dv
-      var exerciseInfoDiv = exerciseList[i];
-
-      if (gymElementArr.length > 1) {
-        //Clone the gym text field and split it into their own text block
-        cloneAndAddElement(gymElementArr, gymElement, exerciseInfoDiv, "div", "gymField", "gymfilter");
-      }
-    }
-    
-    if (muscleElement) {
-    
-      //Split the muscle field by comma
-      var muscleElementArr = muscleElement.innerText.split(',');
-      
-      //Obtain the original div
-      var exerciseInfoDiv = exerciseList[i];
-
-      if (muscleElementArr.length > 1) {
-        //Clone the muscle text field and split it into their own text block
-        cloneAndAddElement(muscleElementArr, muscleElement, exerciseInfoDiv, "div", "scientificPrimaryMuscle", "muscleNameFilter");
-      }
+  async function showShareNavigation(shareData) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      console.log(err);
     }
   }
 
-  //Check if list is empty:
-  window.fsAttributes = window.fsAttributes || [];
-  window.fsAttributes.push([
-    'cmsfilter',
-    (filterInstances) => {
-
-      // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
-      const [filterInstance] = filterInstances;
-      
-      let filterData = filterInstance.filtersData;
-      
-      // The `renderitems` event runs whenever the list renders items after filtering.
-      filterInstance.listInstance.on('renderitems', (renderedItems) => {
-        if(renderedItems.length == 0) {
-          infoText.style.display = "none";
-          tapMuscleText.style.display = 'none';
-        }
-      });
-    },
-  ]);
-
-  function cloneAndAddElement(valueArr, elementToClone, containerElement, tagElement, newID, customID=null) {
-
-    var parentElement = elementToClone.parentElement;
-
-    //Iterate through array and create eleme
-    //Then append to container div
-    for(let i = 0; i < valueArr.length; i++) {
-      
-      if (tagElement != "div") {
-        var clonedElement = parentElement.cloneNode(true);
-      } else {
-        var clonedElement = elementToClone.cloneNode(true);
+  async function sendWorkoutDetailsToMake(workoutObj) {
+    fetch("https://hook.us1.make.com/bzcdv18wn5vn11k018czjnfii7ljspgs", {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify(workoutObj)
+    }).then((res) => {
+      if (res.ok) {
+        return res.text();
       }
+      throw new Error('Something went wrong');
+    })
+    .then((data) => {
+      const programPageLink = document.getElementById("myProgram").href;
+      window.location = programPageLink;
+
       
-      clonedElement.id = `${newID}`;
-      customID ? clonedElement.setAttribute('fs-cmsfilter-field', customID) : null;
-      if(tagElement == "div") {
-        clonedElement.innerText = valueArr[i].trim();
-      } else {
-        clonedElement.querySelector(tagElement).innerText = valueArr[i].trim();
-      }
-      containerElement.append(clonedElement);
-
-    }
-    
-    //Remove original parent
-    elementToClone.remove();
-
-  }
-
-  async function resetFilters(onlyCheckboxes=false) {
-    window.fsAttributes = window.fsAttributes || [];
-    window.fsAttributes.push([
-      'cmsfilter',
-      async (filterInstances) => {
-                
-        //Clear Text
-        document.getElementById("exerciseSearch").value = "";
-        // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
-        const [filterInstance] = filterInstances;
-        !onlyCheckboxes ? await filterInstance.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
-        await filterInstance.resetFilters(filterKeys=["musclenamefilter"], null);
-      },
-    ]);
-  }
-  //Returns the amount of experience and exercise filters are currently active
-  async function checkCheckboxFilters() {
-    var filtersTotalSize = 0;
-    window.fsAttributes = window.fsAttributes || [];
-    window.fsAttributes.push([
-      'cmsfilter',
-    ])
-    return window.fsAttributes.cmsfilter.loading.then(res => {
-      var filterInstance = res[0].filtersData;
-      filtersTotalSize = filterInstance[0].values.size + filterInstance[1].values.size;
-      return filtersTotalSize;
+    })
+    .catch((error) => {
+      const programPageLink = document.getElementById("myProgram").href;
+      window.location = programPageLink;
     });
   }
 
-  async function resetGeneralFilters() {
+  async function updateWorkoutDetails(exerciseName, workoutID, value) {
+    MemberStack.onReady.then(async function(member) {  
 
-    const checkboxes = document.getElementsByClassName('filter-checkbox');
-    for (let i = 0; i < checkboxes.length; i++) { 
-      if(checkboxes[i].classList.value.includes('w--redirected-checked')) {
-        checkboxes[i].click();
+      var metadata = await member.getMetaData();
+      var exerciseInfo = metadata[exerciseName];
+
+      var workoutsMap = null;
+      if(exerciseInfo == undefined) {
+        workoutsMap =  new Map();
+        exerciseInfo = {"weight": [], "reps":[], "workouts": workoutsMap};
+      } else if(exerciseInfo.workouts == null) {
+        workoutsMap =  new Map();
+        exerciseInfo["workouts"] = workoutsMap;
       }
-    }
 
+      var workoutsMap = exerciseInfo.workouts;
+      //If no workouts recorded
+      workoutsMap[workoutID] = value;
+
+      exerciseInfo.workouts = workoutsMap;
+
+      const updatedJSON = {[exerciseName] : exerciseInfo};
+
+      member.updateMetaData(updatedJSON);
+
+
+    });
   }
+
+  function hideCompleteButton(button) {
+
+      // Hide the clicked element
+      button.style.display = "none";
+      //Get input section sibling to update the next set
+      var setInputSection = button.closest("#inputSection");
+  
+      var nextInputSection = setInputSection.nextElementSibling;
+
+      while (nextInputSection) {
+        if (nextInputSection.id === "inputSection") {
+          break;
+        }
+        nextInputSection = nextInputSection.nextElementSibling;
+      }
+
+      if(nextInputSection) {
+        if(nextInputSection.querySelector("#completedExercise").style.display != "block") {
+          nextInputSection.querySelector("#completeExercise").style.display = "block";
+        }
+        
+      }
+      
+      // Find the next sibling element with the id "completedExercise"
+      const nextCompletedImage = button.nextElementSibling;
+
+      if (nextCompletedImage && nextCompletedImage.id === "completedExercise") {
+        nextCompletedImage.style.display = "block"; // Or any other display value you prefer
+      }
+  }
+
+  async function updateExerciseDetails(exerciseName, inputValue, setNumber=null, type) {
+    MemberStack.onReady.then(async function(member) {  
+
+      var metadata = await member.getMetaData();
+      //Get info from exercise
+      var exerciseInfo = metadata[exerciseName];
+
+      if(exerciseInfo == undefined) {
+        exerciseInfo = {"weight": [], "reps":[], "workouts":[]};
+      }
+ 
+      if(type == "reps") {
+        //If no rep info recorded
+        var repsArr = exerciseInfo.reps;
+
+        if(repsArr == null) {
+          //Reps array is empty so just put input value into array and update
+          var exerciseRepsObj = [inputValue];
+        } else {
+          //There is rep info
+          //Check if index in reps array exists first
+          if(setNumber < repsArr.length) {
+            repsArr[setNumber] = inputValue;
+          } else {
+            repsArr.push(inputValue)
+          }
+          console.log(repsArr)
+          var exerciseRepsObj = repsArr;
+          
+        }
+        exerciseInfo.reps = exerciseRepsObj;
+        
+        const updatedJSON = {[exerciseName] : exerciseInfo};
+        console.log(updatedJSON);
+        member.updateMetaData(updatedJSON);
+
+      } else {
+
+        //If no rep info recorded
+        var weightArr = exerciseInfo.weight;
+
+        if(weightArr == null) {
+          //Reps array is empty so just put input value into array and update
+          var exerciseRepsObj = [inputValue];
+        } else {
+          //There is rep info
+          //Check if index in reps array exists first
+          if(setNumber < weightArr.length) {
+            weightArr[setNumber] = inputValue;
+          } else {
+            weightArr.push(inputValue)
+          }
+
+          var exerciseRepsObj = weightArr;
+        }
+          
+
+        exerciseInfo.weight = exerciseRepsObj;
+        const updatedJSON = {[exerciseName] : exerciseInfo};
+
+        member.updateMetaData(updatedJSON);
+      }
+
+    });
+  }
+
 }
