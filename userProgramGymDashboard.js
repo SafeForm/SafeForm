@@ -1581,7 +1581,7 @@ function main() {
               document.getElementById("user-firstName").value = userNameArr[0];
               document.getElementById("user-lastName").value = userNameArr[1];
             }
-
+            prefillingProgram = true;
             //Fill account type
             document.getElementById("accountType").innerText = userSummary.querySelector("#summaryAccountType").innerText;
 
