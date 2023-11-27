@@ -996,7 +996,7 @@ async function main() {
         }
 
       } else {
-        styleNavButtons("userPage");
+        styleNavButtons("workoutsPage");
       }
       document.getElementById("workoutsPage").onclick = function() {
         //Reset filters on workout summary page
