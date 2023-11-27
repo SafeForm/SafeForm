@@ -12,7 +12,8 @@ if (document.readyState !== 'loading') {
   });
 }
 
-function main() {
+async function main() {
+
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -101,6 +102,8 @@ function main() {
 
   //Add pending users
   addPendingUsers();
+
+  await loadAndUpdateAllSummaries();
 
   /*
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
@@ -311,6 +314,54 @@ function main() {
     
   }
 
+  function loadAndUpdateAllSummaries() {
+    // Select all elements with class 'userSummary'
+    var userSummaries = document.querySelectorAll('#userSummary');
+  
+    // Define a function to perform the loading and updating for a single user summary
+    function loadAndUpdateSummary(userSummary) {
+      var summaryUserSlug = $(userSummary).find('#summaryUserSlug').text().trim();
+      var summaryFullEventDataField = $(userSummary).find('#summaryFullEventData');
+      var summaryEventData = $(userSummary).find('#summaryEventData');
+      var summaryUserName = $(userSummary).find('#userSummaryName').text();
+      var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
+
+      if (!summaryEventData.attr('class').includes("w-dyn-bind-empty")) {
+
+        // Use $.get to fetch the content of #fullEventData from the specified URL
+        var getRequest = $.get(programURL, function (data, status) {
+          if (status === 'success') {
+            // Find #fullEventData in the fetched content and update the field
+            var fullEventData = $(data).find('#programFullEventData').html();
+            summaryFullEventDataField.html(fullEventData);
+          } else {
+            alert('Error loading program data for ' + summaryUserName);
+          }
+        });
+      
+        return getRequest;
+      } else {
+        // Return a resolved promise
+        return $.when();
+      }
+    }
+    
+  
+    // Create an array to store the load requests for each user summary
+    var loadRequests = [];
+    
+    // Iterate over each user summary and initiate the loading process
+    $.each(userSummaries, function (index, userSummary) {
+      var loadRequest = loadAndUpdateSummary(userSummary);
+      loadRequests.push(loadRequest);
+    });
+  
+    // Use $.when to wait for all load requests to complete
+    $.when.apply($, loadRequests).then(function () {
+      // Any additional code to run after all requests have completed
+    });
+  }
+
   function addPendingUsers() {
 
     for(var i = 1; i <= 3; i++) {
@@ -375,75 +426,76 @@ function main() {
   }
 
   async function addMoreThanFiveWorkouts() {
-
-    //Request and get extra workout summary details for workouts that have more than 5 exercises
+    // Request and get extra workout summary details for workouts that have more than 5 exercises
     var workoutSummaryListItemsList = document.querySelectorAll("#workoutSummaryList .workoutsummaryitem");
-
+  
+    // Function to perform the asynchronous $.get request for a single workout
+    async function getWorkoutDetails(workoutSummaryElement, workoutSlug) {
+      var url = window.location.origin + '/guides/' + workoutSlug;
+      const data = await $.get(url);
+      var $page = $(data);
+  
+      // Extract information from the retrieved page
+      var workoutName = $page.find('#guideName').text();
+      var exerciseFullName = $page.find('#fullGuideName').text();
+      var exerciseGuideID = $page.find('#guideID').text();
+      var exerciseItemID = $page.find('#guideID').text();
+      var exerciseThumbnailURL = $page.find('#guideThumbnailURL').text();
+      var exerciseMuscles = $page.find('#exerciseMuscles').text();
+      var exerciseSets = "";
+      var muscleHighlightImage = $page.find('#muscleHighlightImage').attr('src');
+  
+      // Now clone current row, replace values, append to end of cms nested list
+      var clonedRow = workoutSummaryElement.querySelector(".w-dyn-item").cloneNode(true);
+      clonedRow.querySelector("#exerciseShortName").innerText = workoutName;
+      clonedRow.querySelector("#exerciseFullName").innerText = exerciseFullName;
+      clonedRow.querySelector("#exerciseGuideID").innerText = exerciseGuideID;
+      clonedRow.querySelector("#exerciseItemID").innerText = exerciseItemID;
+      clonedRow.querySelector("#exerciseThumbnailURL").innerText = exerciseThumbnailURL;
+      clonedRow.querySelector("#exerciseSets").innerText = exerciseSets;
+      clonedRow.querySelector("#exerciseMuscleImage").innerText = muscleHighlightImage;
+      clonedRow.querySelector("#exerciseMuscles").innerText = exerciseMuscles;
+  
+      workoutSummaryElement.querySelector("#newCollectionList").appendChild(clonedRow);
+    }
+  
+    // Create an array of promises for parallel execution
+    var promises = [];
+  
     for (var i = 0; i < workoutSummaryListItemsList.length; i++) {
       var workoutSummaryElement = workoutSummaryListItemsList[i];
-      //Check if number of workouts is more than 5
       var workoutIDs = workoutSummaryElement.querySelector("#workoutIDs").innerText;
-
-      if(workoutIDs != "" && workoutIDs != null && workoutIDs != undefined) {
+  
+      if (workoutIDs != "" && workoutIDs != null && workoutIDs != undefined) {
         workoutIDs = workoutIDs.split(/,\s*/);
-
-        if(workoutIDs.length > 5) {
-
+  
+        if (workoutIDs.length > 5) {
           var existingIDs = workoutSummaryElement.querySelectorAll("#newCollectionList #exerciseLink");
-
           var existingIDArr = [];
-          for(var j = 0; j < existingIDs.length; j++) {
-            if(existingIDs[j].href.split("/").length > 4) {
+  
+          for (var j = 0; j < existingIDs.length; j++) {
+            if (existingIDs[j].href.split("/").length > 4) {
               existingIDArr.push(existingIDs[j].href.split("/")[4]);
             }
           }
-
+  
           const differenceArr = workoutIDs.filter(item => !existingIDArr.includes(item));
-
-          for(var x = 0; x < differenceArr.length; x++) {
-            if(differenceArr[x] != "") {
+  
+          for (var x = 0; x < differenceArr.length; x++) {
+            if (differenceArr[x] != "") {
               var workoutSlug = differenceArr[x];
-              //var url = 'https://app.bene-fit.io/workout-exercise/' + workoutSlug; // Construct the URL
-              var url = window.location.origin + '/guides/' + workoutSlug; // Construct the URL
-
-              // Capture the reference to workoutSummaryElement before entering the asynchronous context
-              var currentWorkoutElement = workoutSummaryElement;
-
-              //Use jquery .get to get the remaining IDs
-              //Get existing IDs
-              const data = await $.get(url);
-              var $page = await $(data);
-            
-              // Extract information from the retrieved page
-              var workoutName = $page.find('#guideName').text();
-              var exerciseFullName = $page.find('#fullGuideName').text();
-              var exerciseGuideID = $page.find('#guideID').text();
-              var exerciseItemID = $page.find('#guideID').text();
-              var exerciseThumbnailURL = $page.find('#guideThumbnailURL').text();
-              var exerciseMuscles = $page.find('#exerciseMuscles').text(); 
-              var exerciseSets = "";
-              var muscleHighlightImage = $page.find('#muscleHighlightImage').attr('src');
-
-              //Now clone current row, replace values, append to end of cms nested list
-              var clonedRow = currentWorkoutElement.querySelector(".w-dyn-item").cloneNode(true);
-              clonedRow.querySelector("#exerciseShortName").innerText = workoutName;
-              clonedRow.querySelector("#exerciseFullName").innerText = exerciseFullName;
-              clonedRow.querySelector("#exerciseGuideID").innerText = exerciseGuideID;
-              clonedRow.querySelector("#exerciseItemID").innerText = exerciseItemID;
-              clonedRow.querySelector("#exerciseThumbnailURL").innerText = exerciseThumbnailURL;
-              clonedRow.querySelector("#exerciseSets").innerText = exerciseSets;
-              clonedRow.querySelector("#exerciseMuscleImage").innerText = muscleHighlightImage;
-              clonedRow.querySelector("#exerciseMuscles").innerText = exerciseMuscles;
-
-            
-              currentWorkoutElement.querySelector("#newCollectionList").appendChild(clonedRow)
+  
+              // Add the promise to the array for parallel execution
+              promises.push(getWorkoutDetails(workoutSummaryElement, workoutSlug));
             }
           }
         }
-        
       }
     }
-  }
+  
+    // Use Promise.all to wait for all promises to complete
+    await Promise.all(promises);
+  }  
 
 
   function cloneAndAddElement(valueArr, elementToClone, containerElement, tagElement, newID, customID=null) {
@@ -4328,7 +4380,7 @@ function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+          const newURL = `${baseURLWithoutParams}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
@@ -4359,7 +4411,7 @@ function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+          const newURL = `${baseURLWithoutParams}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
@@ -4371,7 +4423,7 @@ function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+          const newURL = `${baseURLWithoutParams}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
