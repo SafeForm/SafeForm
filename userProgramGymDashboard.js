@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
-
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -26,8 +25,6 @@ async function main() {
       dow: 1, // Monday
     },
   });
-  
-  //document.getElementById("workoutsPage").click();
 
   var muscleMapping = {
     "pectoralis-major":"Chest",
@@ -45,6 +42,23 @@ async function main() {
     "gastrocnemius":"Calves",
     "erector-spinae":"Lower Back"
   }
+
+  var reverseMuscleMapping = {
+    "Chest": "Pectoralis Major",
+    "Quads": "Quadriceps",
+    "Abs": "Rectus abdominis",
+    "Biceps": "Biceps brachii",
+    "Triceps": "Triceps brachii",
+    "Shoulders": "Deltoids",
+    "Obliques": "Obliques",
+    "Traps": "Trapezius",
+    "Lats": "Latissimus Dorsi",
+    "Forearms": "Palmaris longus",
+    "Glutes": "Gluteus Maximus",
+    "Hamstrings": "Hamstrings",
+    "Calves": "Gastrocnemius",
+    "Lower Back": "Erector Spinae"
+  };  
 
   //Flag for checking if radio button was human clicked or programmatic
   var isProgrammaticClick = false;
@@ -66,6 +80,10 @@ async function main() {
   sessionStorage.setItem("createUserProgram", "false");
   var prefillingProgram = true;
   var updatingCalendar = false;
+  var exerciseCategories = new Set();
+  var responseData = "";
+  sessionStorage.setItem("editExercise", "false");
+  var updatedMedia = false;
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -104,6 +122,25 @@ async function main() {
   addPendingUsers();
 
   await loadAndUpdateAllSummaries();
+
+  //Update width of all thumbnail
+  updateWidthOfThumbnails();
+
+  fetchDataFromWebhook()
+  .then(result => {
+    // Store the result in a variable
+    responseData = result;
+  })
+  .catch(error => {
+    // Handle errors if needed
+    console.error('Error:', error);
+  });
+
+  // Add a blur event listener to the text input
+  document.getElementById('videoLink').addEventListener('blur', function() {
+    console.log("Updating media")
+    updatedMedia = true;
+  });
 
   /*
     Splitting up if there is multiple gym & muscle values to make sure we are filtering each
@@ -314,52 +351,66 @@ async function main() {
     
   }
 
-  function loadAndUpdateAllSummaries() {
-    // Select all elements with class 'userSummary'
-    var userSummaries = document.querySelectorAll('#userSummary');
-  
-    // Define a function to perform the loading and updating for a single user summary
-    function loadAndUpdateSummary(userSummary) {
-      var summaryUserSlug = $(userSummary).find('#summaryUserSlug').text().trim();
-      var summaryFullEventDataField = $(userSummary).find('#summaryFullEventData');
-      var summaryEventData = $(userSummary).find('#summaryEventData');
-      var summaryUserName = $(userSummary).find('#userSummaryName').text();
-      var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
+  async function updateThumbnailWidth(thumbnail, source) {
 
-      if (!summaryEventData.attr('class').includes("w-dyn-bind-empty")) {
+    // Create a new image element
+    var img = new Image();
 
-        // Use $.get to fetch the content of #fullEventData from the specified URL
-        var getRequest = $.get(programURL, function (data, status) {
-          if (status === 'success') {
-            // Find #fullEventData in the fetched content and update the field
-            var fullEventData = $(data).find('#programFullEventData').html();
-            summaryFullEventDataField.html(fullEventData);
-          } else {
-            alert('Error loading program data for ' + summaryUserName);
-          }
-        });
-      
-        return getRequest;
+    // Set the source (remote URL) for the image
+    img.src = source;
+
+    // Wait for the image to load
+    img.onload = function() {
+      // Get the dimensions of the image
+      var width = img.width;
+      var height = img.height;
+
+      // Check the condition after the image has loaded
+      if (height > width) {
+        thumbnail.style.borderRadius = 0;
+        thumbnail.style.width = "auto";
       } else {
-        // Return a resolved promise
-        return $.when();
+        thumbnail.style.borderRadius = 8;
+        thumbnail.style.width = "100%";
+      }
+    };
+
+  }
+
+  function fetchDataFromWebhook() {
+    const webhookUrl = "https://hook.us1.make.com/r3lx6402qp8qlikrak2cwq7tw13is7ws";
+  
+    return fetch(webhookUrl, {
+      method: 'GET',
+    })
+      .then(response => {
+        // Check if the request was successful (status code 2xx)
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Return the response text
+        return response.text();
+      })
+      .catch(error => {
+        // Handle errors
+        console.error('Fetch error:', error.message);
+      });
+  }
+  
+
+  function updateWidthOfThumbnails() {
+    const exerciseLibraryThumbnails = document.querySelectorAll(".exerciseThumbnail");
+
+    for(var i = 0; i < exerciseLibraryThumbnails.length; i++) {
+      var imageWidth = exerciseLibraryThumbnails[i].width;
+      var imageHeight = exerciseLibraryThumbnails[i].height;
+      if(imageHeight > imageWidth) {
+        exerciseLibraryThumbnails[i].style.borderRadius = 0;
+      } else {
+        exerciseLibraryThumbnails[i].style.borderRadius = 8;
+        exerciseLibraryThumbnails[i].style.width = "100%";
       }
     }
-    
-  
-    // Create an array to store the load requests for each user summary
-    var loadRequests = [];
-    
-    // Iterate over each user summary and initiate the loading process
-    $.each(userSummaries, function (index, userSummary) {
-      var loadRequest = loadAndUpdateSummary(userSummary);
-      loadRequests.push(loadRequest);
-    });
-  
-    // Use $.when to wait for all load requests to complete
-    $.when.apply($, loadRequests).then(function () {
-      // Any additional code to run after all requests have completed
-    });
   }
 
   function addPendingUsers() {
@@ -497,6 +548,55 @@ async function main() {
     await Promise.all(promises);
   }  
 
+  function loadAndUpdateAllSummaries() {
+    // Select all elements with class 'userSummary'
+    var userSummaries = document.querySelectorAll('#userSummary');
+  
+    // Define a function to perform the loading and updating for a single user summary
+    function loadAndUpdateSummary(userSummary) {
+      var summaryUserSlug = $(userSummary).find('#summaryUserSlug').text().trim();
+      var summaryFullEventDataField = $(userSummary).find('#summaryFullEventData');
+      var summaryEventData = $(userSummary).find('#summaryEventData');
+      var summaryUserName = $(userSummary).find('#userSummaryName').text();
+      var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
+
+      if (!summaryEventData.attr('class').includes("w-dyn-bind-empty")) {
+
+        // Use $.get to fetch the content of #fullEventData from the specified URL
+        var getRequest = $.get(programURL, function (data, status) {
+          if (status === 'success') {
+            // Find #fullEventData in the fetched content and update the field
+            var fullEventData = $(data).find('#programFullEventData').html();
+            summaryFullEventDataField.html(fullEventData);
+          } else {
+            alert('Error loading program data for ' + summaryUserName);
+          }
+        });
+      
+        return getRequest;
+      } else {
+        // Return a resolved promise
+        return $.when();
+      }
+    }
+    
+  
+    // Create an array to store the load requests for each user summary
+    var loadRequests = [];
+    
+    // Iterate over each user summary and initiate the loading process
+    $.each(userSummaries, function (index, userSummary) {
+      var loadRequest = loadAndUpdateSummary(userSummary);
+      loadRequests.push(loadRequest);
+    });
+  
+    // Use $.when to wait for all load requests to complete
+    $.when.apply($, loadRequests).then(function () {
+      // Any additional code to run after all requests have completed
+    });
+  }
+
+
 
   function cloneAndAddElement(valueArr, elementToClone, containerElement, tagElement, newID, customID=null) {
 
@@ -527,6 +627,31 @@ async function main() {
     //Remove original parent
     elementToClone.remove();
 
+  }
+
+  //Setting onclicks for exercise library items
+  var exerciseLibraryItems = document.querySelectorAll(".exerciseguideitem");
+  for(var i = 0; i < exerciseLibraryItems.length; i++) {
+    exerciseLibraryItems[i].onclick = (event) => {
+
+      if(!event.target.id.includes("exerciseOptions") && event.target.id != "deleteExercise") {
+        //Prefill modal
+        prefillExerciseLibraryForm(event.target.closest(".exerciseguideitem"));
+
+        //Show Modal
+        var createExerciseModal = document.getElementById("createExerciseModal");
+        //Set flex styling:
+        createExerciseModal.style.display = "flex";
+        createExerciseModal.style.flexDirection = "column";
+        createExerciseModal.style.justifyContent = "center";
+        createExerciseModal.style.alignItems = "center";
+
+      } else {
+        
+      }
+
+
+    }
   }
 
   //Add workout
@@ -561,6 +686,90 @@ async function main() {
         }
 
       }
+
+    }
+
+    function prefillExerciseLibraryForm(exerciseItem) {
+
+      //Set edit flag
+      sessionStorage.setItem("editExercise", "true");
+      var exercideUploadName = exerciseItem.querySelector("#exerciseLibraryName").innerHTML;
+      // Exercise name
+      document.getElementById("uploadExerciseName").value = exercideUploadName;
+
+      // Category
+      const category = exerciseItem.querySelector("#exerciseLibraryCategory").innerText;
+
+      const categories = category.split(", ");
+
+      var categoryOptions = document.querySelectorAll(".categorytext");
+
+      categories.forEach(function(categoryItem) {
+        for(var j = 0; j < categoryOptions.length; j++) {
+          if(categoryItem == categoryOptions[j].innerText) {
+            exerciseCategories.add(categoryItem);
+            categoryOptions[j].classList.add("categorytextselected");
+            categoryOptions[j].classList.remove("categorytext");
+            break;
+          }
+        }
+      });
+
+      //Primary muscle
+      document.getElementById("uploadPrimaryMuscle").value = exerciseItem.querySelector("#primaryExerciseLibraryMuscles").innerHTML;
+
+      //Seconday muscle
+      document.getElementById("uploadSecondaryMuscle").value = exerciseItem.querySelector("#secondaryExerciseLibraryMuscles").innerHTML;
+
+      // Key points
+      var keyPointsListItems = exerciseItem.querySelectorAll('#libraryKeyPoints li');
+      var keyPointInputs = document.querySelectorAll('#uploadKeyPoints input');
+
+      // Loop through list items and set the values in the form fields
+      keyPointsListItems.forEach(function(listItem, index) {
+        if (listItem) {
+          var keyPointText = listItem.textContent;
+          
+          // Remove '- ' at the start of the keyPointText
+          keyPointText = keyPointText.replace('- ', '');
+
+          keyPointInputs[index].value = keyPointText;
+        }
+      });
+
+
+      // Common Mistakes
+      var commonMistakesListItems = exerciseItem.querySelectorAll('#libraryCommonMistakes li');
+      var commonMistakeInputs = document.querySelectorAll('#uploadCommonMistakes input');
+
+      // Loop through list items and set the values in the form fields
+      commonMistakesListItems.forEach(function(listItem, index) {
+          if(listItem) {
+            var commonMistakeText = listItem.textContent;
+            commonMistakeText = commonMistakeText.replace('- ', '');
+            commonMistakeInputs[index].value = commonMistakeText;
+        }
+      });
+
+      // Video link
+      const uploadType = exerciseItem.querySelector("#uploadType").innerText;
+      
+      if(uploadType == "true") {
+        document.getElementById("videoLink").value = exerciseItem.querySelector("#libraryVideoLink").innerHTML;
+      } else {
+        document.getElementById("fileNameContainer").innerText = `File: ${exercideUploadName}.mp4`
+        document.getElementById("fileUploadLink").innerText = exerciseItem.querySelector("#libraryVideoLink").innerHTML;
+      }
+
+      //Update text
+      document.getElementById("submitCreateExercise").innerText = "Update";
+
+      //Guide Id
+      document.getElementById("libraryFormGuideID").innerText = exerciseItem.querySelector("#exerciseLibraryID").innerText;
+
+      //Temp Id
+      //document.getElementById("libraryFormTempD").innerText = exerciseItem.querySelector("#exerciseLibraryID").innerText;
+      
 
     }
 
@@ -998,12 +1207,19 @@ async function main() {
       } else {
         styleNavButtons("workoutsPage");
       }
+
+      const exerciseLibrary = document.getElementById("customExercisePage");
+      const dashboardBody = document.getElementById("dashboardBody");
+      const settingsBody = document.getElementById("settingsBody");
+      const usersBody = document.getElementById("usersBody");
+      const userDetailDiv = document.getElementById("userDetailsPage");
+
       document.getElementById("workoutsPage").onclick = function() {
         //Reset filters on workout summary page
         settingsBody.style.display = "none";
         settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-        equipmentBody.style.display = "none";
-        equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+        exerciseLibrary.style.display = "none";
+        exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
         dashboardBody.style.display = "none";
         dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
 
@@ -1019,16 +1235,11 @@ async function main() {
       };
 
       if(equipmentStatus == "complete") {
-        const equipmentBody = document.getElementById("equipmentBody");
-        const dashboardBody = document.getElementById("dashboardBody");
-        const settingsBody = document.getElementById("settingsBody");
-        const usersBody = document.getElementById("usersBody");
-        const userDetailDiv = document.getElementById("userDetailsPage");
 
         document.getElementById("equipmentListContainer").style.display = 'block';
 
         document.getElementById("equipmentPage").onclick = function() {
-          //equipmentBody.style.display = "block";
+          //exerciseLibrary.style.display = "block";
           dashboardBody.style.display = "none";
           dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           settingsBody.style.display = "none";
@@ -1036,9 +1247,9 @@ async function main() {
           //workoutBuilderPage.style.display = "none";
           //Reset filters on workout or program summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram") == "true" || sessionStorage.getItem("createUserProgram") == "true" ) {
-            checkAndClearProgram("equipmentBody", "equipmentPage");
+            checkAndClearProgram("customExercisePage", "equipmentPage");
           } else {
-            checkAndClearWorkouts("equipmentBody", "equipmentPage");
+            checkAndClearWorkouts("customExercisePage", "equipmentPage");
           }
           
         };
@@ -1048,8 +1259,8 @@ async function main() {
           dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           settingsBody.style.display = "none";
           settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-          equipmentBody.style.display = "none";
-          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          exerciseLibrary.style.display = "none";
+          exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
 
           //Reset filters on workout or program summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
@@ -1061,8 +1272,8 @@ async function main() {
         };
 
         document.getElementById("dashboardPage").onclick = function() {
-          equipmentBody.style.display = "none";
-          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          exerciseLibrary.style.display = "none";
+          exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           settingsBody.style.display = "none";
           settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
 
@@ -1075,8 +1286,8 @@ async function main() {
         };
 
         document.getElementById("settingsPage").onclick = function() {
-          equipmentBody.style.display = "none";
-          equipmentBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          exerciseLibrary.style.display = "none";
+          exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           dashboardBody.style.display = "none";
           dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
           
@@ -1633,7 +1844,9 @@ async function main() {
               document.getElementById("user-firstName").value = userNameArr[0];
               document.getElementById("user-lastName").value = userNameArr[1];
             }
+
             prefillingProgram = true;
+
             //Fill account type
             document.getElementById("accountType").innerText = userSummary.querySelector("#summaryAccountType").innerText;
 
@@ -2700,7 +2913,7 @@ async function main() {
         //workoutSummaryPage.style.display = "block";
         //workoutBuilderPage.style.display = "none";
         settingsBody.style.display = "none";
-        equipmentBody.style.display = "none";
+        exerciseLibrary.style.display = "none";
         dashboardBody.style.display = "none";
 
         // Check if there are any exercises in the list 
@@ -2974,6 +3187,66 @@ async function main() {
         }
  
 
+      } else if(event.target.closest("#createExercise") || event.target.closest("#emptyCreateExercise")) {
+
+        //Show Modal
+        var createExerciseModal = document.getElementById("createExerciseModal");
+        //Set flex styling:
+        createExerciseModal.style.display = "flex";
+        createExerciseModal.style.flexDirection = "column";
+        createExerciseModal.style.justifyContent = "center";
+        createExerciseModal.style.alignItems = "center";
+
+        sessionStorage.setItem("editExercise", "false");
+        
+
+      } else if(event.target.id == "submitCreateExercise") {
+
+        var exerciseForm = document.getElementById("exerciseForm");
+        const videoValid = checkInvalidVideoLink();
+        const videoLinkValue = document.getElementById("videoLink").value;
+        const videoInput = document.getElementById('videoInput');
+
+        if(exerciseCategories.size == 0) {
+          alert("Please select a category for the exercise.");
+          
+          document.getElementById("categoryParent").style.borderColor = '#EE1D29';
+
+        } else if(videoLinkValue != "" && videoValid.includes("Invalid")) {
+
+          //Highlight video input as error - videoValid
+          alert(videoValid);
+
+        } else if(videoLinkValue == "" && videoInput.files.length == 0) {
+          alert("Please add media to your exercise");
+        } else if(exerciseForm.checkValidity()) {
+          //Submit exercise form
+          submitExerciseUploadForm();
+        } else {
+          document.getElementById("uploadExerciseName").reportValidity();
+          document.getElementById("uploadPrimaryMuscle").reportValidity();
+        }
+
+
+
+      } else if(event.target.id == "createExerciseModal" || event.target.id == "closeCreateExerciseModal") {
+        updatedMedia = false;
+        hideAndClearExerciseUploadModal();
+
+      } else if(event.target.classList.contains("categorytext")) {
+
+        event.target.classList.add("categorytextselected");
+        event.target.classList.remove("categorytext");
+
+        exerciseCategories.add(event.target.innerHTML);
+        document.getElementById("categoryParent").style.borderColor = '#cacaca';
+      
+      } else if(event.target.classList.contains("categorytextselected")) {
+        event.target.classList.remove("categorytextselected");
+        event.target.classList.add("categorytext");
+
+        exerciseCategories.delete(event.target.innerHTML);
+      
       } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText" ||
       event.target.id == "createWorkoutTablet" || event.target.id == "createWorkoutImageTablet" || event.target.id == "createWorkoutTextTablet") {
 
@@ -3050,6 +3323,28 @@ async function main() {
         //Send to make to delete workout
         deleteProgram(program, currentProgramRow, event.target);
 
+      } else if(event.target.id == "deleteExercise") {
+
+        //Get row of clicked element:
+        var currentExerciseRow = event.target.closest(".exerciseguideitem");
+
+        //Build object to send to make
+        var exercise = {};
+
+        //Workout summary ID
+        exercise["exerciseSummaryID"] = currentExerciseRow.querySelector("#exerciseLibraryID").innerText;
+
+        //Gym dashboard ID
+        exercise["gymdashboardID"] = document.getElementById("gymID").innerText;
+
+        //Gym name
+        exercise["gymName"] = document.getElementById("gymID").innerText;
+
+        event.target.innerText = "Deleting...";
+        //Send to make to delete workout
+        deleteExercise(exercise, currentExerciseRow, event.target);
+
+      
       } else if(event.target.id == "deleteWorkout") {
         //Get row of clicked element:
         var currentWorkoutRow = event.target.closest(".workoutsummaryitem");
@@ -3498,6 +3793,781 @@ async function main() {
 
     }, false);
 
+    function checkInvalidVideoLink() {
+
+      const videoLink = document.getElementById("videoLink").value;
+
+      // Define regex patterns for YouTube and Vimeo video links
+      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+      const vimeoPattern = /https?:\/\/(www\.)?vimeo\.com\/\d+/i;
+
+      // Check if the link is a valid YouTube or Vimeo link
+      if (youtubePattern.test(videoLink)) {
+          // Extract video ID from YouTube link
+          const videoIdMatch = videoLink.match(youtubePattern);
+          if (videoIdMatch) {
+              return `YouTube Video ID: ${videoIdMatch[4]}`;
+          } else {
+              return 'Invalid YouTube link';
+          }
+
+      } else if (vimeoPattern.test(videoLink)) {
+          // Extract video ID from Vimeo link
+          const videoIdMatch = videoLink.match(/\/(\d+)/);
+          if (videoIdMatch) {
+              return `Vimeo Video ID: ${videoIdMatch[1]}`;
+          } else {
+              return 'Invalid Vimeo link';
+          }
+
+      } else {
+          return 'Invalid video link. Supported platforms: YouTube, Vimeo.';
+      }
+    }
+
+    function submitExerciseUploadForm() {
+
+      //Exercise name
+      const exerciseUploadName = document.getElementById("uploadExerciseName").value;
+
+      //Categories - use exerciseCategories
+      const categoriesString = Array.from(exerciseCategories).join(',');
+
+      //Primary Muscles
+      const uploadPrimaryMuscles = document.getElementById("uploadPrimaryMuscle").value;
+
+      //Secondary Muscles
+      const uploadSecondaryMuscles = document.getElementById("uploadSecondaryMuscle").value;
+
+      //Key points
+      const keyPoints = document.getElementById("uploadKeyPoints").children;
+      var dotPointKeyPoints = "";
+      for(var i = 0; i < keyPoints.length; i++) {
+        var keyPoint = keyPoints[i].querySelector("input").value;
+        if(keyPoint != "") {
+          dotPointKeyPoints += `- ${keyPoint}\n`;
+        }
+      }
+
+      //Common mistakes
+      const commonMistakes = document.getElementById("uploadCommonMistakes").children;
+      var dotPointCommonMistakes = "";
+      for(var i = 0; i < commonMistakes.length; i++) {
+        var commonMistake = commonMistakes[i].querySelector("input").value;
+        if(commonMistake != "") {
+          dotPointCommonMistakes += `- ${commonMistake}\n`;
+        }
+      }
+
+      //Link
+      const videoLink = document.getElementById("videoLink").value;
+
+      //Video upload
+      const videoInput = document.getElementById('videoInput');
+      var videoFile = null;
+      if(videoInput.files.length > 0) {
+        videoFile = videoInput.files[0];
+      }
+
+      //Now add all of these to form data
+      const formData = new FormData();
+      const tempID = uuidv4();
+      var videoThumbnail = "";
+      formData.append('exerciseName', exerciseUploadName);
+      formData.append('categories', categoriesString);
+      formData.append('primaryCasualMuscles', uploadPrimaryMuscles);
+      formData.append('primaryScientificMuscles', reverseMuscleMapping[uploadPrimaryMuscles]);
+      formData.append('secondaryCasualMuscles', uploadSecondaryMuscles);
+      formData.append('secondaryScientificMuscles', reverseMuscleMapping[uploadSecondaryMuscles]);
+      formData.append('keyPoints', dotPointKeyPoints);
+      formData.append('commonMistakes', dotPointCommonMistakes);
+      formData.append('gymID', document.getElementById("gymID").innerText);
+      formData.append('gymName', document.getElementById("gymFullName").innerText);
+      formData.append('tempID', tempID);
+      formData.append('guideID', document.getElementById("libraryFormGuideID").innerText);
+      formData.append('mediaUpdated', updatedMedia);
+      
+      if(videoFile) {
+        if(sessionStorage.getItem("editExercise") == 'false') {
+          handleVideoUpload(formData, videoFile);
+        } else {
+          // Your JW Player script link
+          var jwPlayerScriptLink = document.getElementById("fileUploadLink").innerText;
+
+          // Define a regular expression pattern to extract the media ID
+          var regex = /\/players\/([a-zA-Z0-9_-]+)-/;
+
+          // Use the exec method to match the pattern in the link
+          var match = regex.exec(jwPlayerScriptLink);
+
+          // Check if there is a match and get the media ID
+          if (match && match[1]) {
+            var mediaID = match[1];
+            handleVideoUpload(formData, videoFile, "update", mediaID);
+          } else {
+            handleVideoUpload(formData, videoFile, "updateUpload");
+          }
+        }
+        
+      } else if(updatedMedia && videoLink != "") {
+
+        formData.append('videoLink', videoLink);
+        videoThumbnail = getVideoThumbnail(videoLink);
+        formData.append('videoThumbnail', videoThumbnail);
+
+        if(sessionStorage.getItem("editExercise") == 'false') {
+          sendNewExerciseToMake(formData);
+        } else {
+          sendNewExerciseToMake(formData, "update");
+        }
+        
+      } else {
+        sendNewExerciseToMake(formData, "update");
+      }
+
+      if(sessionStorage.getItem("editExercise") == 'false') {
+        cloneAndFillExerciseLibrary(formData);
+        cloneAndFillExerciseList(formData);
+      } else {
+        updateExerciseLibraryItem(formData, videoFile);
+        updateExerciseListItem(formData, videoFile);
+      }
+
+      hideAndClearExerciseUploadModal();
+
+    }
+
+    function getVideoThumbnail(videoLink) {
+      // Define regex patterns for YouTube and Vimeo video links
+      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+      const vimeoPattern = /https?:\/\/(www\.)?vimeo\.com\/\d+/i;
+  
+      // Check if the link is a valid YouTube or Vimeo link
+      if (youtubePattern.test(videoLink)) {
+          // Extract video ID from YouTube link
+          const videoIdMatch = videoLink.match(youtubePattern);
+          if (videoIdMatch) {
+              const videoId = videoIdMatch[4];
+              return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+          } else {
+              throw new Error('Invalid YouTube link');
+          }
+      } else if (vimeoPattern.test(videoLink)) {
+          // Extract video ID from Vimeo link
+          const videoIdMatch = videoLink.match(/\/(\d+)/);
+          if (videoIdMatch) {
+              const videoId = videoIdMatch[1];
+              // You may need to make an API call to Vimeo to get the thumbnail URL
+              // This is just a placeholder URL, replace it with the actual Vimeo API call
+              return `https://vumbnail.com/${videoId}_medium.jpg`;
+              
+          } else {
+              throw new Error('Invalid Vimeo link');
+          }
+      } else {
+          throw new Error('Invalid video link. Supported platforms: YouTube, Vimeo.');
+      }
+    }
+
+    function updateExerciseLibraryItem(formData, videoFile=null) {
+
+      // Find element in list that was edited
+      const exerciseItems = document.querySelectorAll(".exerciseguideitem");
+      for(var i = 0; i < exerciseItems.length; i++) {
+        var exerciseItem = exerciseItems[i];
+        if(exerciseItem.querySelector("#exerciseLibraryID").innerText == formData.get('guideID')) {
+
+          exerciseItem.querySelector("#exerciseLibraryName").innerText = formData.get('exerciseName');
+          exerciseItem.querySelector("#primaryExerciseLibraryMuscles").innerText = formData.get('primaryCasualMuscles');
+          exerciseItem.querySelector("#secondaryExerciseLibraryMuscles").innerText = formData.get('secondaryCasualMuscles');
+          exerciseItem.querySelector("#libraryKeyPoints").innerHTML = '<ul><li>' + formData.get('keyPoints').split('\n').filter(Boolean).join('</li><li>') + '</li></ul>';
+          exerciseItem.querySelector("#libraryCommonMistakes").innerHTML = '<ul><li>' + formData.get('commonMistakes').split('\n').filter(Boolean).join('</li><li>') + '</li></ul>';
+
+          //Update category
+          exerciseItem.querySelector("#exerciseLibraryCategory").innerText = formData.get("categories");
+
+          var videoLink = formData.get('videoLink');
+          var uploadType = videoLink ? true : false; // Check if videoLink is not empty
+
+          exerciseItem.querySelector('#exerciseLibraryTempID').innerText = formData.get("tempID");
+
+
+          if(uploadType) {
+            exerciseItem.querySelector("#uploadType").innerText = "true";
+            exerciseItem.querySelector("#libraryVideoLink").innerText = videoLink;
+            exerciseItem.querySelector(".exerciseThumbnail").src = formData.get('videoThumbnail');
+          } else if(videoFile) { //Only update if media was updated
+            exerciseItem.querySelector("#uploadType").innerText = "false";
+            exerciseItem.querySelector(".exerciseThumbnail").parentElement.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+            exerciseItem.querySelector(".exerciseThumbnail").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65597db995abd34586f5f3b7_playButton.webp";
+
+          }
+
+          break;
+        }
+      }
+      updatedMedia = false;
+    }
+
+    function updateExerciseListItem(formData, videoFile) {
+
+      const workoutExerciseList = document.querySelectorAll("#guideList .collection-item-10");
+      for(var i = 0; i < workoutExerciseList.length; i++) {
+        var exerciseItem = workoutExerciseList[i];
+        if(exerciseItem.querySelector("#itemID").innerText == formData.get('guideID')) {
+          exerciseItem.querySelector('#guideName').innerText = formData.get('exerciseName');
+          exerciseItem.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
+
+          // Grab the first category from the comma-separated string
+          var firstCategory = formData.get('categories').split(',')[0];
+
+          // Check if firstCategory has spaces
+          if (firstCategory.includes(' ')) {
+            // Lowercase and replace spaces with hyphens in firstCategory
+            firstCategory = firstCategory.toLowerCase().replace(/\s+/g, '-');
+          }
+
+          // Update loadingMechanism field
+          exerciseItem.querySelector('#loadingMechanism').innerText = firstCategory;
+
+          // Update loading-icon image
+          const loadingIcon = exerciseItem.querySelector('#loading-icon');
+          loadingIcon.parentElement.id = firstCategory; // Set the id for styling
+
+          loadingIcon.src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${firstCategory}.webp`; // Set the src
+
+          // Clear and update casualMuscle field
+          const casualMuscleFields = exerciseItem.querySelectorAll('#casualMuscle');
+          casualMuscleFields.forEach((field, index) => {
+            if (index === 0) {
+              field.innerText = formData.get('primaryCasualMuscles');
+            } else {
+              field.remove(); // Remove the extra elements
+            }
+          });
+
+          // Clear and update scientificPrimaryMuscle field
+          const scientificPrimaryMuscleFields = exerciseItem.querySelectorAll('#scientificPrimaryMuscle');
+          scientificPrimaryMuscleFields.forEach((field, index) => {
+            if (index === 0) {
+              field.innerText = formData.get('primaryScientificMuscles');
+            } else {
+              field.remove(); // Remove the extra elements
+            }
+          });
+
+          //Set muscle image
+          const newMuscleValue = formData.get('primaryScientificMuscles').toLowerCase().replace(/ /g, '-');
+          exerciseItem.querySelector('#exerciseMuscleImage').src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${newMuscleValue}.webp`; 
+
+          // Clear image and experience 
+          if(videoFile) {
+            exerciseItem.querySelector('#exerciseThumbnail img').src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65597db995abd34586f5f3b7_playButton.webp";
+          } else {
+            exerciseItem.querySelector('#exerciseThumbnail img').src = formData.get('videoThumbnail');
+          }
+          
+          exerciseItem.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
+          exerciseItem.querySelector('#exerciseName').innerText = ''; 
+
+          //Update temp id
+          exerciseItem.querySelector('#exerciseListTempID').innerText = formData.get("tempID");
+
+          resetFilters(false, exerciseItem);
+          break;
+        }
+        
+      }
+    }
+
+    function cloneAndFillExerciseList(formData) {
+      // Clone the first element
+      const firstListItem = document.querySelector("#individualGuide:not([addedToList]").parentElement;
+      const clonedElement = firstListItem.cloneNode(true);
+      const guideListItem = clonedElement.querySelector("#individualGuide");
+      //Add onclick
+      guideListItem.onclick = (event) => {
+
+        // Make sure when the info button is clicked, the exercise isn't added to the list
+        if (event.target.id !== "guideLinkInfo" && event.target.id !== "guideLinkInfoImage") {
+          var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
+
+          // Remove info button
+          copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
+  
+          // Copy thumbnail and svg person into a separate div
+          var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+          var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+  
+          // Change ID of exercise name
+          copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+  
+          // Ensure copy border colour is BF blue
+          copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+  
+          addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+  
+          createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideListItem);
+        }
+      };
+    
+      // Update fields with form data
+      clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
+      clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
+
+      // Grab the first category from the comma-separated string
+      var firstCategory = formData.get('categories').split(',')[0];
+
+      // Check if firstCategory has spaces
+      if (firstCategory.includes(' ')) {
+        // Lowercase and replace spaces with hyphens in firstCategory
+        firstCategory = firstCategory.toLowerCase().replace(/\s+/g, '-');
+      }
+
+      // Update loadingMechanism field
+      clonedElement.querySelector('#loadingMechanism').innerText = firstCategory;
+
+      // Update loading-icon image
+      const loadingIcon = clonedElement.querySelector('#loading-icon');
+      loadingIcon.parentElement.id = firstCategory; // Set the id for styling
+ 
+      loadingIcon.src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${firstCategory}.webp`; // Set the src
+      
+      // Clear and update casualMuscle field
+      const casualMuscleFields = clonedElement.querySelectorAll('#casualMuscle');
+      casualMuscleFields.forEach((field, index) => {
+        if (index === 0) {
+          field.innerText = formData.get('primaryCasualMuscles');
+        } else {
+          field.remove(); // Remove the extra elements
+        }
+      });
+
+      // Clear and update scientificPrimaryMuscle field
+      const scientificPrimaryMuscleFields = clonedElement.querySelectorAll('#scientificPrimaryMuscle');
+      scientificPrimaryMuscleFields.forEach((field, index) => {
+        if (index === 0) {
+          field.innerText = formData.get('primaryScientificMuscles');
+        } else {
+          field.remove(); // Remove the extra elements
+        }
+      });
+    
+      // Clear gym fields and leave only one
+      const gymFields = clonedElement.querySelectorAll('.text-block-52');
+      gymFields.forEach((field, index) => {
+        if (index === 0) {
+          field.innerText = formData.get('gymName');
+        } else {
+          field.remove(); 
+        }
+      });
+
+      //Set muscle image
+      const newMuscleValue = formData.get('primaryScientificMuscles').toLowerCase().replace(/ /g, '-');
+      clonedElement.querySelector('#exerciseMuscleImage').src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${newMuscleValue}.webp`; 
+
+      // Clear image and experience 
+      clonedElement.querySelector('#exerciseThumbnail img').src = ''; // Clear image source
+      clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
+      clonedElement.querySelector('#exerciseName').innerText = ''; 
+
+      //Update temp id
+      clonedElement.querySelector('#exerciseListTempID').innerText = formData.get("tempID");
+
+      resetFilters(false, clonedElement);
+    
+      // Append the cloned element to the document or do whatever is needed with it
+      document.getElementById("guideList").insertBefore(clonedElement, firstListItem);
+
+    }
+    
+
+    function cloneAndFillExerciseLibrary(formData) {
+
+      const firstListItem = document.querySelector(".exerciseguideitem");
+      var exerciseLibraryList = document.querySelector("#exerciseLibraryList");
+      var clonedExercise = null;
+
+      if(firstListItem && exerciseLibraryList) {
+        //Clone record in list
+        clonedExercise = firstListItem.cloneNode(true)
+      } else {
+        clonedExercise = document.querySelector(".equipment-grid-empty").cloneNode(true);
+        clonedExercise.classList.add('exerciseguideitem');
+        clonedExercise.style.display = "grid";
+      }
+
+      clonedExercise.querySelector(".exerciseThumbnail").parentElement.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+      
+      //Update thumbnail
+      clonedExercise.querySelector(".exerciseThumbnail").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/6555e09dff2373b364d5262a_Spinner-1s-200px%20(1).gif";
+      
+      //Update exercise name
+      clonedExercise.querySelector("#exerciseLibraryName").innerText = formData.get("exerciseName");
+
+      //Update muscles
+      clonedExercise.querySelector("#primaryExerciseLibraryMuscles").innerText = formData.get("primaryCasualMuscles");
+
+      //Update category
+      clonedExercise.querySelector("#exerciseLibraryCategory").innerText = formData.get("categories");
+
+      //Clear guideID
+      clonedExercise.querySelector("#exerciseLibraryID").innerText = "";
+      
+      //Add temporaryID
+      clonedExercise.querySelector("#exerciseLibraryTempID").innerText = formData.get("tempID");
+
+      if(firstListItem && exerciseLibraryList) {
+        //Insert at top of list
+        document.getElementById("exerciseLibraryList").insertBefore(clonedExercise, firstListItem);
+      } else {
+        //Insert cloned item in wrapper list
+        var listWrapper = document.querySelector(".customexerciselistwrapper");
+
+        // Add clonedExercise as the first child of wrapper
+        listWrapper.insertBefore(clonedExercise, listWrapper.firstChild);
+        //Hide empty state
+        document.querySelector(".exerciseemptystate").style.display = "none";
+        
+      }
+
+      
+    }
+
+    function parseReturnedVideoLink(videoLink) {
+      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+      const vimeoPattern = /https?:\/\/(www\.)?vimeo\.com\/(\d+)/i;
+
+      if (youtubePattern.test(videoLink)) {
+          const videoIdMatch = videoLink.match(youtubePattern);
+          if (videoIdMatch) {
+              return {
+                  source: 'youtube',
+                  id: videoIdMatch[4]
+              };
+          } else {
+              return { source: 'unknown', id: null };
+          }
+      } else if (vimeoPattern.test(videoLink)) {
+          const videoIdMatch = videoLink.match(vimeoPattern);
+          if (videoIdMatch) {
+              return {
+                  source: 'vimeo',
+                  id: videoIdMatch[2]
+              };
+          } else {
+              return { source: 'unknown', id: null };
+          }
+      } else {
+          return { source: 'unknown', id: null };
+      }
+    }
+
+    function hideAndClearExerciseUploadModal() {
+
+      sessionStorage.setItem("editExercise", "false");
+      //Hide modal
+      document.getElementById("createExerciseModal").style.display = "none";
+
+      //Clear form
+      document.getElementById("exerciseForm").reset();
+
+      //Unclick all categories clicked
+      const clickedCategories = document.querySelectorAll(".categorytextselected");
+      for(var i = 0; i < clickedCategories.length; i++) {
+        clickedCategories[i].click();
+      }
+
+      // Clear the file input field manually
+      var fileInput = document.getElementById("videoInput");
+      fileInput.value = "";
+
+      // Also, clear the file name container
+      var fileNameContainer = document.getElementById('fileNameContainer');
+      fileNameContainer.innerHTML = '';
+
+      
+      document.getElementById('fileUploaded').innerHTML = "Click to select from files";
+
+      //Update text
+      document.getElementById("submitCreateExercise").innerText = "Create";
+
+      //Clear video upload link
+      document.getElementById("fileUploadLink").innerText = "";
+
+    }
+
+    async function handleVideoUpload(formData, videoFile, method="create", mediaID=null) {
+
+      const videoInput = videoFile;
+      var httpMethod = "POST";
+      var url = 'https://api.jwplayer.com/v2/sites/7BsvKr6C/media';
+
+      if (method === "update" && mediaID) {
+        // Step 1: Call the delete API
+        const deleteOptions = {
+          method: 'DELETE',
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `${responseData}`,
+          },
+        };
+    
+        try {
+          const deleteResponse = await fetch(`https://api.jwplayer.com/v2/sites/7BsvKr6C/media/${mediaID}`, deleteOptions);
+          const deleteData = await deleteResponse;
+    
+          if (!deleteResponse.ok) {
+            throw new Error(`Failed to delete media: ${deleteData.message}`);
+          }
+    
+        } catch (deleteError) {
+          console.error('Error during media delete:', deleteError.message || deleteError);
+          alert("Error during media update");
+          return; // Abort further processing if delete fails
+        }
+      }
+
+      if (videoInput) {
+        try {
+          // Step 1: Create the media
+          const createMediaResponse = await fetch(url, {
+            method: httpMethod,
+            headers: {
+              'Authorization': `${responseData}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "upload": { "method": "direct" },
+              "metadata": {
+                "title": formData.get('exerciseName'),
+                "custom_params": {
+                  "tempID": formData.get('tempID'),
+                },
+              },
+            })
+          });
+    
+          if (!createMediaResponse.ok) {
+            throw new Error('Failed to create media');
+          }
+    
+          // Assuming the response is JSON, check content type
+          const contentType = createMediaResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const createMediaData = await createMediaResponse.json();
+            
+            //Now send details about upload video to make
+            formData.append('mediaID', createMediaData.id);
+
+            if(method == 'create') {
+              sendNewExerciseToMake(formData, "create");
+            } else {
+              //Update make function
+              sendNewExerciseToMake(formData, "update");
+            }
+            
+            const uploadLink = createMediaData.upload_link;
+    
+            const blobData = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = (event) => resolve(event.target.result);
+              reader.readAsArrayBuffer(videoInput);
+            });
+    
+            // Make the fetch call for uploading the file
+            const uploadResponse = await fetch(uploadLink, {
+              method: 'PUT',
+              body: blobData,
+            });
+    
+            if (!uploadResponse.ok) {
+              throw new Error('Network response was not ok');
+            }
+    
+            const uploadData = await uploadResponse.text();
+
+            // Upload was successful, now check the status of the media
+            let mediaStatus = await checkMediaStatus(createMediaData.id);
+
+            while (mediaStatus.status !== 'ready') {
+              // If the status is not ready, wait for 30 seconds before checking again
+              await new Promise(resolve => setTimeout(resolve, 30000));
+              mediaStatus = await checkMediaStatus(createMediaData.id);
+            }
+
+            // Create and fill in thumbnail
+            const thumbnailObj = {
+              "mediaID": createMediaData.id,
+              "tempID": formData.get('tempID'),
+            };
+            
+            getThumbnailURL(thumbnailObj);
+    
+          } else {
+            throw new Error('Invalid content type');
+          }
+    
+        } catch (error) {
+          console.error('Error during file upload:', error.message || error);
+          alert("Error during file upload");
+          // Handle errors
+        }
+      } else {
+        alert('No video file selected.');
+      }
+    }
+    
+    async function checkMediaStatus(mediaId) {
+
+      const response = await fetch(`https://api.jwplayer.com/v2/sites/7BsvKr6C/media/${mediaId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `${responseData}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    
+      if (!response.ok) {
+        throw new Error('Failed to fetch media status');
+      }
+
+      const mediaData = await response.json();
+      return mediaData;
+    }
+
+
+    async function sendNewExerciseToMake(formData, method="create") {
+      //Set edit flag
+      var webhookURL = "https://hook.us1.make.com/93vu9fx588jvfr37ql52m7ppm83bqlrk";
+      if(method == "update") {
+        webhookURL = "https://hook.us1.make.com/fok1fl8k66a2mbvp34fwl7f3km9c8l0a";
+      } 
+
+      fetch(webhookURL, {
+        method: "POST",
+        body: formData,
+      }).then((res) => {
+        if (res.ok) {
+          return res.text();
+        }
+        throw new Error('Something went wrong');
+      })
+      .then((data) => {
+        const exerciseJSON = JSON.parse(data);
+        if(exerciseJSON.srcType != "none") {
+
+          //Find exercise item with temp id
+          const exerciseLibItems = document.querySelectorAll(".exerciseguideitem");
+          for(var i = 0; i < exerciseLibItems.length; i++) {
+            var exerciseLibTempID = exerciseLibItems[i].querySelector("#exerciseLibraryTempID").innerText;
+            if(exerciseLibTempID == exerciseJSON.tempID) {
+              //Found exercise
+              exerciseLibItems[i].querySelector("#exerciseLibraryID").innerText = exerciseJSON.itemID;
+              exerciseLibItems[i].querySelector(".exerciseThumbnail").parentElement.style.backgroundColor = 'black';
+
+              //If video upload
+              if(exerciseJSON.srcType == "upload") {
+                //Hide loading gif
+                exerciseLibItems[i].querySelector(".exerciseThumbnail").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65597db995abd34586f5f3b7_playButton.webp";
+
+              } else {
+                //If link upload
+                const returnedVideoObj = parseReturnedVideoLink(exerciseJSON.videoSrc);
+                //Update thumbnail source
+                exerciseLibItems[i].querySelector(".exerciseThumbnail").src = exerciseJSON.thumbnailURL;
+                exerciseLibItems[i].querySelector(".exerciseThumbnail").parentElement.style.borderRadius = 8;
+
+              }
+
+              break;
+            }
+          }
+
+
+          const workoutGuideItems = document.querySelectorAll("#individualGuide");
+
+          for(var i = 0; i < workoutGuideItems.length; i++) {
+            var workoutItemTempID = workoutGuideItems[i].querySelector("#exerciseListTempID").innerText;
+            if(workoutItemTempID == exerciseJSON.tempID) {
+              if(exerciseJSON.srcType == "upload") {
+                //Hide loading gif
+                workoutGuideItems[i].querySelector(".exerciseThumbnail").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65597db995abd34586f5f3b7_playButton.webp";
+              } else {
+                //If link upload
+                const returnedVideoObj = parseReturnedVideoLink(exerciseJSON.videoSrc);
+                //Update thumbnail source
+                workoutGuideItems[i].querySelector(".exerciseThumbnail").src = exerciseJSON.thumbnailURL;
+              }
+              workoutGuideItems[i].querySelector("#itemID").innerText = exerciseJSON.itemID;
+              
+              workoutGuideItems[i].querySelector("#guideLinkInfo").href = `/guides/${exerciseJSON.slug}`;
+
+              break;
+            }
+          }
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Could not create exercise, please try again");
+
+        // Update the current URL to the new URL
+      });
+        
+
+    }
+
+    async function getThumbnailURL(thumbnailObj) {
+
+      fetch("https://hook.us1.make.com/8y3ke5sqkvywu0rsdlse4eytnosmuf12", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(thumbnailObj)
+      }).then((res) => {
+        if (res.ok) {
+          return res.text();
+        }
+        throw new Error('Something went wrong');
+      })
+      .then((data) => {
+
+        const thumbnailObj = JSON.parse(data);
+
+        //Find exercise item with temp id
+        const exerciseLibItems = document.querySelectorAll(".exerciseguideitem");
+        for(var i = 0; i < exerciseLibItems.length; i++) {
+          var exerciseLibTempID = exerciseLibItems[i].querySelector("#exerciseLibraryTempID").innerText;
+          if(exerciseLibTempID == thumbnailObj.tempID) {
+
+            updateThumbnailWidth(exerciseLibItems[i].querySelector(".exerciseThumbnail"), thumbnailObj.thumbnailURL);
+
+            exerciseLibItems[i].querySelector(".exerciseThumbnail").src = thumbnailObj.thumbnailURL;
+            break;
+          }
+        }
+
+        const workoutGuideItems = document.querySelectorAll("#individualGuide");
+
+        for(var i = 0; i < workoutGuideItems.length; i++) {
+          var workoutItemTempID = workoutGuideItems[i].querySelector("#exerciseListTempID").innerText;
+          if(workoutItemTempID == thumbnailObj.tempID) {
+            updateThumbnailWidth(workoutGuideItems[i].querySelector(".exerciseThumbnail"), thumbnailObj.thumbnailURL);
+            workoutGuideItems[i].querySelector(".exerciseThumbnail").src = thumbnailObj.thumbnailURL;
+            break;
+          }
+        }
+
+        
+      })
+      .catch((error) => {
+        
+      });
+
+    }
+
     function populateGodMode() {
       
       prefillProgramTable(null, action="update");
@@ -3587,7 +4657,7 @@ async function main() {
 
     }
     
-    async function resetFilters(onlyCheckboxes=false) {
+    async function resetFilters(onlyCheckboxes=false, addedItem=null) {
       window.fsAttributes = window.fsAttributes || [];
       window.fsAttributes.push([
         'cmsfilter',
@@ -3596,6 +4666,12 @@ async function main() {
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
           const [programModalFilters, workoutModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
+          if(addedItem) {
+            workoutsBuilder.listInstance.addItems([addedItem])
+            workoutsBuilder.listInstance.renderItems(true);
+          }
+          
+          //workoutsBuilder.listInstance.addItems(document.querySelectorAll("#individualGuide"));
           if(filterInstances.length > 5) { 
             !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
@@ -3603,7 +4679,6 @@ async function main() {
             !onlyCheckboxes ? await workoutsSummary.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsSummary.resetFilters(filterKeys=["musclenamefilter"], null);
           }
-
 
           //Clear focus area filters:
           document.getElementById("allFilter").click();
@@ -3906,6 +4981,52 @@ async function main() {
       .catch((error) => {
         alert("Could not delete program - as it is currently assigned to a user");
       });
+    }
+
+    async function deleteExercise(exercise, currentExerciseRow, deleteButton) {
+
+      fetch("https://hook.us1.make.com/2297sux71d0air9mkb5edl0nc6hswn1o", {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(exercise)
+      }).then(res => {
+        deleteButton.innerText = "Delete";
+
+        if (res.ok) {
+
+          //Get workout ID and remove from workout builder list as well
+          const exerciseID = currentExerciseRow.querySelector("#exerciseLibraryID").innerText;
+          const workoutExerciseList = document.querySelectorAll("#guideList .collection-item-10");
+
+          var foundWorkout = null;
+          for(var i = 0; i < workoutExerciseList.length; i++) {
+
+            if(workoutExerciseList[i].querySelector("#itemID").innerText == exerciseID) {
+              foundWorkout = workoutExerciseList[i];
+              break;
+            }
+          }
+
+          if(foundWorkout != null) {
+            console.log("Removing");
+            console.log(foundWorkout);
+            foundWorkout.remove();
+          }
+
+          //Remove workout from list using js - next refresh should delete
+          currentExerciseRow.remove();
+
+          return res.text();
+        }
+        throw new Error("Something went wrong")
+      })
+      .then((data) => {
+
+      })
+      .catch((error) => {
+        alert("Could not delete exercise - as it exists in a current workout");
+      });
+
     }
 
     //Delete chosen workout and all of its exercises related to it
@@ -4380,7 +5501,7 @@ async function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}`;
+          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
@@ -4411,7 +5532,7 @@ async function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}`;
+          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
@@ -4423,7 +5544,7 @@ async function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}`;
+          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
