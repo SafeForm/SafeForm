@@ -84,6 +84,7 @@ async function main() {
   var responseData = "";
   sessionStorage.setItem("editExercise", "false");
   var updatedMedia = false;
+  var currentCopiedWorkout = "";
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -5501,7 +5502,7 @@ async function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+          const newURL = `${baseURLWithoutParams}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
@@ -5532,19 +5533,18 @@ async function main() {
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+          const newURL = `${baseURLWithoutParams}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
         })
         .catch((error) => {
-          console.log(error);
           alert("Could not create program, please try again");
           // Get the current URL without parameters
           const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
           // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=user&id=${paramUserID}`;
+          const newURL = `${baseURLWithoutParams}`;
 
           // Update the current URL to the new URL
           window.location.href = newURL;
@@ -6003,6 +6003,27 @@ async function main() {
       return groupedData;
     }
 
+    async function selectRowsInGroup(table, workoutName) {
+      // Assuming your Tabulator instance is named 'table'
+      var rowDataArr = [];
+      table.getRows().forEach(function (row) {
+        // Get the data for the row
+        var rowData = row.getData();
+        var rowObj = {};
+
+        // Check if the row belongs to the specified workoutName
+        if (rowData.workoutName === workoutName) {
+          currentCopiedWorkout = workoutName;
+          // Select the row
+          row.select();
+        }
+      });
+
+      table.copyToClipboard();
+      table.deselectRow();
+
+    }
+
     function fillProgramTable(tabledata, reset=false) {
 
       // Create Tabulator tables for each week's data
@@ -6031,13 +6052,88 @@ async function main() {
           const tableDiv = document.createElement("div");
           tableDiv.className = "week-table";
           const table = new Tabulator(tableDiv, {
+            clipboard: true, // Enable clipboard module
+            clipboardCopyConfig: {
+              columnHeaders:false, //do not include column headers in clipboard output
+              columnGroups:true, //include column groups in column headers for printed table
+              rowGroups:true, //include row groups in clipboard output
+              columnCalcs:false, //do not include column calculation rows in clipboard output
+              dataTree:false, //do not include data tree in printed table
+              formatCells:true, //show raw cell values without formatter
+          },
+            clipboardPasteAction:async function(rowData){
+              const clipboardText = await navigator.clipboard.readText();
+              
+              // Split the clipboardText into an array of lines
+              const lines = clipboardText.trim().split('\n');
+
+              // Initialize an array to store the resulting workouts
+              const workouts = [];
+
+              // Initialize an object to store the current workout details
+              let currentWorkout = {};
+              let foundWorkout = false;
+              var exerciseCount = 1;
+              // "id": workoutName+workoutNameIndex[workoutName],
+              // Iterate through each line in the clipboardText
+              var workoutNameIndexObj = {}
+              for (let i = 0; i < lines.length; i++) {
+                // Get the current line
+                const line = lines[i];
+
+                // Check if the line is a numeric value (indicating a new workout)
+                if (/\s*-\s*/.test(line)) {
+                  // If the line contains a pattern resembling an exercise description,
+                  // set the 'exercise' field in the currentWorkout
+                  currentWorkout['exercise'] = line.trim();
+                } else if (currentWorkout && !line.includes('workout') && foundWorkout) {
+                    
+                  // reps, loadAmount, and notes information. Split the line and store the values
+                  const values = line.split(/\t/);
+
+                  currentWorkout['id'] = currentWorkout.workoutName+workoutNameIndexObj[currentWorkout.workoutName];
+                  currentWorkout['reps'] = values[0];
+                  currentWorkout['loadAmount'] = values[1] || '';
+                  currentWorkout['notes'] = values[2] || '';
+                  exerciseCount += 1;
+                  if(currentWorkout && currentWorkout['exercise']) {
+                    // Push a copy of the currentWorkout into the workouts array
+                    workouts.push({ ...currentWorkout });
+                    workoutNameIndexObj[currentWorkout.workoutName] += 1;
+                  }
+              } else if(foundWorkout && /\bworkout\b.*\d/.test(line)) {
+                //A new workout
+                foundWorkout = false;
+              } else {
+                //If its not just a number
+                if (line && !line.includes('workout') && !line.trim().match(/^\d+$/)) {
+                  foundWorkout = true;
+                  currentWorkout = { workoutName: lines[i].trim() };
+                  workoutNameIndexObj[lines[i].trim()] = 1;
+                }
+                  
+                }
+              }
+
+              this.table.updateData(workouts).then(function(){
+                  //run code after data has been updated
+                  //Update all buttons
+
+              })
+              .catch(function(error){
+                //handle error updating data
+                console.log(error)
+              });
+              
+            },
             data: weekData,
             layout: "fitColumns", // Set the layout option to 'fitData'
             groupBy: ["workoutNumber", "workoutName", "exercise"],
-            groupHeader:function(value, count, data, group){
+            groupHeader: function (value, count, data, group) {
               if (group.getField() === "workoutName") {
                 return `<span style='font-family: Manrope; color: black; font-size: 16px; font-weight: 600;'>${value}</span>`;
-              } else if(group.getField() == "workoutNumber") {
+
+              } else if (group.getField() == "workoutNumber") {
                 return "";
               } else {
                 // Check if the "exercise" value is empty or null, and don't show the group if it is
@@ -6046,15 +6142,124 @@ async function main() {
                 } else {
                   return `<span class='exerciseGroupName' style='font-family: Manrope; color: black; font-size: 14px'>${value}</span>`;
                 }
-
               }
             },
+
             columns: [
               {
                 title: `Week ${weekNumber}`,
                 headerHozAlign: "center",
+                titleFormatter: function (cell, formatterParams, onRendered) {
+                  // Create a container div for the title and the copy button
+                  const container = document.createElement("div");
+              
+                  // Create the title element
+                  const title = document.createElement("span");
+                  title.textContent = `${cell.getValue()}`;
+                  title.style.fontFamily = "Manrope";
+                  title.style.color = "black";
+                  title.style.fontSize = "16px";
+                  title.style.fontWeight = "600";
+              
+                  // Create the copy button as an image
+                  const copyButton = document.createElement("img");
+                  copyButton.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp";  // Add the URL of your copy button image
+                  copyButton.alt = "Copy";
+                  copyButton.classList.add("copy-week-button"); 
+                  copyButton.title = "Click entire week";  // Set hover text
+                  copyButton.addEventListener("click", function () {
+                    // Call your copy function here
+                    this.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddeb5b0ba0c6aee88f383_copyPressedNew.webp";
+                    table.selectRow();
+                    table.copyToClipboard();
+                    table.deselectRow();
+                  });
+
+                // Create the copy button as an image
+                const pasteButton = document.createElement("img");
+                pasteButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/650444503758530596912def_addWorkout.webp";  
+                pasteButton.alt = "Paste";
+                pasteButton.classList.add("paste-week-button"); 
+                pasteButton.title = "Paste entire week";  // Set hover text
+
+                pasteButton.addEventListener("click", async function () {
+                  const clipboardText = await navigator.clipboard.readText();
+              
+                  // Split the clipboardText into an array of lines
+                  const lines = clipboardText.trim().split('\n');
+    
+                  // Initialize an array to store the resulting workouts
+                  const workouts = [];
+    
+                  // Initialize an object to store the current workout details
+                  let currentWorkout = {};
+                  let foundWorkout = false;
+                  var exerciseCount = 1;
+                  // "id": workoutName+workoutNameIndex[workoutName],
+                  // Iterate through each line in the clipboardText
+                  var workoutNameIndexObj = {}
+                  for (let i = 0; i < lines.length; i++) {
+                    // Get the current line
+                    const line = lines[i];
+    
+                    // Check if the line is a numeric value (indicating a new workout)
+                    if (/\s*-\s*/.test(line)) {
+                      // If the line contains a pattern resembling an exercise description,
+                      // set the 'exercise' field in the currentWorkout
+                      currentWorkout['exercise'] = line.trim();
+                    } else if (currentWorkout && !line.includes('workout') && foundWorkout) {
+                        
+                      // reps, loadAmount, and notes information. Split the line and store the values
+                      const values = line.split(/\t/);
+    
+                      currentWorkout['id'] = currentWorkout.workoutName+workoutNameIndexObj[currentWorkout.workoutName];
+                      currentWorkout['reps'] = values[0];
+                      currentWorkout['loadAmount'] = values[1] || '';
+                      currentWorkout['notes'] = values[2] || '';
+                      exerciseCount += 1;
+                      if(currentWorkout && currentWorkout['exercise']) {
+                        // Push a copy of the currentWorkout into the workouts array
+                        workouts.push({ ...currentWorkout });
+                        workoutNameIndexObj[currentWorkout.workoutName] += 1;
+                      }
+                  } else if(foundWorkout && /\bworkout\b.*\d/.test(line)) {
+                    //A new workout
+                    foundWorkout = false;
+                  } else {
+                    //If its not just a number
+                    if (line && !line.includes('workout') && !line.trim().match(/^\d+$/)) {
+                      foundWorkout = true;
+                      currentWorkout = { workoutName: lines[i].trim() };
+                      workoutNameIndexObj[lines[i].trim()] = 1;
+                    }
+                      
+                    }
+                  }
+    
+                  table.updateData(workouts).then(function(){
+                    //Update all buttons
+                    var copyButtons = document.querySelectorAll(".copy-week-button")
+                    copyButtons.forEach(copyButton => {
+                      copyButton.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp";
+                    });
+                  })
+                  .catch(function(error){
+                    //handle error updating data
+                    console.log(error)
+                  });
+                });
+              
+                  // Append the title and copy button to the container
+                  container.appendChild(title);
+                  container.appendChild(copyButton);
+                  container.appendChild(pasteButton);
+              
+                  return container;
+              },
+              
+               
                 columns: [
-                  { title: "Quantity", field: "reps", hozAlign: "center", headerHozAlign:"center", width: 80, headerSort: false, editor:"input", resizable:false, formatter: function(cell, formatterParams, onRendered) {
+                  { title: "Quantity", field: "reps", clipboard:true, hozAlign: "center", headerHozAlign:"center", width: 80, headerSort: false, editor:"input", resizable:false, formatter: function(cell, formatterParams, onRendered) {
                     var currentWeek = sessionStorage.getItem("currentWeek");
                     //Get week column
                     var parentColumn = cell.getColumn().getParentColumn();
@@ -6097,7 +6302,7 @@ async function main() {
                   { title: "Minutes Rest", field: "exerciseRestMinutes", visible: false },
                   { title: "Seconds Rest", field: "exerciseRestSeconds", visible: false },
                   { title: "Unique Workout ID", field: "uniqueWorkoutID", visible: false },
-                  { title: "Load", field: "loadAmount", hozAlign: "center" , headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
+                  { title: "Load", field: "loadAmount", hozAlign: "center" , clipboard:true, headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
              
                     var rowData = cell.getRow().getData();
                     if (rowData.exercise === "") { 
@@ -6122,7 +6327,7 @@ async function main() {
                     // Return the combined value for display
                     return combinedValue;
                 }},
-                  { title: "Notes", field: "notes", hozAlign: "center",  headerHozAlign:"center", width: 250, headerSort: false, editor:"input", resizable:true, cellEdited:function(cell){
+                  { title: "Notes", clipboard:true, field: "notes", hozAlign: "center",  headerHozAlign:"center", width: 250, headerSort: false, editor:"input", resizable:true, cellEdited:function(cell){
                     var rowData = cell.getRow().getData();
                     if (rowData.exercise === "") { 
                       cell.setValue("");
@@ -6159,6 +6364,9 @@ async function main() {
 
     }
 
+
+    
+
     function translateProgramDataToTable(updatedProgram) {
 
       // Extract the startWeek from the first program
@@ -6181,14 +6389,22 @@ async function main() {
         
         // Iterate over the events in the current program
         //Iterating through workouts
+        var previousWeek = 0;
+        var totalExerciseCount = 1;
+        var workoutNameIndex = {};
         for (var i = 0; i < program.events.length; i++) {
           var event = program.events[i];
           
           // Calculate the week number based on the difference between event start and startWeek
           var week = moment(event.start).diff(startWeek, 'weeks') + 1;
-
+          if(previousWeek != week) {
+            previousWeek = week;
+            totalExerciseCount = 1;
+            workoutNameIndex = {};
+          }
           // Use the 'title' as the workoutName
           var workoutName = event.title;
+
           var workoutJSON = event.workoutJSON;
           var uniqueWorkoutID = event.extendedProps.uniqueWorkoutID;
 
@@ -6212,8 +6428,14 @@ async function main() {
               //Iterating through sets in exercise
               for (var l = 0; l < individualExercise.exercises.length; l++) {
                 var exercise = individualExercise.exercises[l];
+                if(workoutNameIndex[workoutName]) {
+                  workoutNameIndex[workoutName] += 1;
+                } else {
+                  workoutNameIndex[workoutName] = 1;
+                }
                 // Create an exercise object for each exercise
                 var exerciseObject = {
+                  "id": workoutName+workoutNameIndex[workoutName],
                   "week": "Week " + week,
                   "workoutName": workoutName,
                   "exercise": isSuperset ? k == 0 ? `${exerciseCount}A - ${individualExercise.exerciseName}` : `${exerciseCount}B - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
@@ -6224,16 +6446,16 @@ async function main() {
                   "exerciseRestSeconds": exercise.exerciseRestSeconds,
                   "quantityUnit": exercise.quantityUnit,
                   "notes": individualExercise.exerciseNotes,
-                  "workoutNumber": i,
+                  "workoutNumber": `workout ${i}`,
                   "setNumber": l,
                   "results": "" ,
                   "startDate": event.start,
                   "guideID": individualExercise.guideID,
                   "uniqueWorkoutID": uniqueWorkoutID
                 };
-
                 // Push the exercise object to the convertedData array
                 convertedData.push(exerciseObject);
+
               }
             }
             exerciseCount += 1; //Increment exercise count
