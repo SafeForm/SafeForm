@@ -332,23 +332,39 @@ async function main() {
 
   function styleProgramUrgencyDay(element, daysDifference) {
     if(daysDifference < 7) {
-      element.style.backgroundColor = "#EE1D29";
+      element.style.backgroundColor = "rgba(238,29,41,0.25)";
+      element.style.borderColor = "rgb(238,29,41)";
+      element.style.color = "#EE1D29";
     } else if(daysDifference >= 7 && daysDifference < 14) {
-      element.style.backgroundColor = "#FA7B05";
+      element.style.backgroundColor = "rgba(250,123,5,0.25)";
+      element.style.borderColor = "#FA7B05";
+      element.style.color = "#FA7B05";
     } else {
-      element.style.backgroundColor = "#08D58B";
+      element.style.backgroundColor = "rgba(8,213,139,0.25)";
+      element.style.borderColor = "#08D58B";
+      element.style.color = "#08D58B";
     }
+    element.style.borderWidth = "1px";
+    element.style.borderStyle = "solid";
   }
 
   function styleWorkoutUrgencyDay(element, daysDifference) {
 
     if(daysDifference < 2) {
-      element.style.backgroundColor = "#EE1D29";
+      element.style.backgroundColor = "rgba(238,29,41,0.25)";
+      element.style.borderColor = "rgb(238,29,41)";
+      element.style.color = "#EE1D29";
     } else if(daysDifference >= 2 && daysDifference <= 5) {
-      element.style.backgroundColor = "#FA7B05";
+      element.style.backgroundColor = "rgba(250,123,5,0.25)";
+      element.style.borderColor = "#FA7B05";
+      element.style.color = "#FA7B05";
     } else {
-      element.style.backgroundColor = "#08D58B";
+      element.style.backgroundColor = "rgba(8,213,139,0.25)";
+      element.style.borderColor = "#08D58B";
+      element.style.color = "#08D58B";
     }
+    element.style.borderWidth = "1px";
+    element.style.borderStyle = "solid";
     
   }
 
@@ -1375,15 +1391,6 @@ async function main() {
 
           }
         } else if (setFromPaste) {
-          // if(addProgram) {
-          //   isPasteState = false;
-          //   isEventPasteState = false;
-          //   setFromPaste = false;
-          //   addProgram = false;
-          //   populateGodMode();
-          // } else {
-
-          // }
 
           isPasteState = false;
           isEventPasteState = false;
@@ -1788,7 +1795,6 @@ async function main() {
 
       //Add a week to the calendar
       document.getElementById("addWeekButton").click();
-
 
     }
     
@@ -2932,20 +2938,19 @@ async function main() {
         }
         
 
-      } else if( event.target.id == "qrImg") {
-        //Get link from hidden field
-        const workoutLink = event.target.parentElement.parentElement.querySelector("#workoutLink").href;
-        const workoutName = event.target.parentElement.parentElement.querySelector("#workoutSummaryName").innerText
-        //Insert workout name
-        document.getElementById("scanWorkoutName").innerHTML = workoutName;
+      } else if( event.target.id == "copyWorkoutImg") {
 
-        //Get gym name to pass through
-        var qrGymName = document.getElementById("gymFullName").innerText;
-        //Produce QR code and add it to div
-        generateQRCode(workoutLink, qrGymName.toLowerCase());
+        event.preventDefault();
 
-        //Show modal
-        showModal("workoutQRDiv");
+        //Copy to clipboard
+        const workoutLink = event.target.closest("#workoutSummary").querySelector("#workoutLink").href;
+        navigator.clipboard.writeText(workoutLink);
+        event.target.closest("#workoutSummary").querySelector("#copiedText").style.display = "block";
+
+        // Reset the image source after 2 seconds
+        setTimeout(function () {
+          event.target.closest("#workoutSummary").querySelector("#copiedText").style.display = "none";
+        }, 1000);
 
       } else if(event.target.id == "modalWrapper" || event.target.className == "close-modal" || event.target.className == "exit-qr-scan") {
         //Remove QR code
@@ -4735,10 +4740,10 @@ async function main() {
       const checkedRadioInput = document.querySelector('input[type="radio"][name="summaryTraining"]:checked');
       const checkedSpanElement = checkedRadioInput.nextElementSibling;
       
-      checkedSpanElement.style.backgroundColor = '#FFFFFF';
+      checkedSpanElement.style.backgroundColor = '#0C08D5';
       checkedSpanElement.style.border = '0px';
       checkedSpanElement.style.borderRadius = '8px';
-      checkedSpanElement.style.color = '#0C08D5';
+      checkedSpanElement.style.color = '#FFFFFF';
 
       const uncheckedRadioInputs = document.querySelectorAll('input[type="radio"][name="summaryTraining"]:not(:checked)');
 
@@ -7096,10 +7101,10 @@ async function main() {
       const checkedRadioInput = document.querySelector('input[type="radio"][name="workoutProgram"]:checked');
       const checkedSpanElement = checkedRadioInput.nextElementSibling;
       
-      checkedSpanElement.style.backgroundColor = '#FFFFFF';
+      checkedSpanElement.style.backgroundColor = '#0C08D5';
       checkedSpanElement.style.border = '0px';
       checkedSpanElement.style.borderRadius = '8px';
-      checkedSpanElement.style.color = '#0C08D5';
+      checkedSpanElement.style.color = '#FFFFFF';
 
       const uncheckedRadioInputs = document.querySelectorAll('input[type="radio"][name="workoutProgram"]:not(:checked)');
 
