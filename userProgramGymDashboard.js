@@ -115,14 +115,13 @@ async function main() {
   //Check if any workouts have more than 5 (CMS limit) exercises and add them if not
   addMoreThanFiveWorkouts();
 
-  //Calculate the days until the clients program ends or weight inputs aren't complete
-  calculateWorkoutUrgencyDays();
-  calculateProgramUrgencyDays();
-
   //Add pending users
   addPendingUsers();
 
   await loadAndUpdateAllSummaries();
+
+  //Calculate the days until the clients program ends or weight inputs aren't complete
+  calculateProgramUrgencyDays();
 
   //Update width of all thumbnail
   updateWidthOfThumbnails();
@@ -234,12 +233,14 @@ async function main() {
     for(var i = 0; i < clientList.length; i++) {
 
       var fullProgramData = clientList[i].querySelector("#summaryFullEventData").innerText;
-
+      console.log(fullProgramData);
       var daysDifference = 0;
 
       if(fullProgramData != null && fullProgramData != "") {
         daysDifference = findEmptyWorkoutInput(JSON.parse(fullProgramData));
       }
+
+      
        
       updateUrgencyDayText(clientList[i].querySelector("#customWorkouts"), daysDifference);
 
@@ -610,6 +611,7 @@ async function main() {
     // Use $.when to wait for all load requests to complete
     $.when.apply($, loadRequests).then(function () {
       // Any additional code to run after all requests have completed
+      calculateWorkoutUrgencyDays();
     });
   }
 
@@ -919,6 +921,7 @@ async function main() {
       //Make svg person smaller
       svgPerson[0].style.width = "80%";
       thumbnail[0].style.width = "100%";
+      thumbnail[0].style.height = "100%";
     
       //Add thumbnail and svg person to hover div
       $(workoutItem).find("#thumbnailAndMuscleDiv").append(thumbnail);
@@ -1991,7 +1994,7 @@ async function main() {
 
       } else if(event.target.id == "workoutExercisename") {
           
-        var hoverDiv = event.target.parentElement.parentElement.parentElement.parentElement.querySelector("#thumbnailAndMuscleDiv").style;
+        var hoverDiv = event.target.closest("#guideCopy").querySelector("#thumbnailAndMuscleDiv").style;
         hoverDiv.display = "flex";
         hoverDiv.alignItems = "center";
         hoverDiv.justifyContent = "center";
@@ -2032,7 +2035,7 @@ async function main() {
         toggleBorderCSS(hoveredDay, false);
 
       } else if(event.target.id == "workoutExercisename") {
-        event.target.parentElement.parentElement.parentElement.parentElement.querySelector("#thumbnailAndMuscleDiv").style.display = "none";
+        event.target.closest("#guideCopy").querySelector("#thumbnailAndMuscleDiv").style.display = "none";
         //Underline text
         event.target.style.textDecoration = "none";
       } else if (event.target.id == "thumbnailAndMuscleDiv") {
@@ -6182,7 +6185,7 @@ async function main() {
 
                 // Create the copy button as an image
                 const pasteButton = document.createElement("img");
-                pasteButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/650444503758530596912def_addWorkout.webp";  
+                pasteButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/6578342aad3d8d106ce4b69e_paste_god_mode.webp";  
                 pasteButton.alt = "Paste";
                 pasteButton.classList.add("paste-week-button"); 
                 pasteButton.title = "Paste entire week";  // Set hover text
@@ -6216,7 +6219,6 @@ async function main() {
                         
                       // reps, loadAmount, and notes information. Split the line and store the values
                       const values = line.split(/\t/);
-    
                       currentWorkout['id'] = currentWorkout.workoutName+workoutNameIndexObj[currentWorkout.workoutName];
                       currentWorkout['reps'] = values[0];
                       currentWorkout['loadAmount'] = values[1] || '';
@@ -6235,12 +6237,16 @@ async function main() {
                     if (line && !line.includes('workout') && !line.trim().match(/^\d+$/)) {
                       foundWorkout = true;
                       currentWorkout = { workoutName: lines[i].trim() };
-                      workoutNameIndexObj[lines[i].trim()] = 1;
+                      if(!workoutNameIndexObj[lines[i].trim()]) {
+                        workoutNameIndexObj[lines[i].trim()] = 1;
+                      }
+                     
                     }
                       
                     }
                   }
-    
+                  console.log(workouts);
+                  console.log(table.getData());
                   table.updateData(workouts).then(function(){
                     //Update all buttons
                     var copyButtons = document.querySelectorAll(".copy-week-button")
@@ -6467,7 +6473,7 @@ async function main() {
           }
         }
       }
-
+      console.log(convertedData)
       // Now 'convertedData' contains the converted data in the format of your first JSON object
       return convertedData;
     }
