@@ -233,15 +233,12 @@ async function main() {
     for(var i = 0; i < clientList.length; i++) {
 
       var fullProgramData = clientList[i].querySelector("#summaryFullEventData").innerText;
-      console.log(fullProgramData);
       var daysDifference = 0;
 
       if(fullProgramData != null && fullProgramData != "") {
         daysDifference = findEmptyWorkoutInput(JSON.parse(fullProgramData));
       }
 
-      
-       
       updateUrgencyDayText(clientList[i].querySelector("#customWorkouts"), daysDifference);
 
       styleWorkoutUrgencyDay(clientList[i].querySelector("#customWorkouts"), daysDifference);
@@ -800,7 +797,7 @@ async function main() {
       } else {
         workoutList = document.getElementById("programWorkoutList");
       }
-
+     
       if(jsonExercises != null && exerciseList != null) {
         for(var i = 0; i < exerciseList.length; i++) {
           createWorkoutExerciseElement(exerciseList[i][0], workoutList, exerciseInformation[i], prefill, exerciseList[i][1], exerciseList[i][2], programWorkout, i, jsonExercises[i]); 
@@ -849,12 +846,18 @@ async function main() {
           workoutItem.querySelector(".setrestinputm").value = exerciseInformation.exerciseRestMins;
           workoutItem.querySelector(".setrestinput").value = exerciseInformation.exerciseRestSecs;
         } else {
+          //Formatting of items
+          workoutItem.querySelector("#navigationButtons").remove();
+          workoutItem.querySelector("#guidePlaceHolder").width = "100%";
+          workoutItem.querySelector(".div-block-183").style.display = "block";
+
           workoutItem.querySelector("#removeExercise").style.display = "none";
           workoutItem.querySelector(".repsinput").innerText = exerciseInformation.exerciseReps;
           workoutItem.querySelector(".setrestinputm").innerText = exerciseInformation.exerciseRestMins;
           workoutItem.querySelector(".setrestinput").innerText = exerciseInformation.exerciseRestSecs;
         }
         copyOfGuide.querySelector("#itemID").innerText = exerciseInformation.exerciseItemID;
+
         copyOfGuide.querySelector("#workoutExerciseItemID").innerText = exerciseInformation.exerciseItemID;
         copyOfGuide.querySelector("#workoutExerciseFullName").innerText = exerciseInformation.exerciseFullName;
       }
@@ -868,7 +871,6 @@ async function main() {
       workoutItem.querySelector("#workoutExerciseFullName").remove();
       workoutItem.querySelector("#workoutExerciseItemID").remove();
       workoutItem.querySelector("#exerciseInfo").remove();
-
 
       //Prefill rest values
       workoutItem.querySelector("#exerciseRestMin").value = 3;
@@ -933,12 +935,13 @@ async function main() {
       workoutItem.querySelector("#workoutExercisename").style.fontSize = "16px";
       workoutItem.querySelector("#exerciseDifficultyParent").style.display = "none";
 
-      workoutItem.querySelector(".supersetparent").style.display = "none";
+      //workoutItem.querySelector(".supersetparent").style.display = "none";
 
       //Add to 'workouts' list
       workoutList.appendChild(workoutItem);
 
       const listLength = workoutList.querySelectorAll(".exercise-list-item").length - 1;
+
       //Ensure required fields are set as required
       if(listLength >= 2) {
         workoutItem.querySelector("#measureInput").setAttribute("required", "");
@@ -1017,6 +1020,10 @@ async function main() {
       if(index == 1) {
         var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling;
         previousExercise.querySelector(".supersetparent img").click();
+      } else if(index > 1) {
+        //For all others get last element in superset list and click superset image
+        var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling.lastChild;
+        previousExercise.querySelector(".supersetparent img").click();
       }
 
       //Scroll list to bottom to show user
@@ -1045,9 +1052,9 @@ async function main() {
 
       //Remove unecessary things in workout program builder
       if(programWorkout) {
+        workoutItem.paddingBottom = 0;
+        workoutItem.paddingTop = 0;
         workoutItem.querySelector("#removeFullExercise").style.display = "none";
-        workoutItem.querySelector("#moveDown").style.display = "none";
-        workoutItem.querySelector("#moveUp").style.display = "none";
         workoutItem.querySelector(".supersetparent").style.display = "none";
         workoutItem.querySelector(".addset").style.display = "none";
         var removeButtons = workoutItem.querySelectorAll("#removeExercise");
@@ -1058,19 +1065,21 @@ async function main() {
       
     }
 
-
     function handleSupersetClick(event) {
       const supersetImage = event.target;
 
       if(event.target.classList.contains("supersetimageopen")) {
-        const supersetParent = supersetImage.closest('.exercise-list-item');
-        const nextSibling = supersetParent.nextElementSibling;
 
-        supersetParent.querySelector("#removeFullExercise").style.display = "none";
-        nextSibling.querySelector("#removeFullExercise").style.display = "none";
-        
+        var supersetParent = supersetImage.closest('.exercise-list-item');
+        const nextSibling = supersetParent.nextElementSibling;
+        const previousSibling = supersetParent.closest(".exercise-list-item-superset");
+
+        supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
+
         //Make sure not end of list and the next element isn't already in a superset
         if(nextSibling != null && !nextSibling.classList.contains("exercise-list-item-superset")) {
+          nextSibling.querySelector("#removeFullExercise").style.display = "none";
+
           // Create a new div with styling
           const newDiv = document.createElement('div');
           newDiv.classList.add('exercise-list-item-superset');
@@ -1090,58 +1099,96 @@ async function main() {
           if (nextSibling) {
             newDiv.appendChild(nextSibling);
           }
-          
-
-          //Hide superset button in second exercise added
-          nextSibling.querySelector(".supersetparent").style.display = "none";
-
-          supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
 
           // Remove existing border styling from #guideCopy
           newDiv.querySelectorAll('#guideCopy').forEach(guideCopy => {
             guideCopy.style.border = 'none';
           });
+          
+        } else if(nextSibling != null && nextSibling.classList.contains("exercise-list-item-superset")) {
+          //Now check if next element is in a superset
+          supersetParent.querySelector("#guideCopy").style.border = 'none';
 
-          //Remove supersetimageopen class
-          supersetImage.classList.remove("supersetimageopen");
-          supersetImage.classList.add("supersetimageclosed");
+          nextSibling.insertBefore(supersetParent, nextSibling.firstChild);
+
+
+        } else if(previousSibling && supersetParent) {
+          //Now check if current element is in a superset
+
+          supersetParent = previousSibling.nextElementSibling;
+
+          supersetParent.querySelector("#guideCopy").style.border = 'none';
+
+          previousSibling.appendChild(supersetParent);
+
         }
-        
 
+        //Remove supersetimageopen class
+        supersetImage.classList.remove("supersetimageopen");
+        supersetImage.classList.add("supersetimageclosed");
+        supersetParent.querySelector("#removeFullExercise").style.display = "none";
+
+        
       } else {
 
         const supersetParent = supersetImage.closest('.exercise-list-item-superset');
+        var supersetItem = supersetImage.closest('.exercise-list-item');
         const workoutList = document.getElementById('workoutList'); // Assuming 'workoutList' is the ID of your list
+
         //Change superset image back  
-        supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc7674f21dd849120ea_open_superset.webp";
-      
-        // Remove borders from #guideCopy elements
-        supersetParent.querySelectorAll('#guideCopy').forEach(guideCopy => {
-          guideCopy.style.border = '';
-        });
+        supersetImage.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc7674f21dd849120ea_open_superset.webp";
       
         // Get the exercises inside the superset parent
         const exercisesToRestore = Array.from(supersetParent.querySelectorAll('.exercise-list-item'));
-        exercisesToRestore.reverse();
-        // Insert exercises back into the workout list
-        exercisesToRestore.forEach(exercise => {
+        if(exercisesToRestore.length == 2) {
 
-          exercise.querySelector("#removeFullExercise").style.display = "block";
-          workoutList.insertBefore(exercise, supersetParent.nextSibling);
-          if(exercise.nextSibling != null) {
-            exercise.querySelector(".supersetparent").style.display = "block";
+          // Remove borders from #guideCopy elements
+          supersetParent.querySelectorAll('#guideCopy').forEach(guideCopy => {
+            guideCopy.style.border = '';
+          });
+
+          exercisesToRestore.reverse();
+          // Insert exercises back into the workout list
+          exercisesToRestore.forEach(exercise => {
+  
+            exercise.querySelector("#removeFullExercise").style.display = "block";
+            workoutList.insertBefore(exercise, supersetParent.nextSibling);
+            if(exercise.nextSibling != null) {
+              exercise.querySelector(".supersetparent").style.display = "block";
+            }
+            
+          });
+          // Remove the superset parent div
+          supersetParent.parentNode.removeChild(supersetParent);
+        } else {
+
+          //If at start of list
+          if(supersetParent.firstChild == supersetItem) {
+
+            supersetItem.querySelector("#removeFullExercise").style.display = "block";
+            workoutList.insertBefore(supersetItem, supersetParent);
+            supersetItem.querySelector("#guideCopy").style.border = '';
+          } else if(supersetParent.lastChild == supersetItem.nextElementSibling) {
+            //If at end of list
+            supersetItem = supersetItem.nextElementSibling;
+            supersetItem.querySelector("#removeFullExercise").style.display = "block";
+            supersetItem.querySelector("#guideCopy").style.border = '';
+            console.log(supersetItem)
+            insertAfter(supersetItem, supersetParent);
           }
-          
-        });
 
-      
-        // Remove the superset parent div
-        supersetParent.parentNode.removeChild(supersetParent);
+        }
+
         supersetImage.classList.add("supersetimageopen");
         supersetImage.classList.remove("supersetimageclosed");
 
+
       }
       
+    }
+
+    function insertAfter(newNode, referenceNode) {
+      referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
     }
 
     function createWorkoutListEntry(workoutExerciseID, guideExercise) {
@@ -2235,6 +2282,7 @@ async function main() {
         if(workoutList[i].classList.contains("exercise-list-item-superset")) {
           var supersetExerciseList = [];
           const supersetExercises = workoutList[i].querySelectorAll(".exercise-list-item");
+          console.log(supersetExercises);
           //If it is, iterate through each item in the superset
           for(var k = 0; k < supersetExercises.length; k++) {
             
@@ -2261,7 +2309,6 @@ async function main() {
               exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
               exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
               exerciseInformation["loadAmount"] = "";
-              
               
               exerciseList.push(exerciseInformation);
             }
@@ -2315,13 +2362,16 @@ async function main() {
 
         
       }
+
       workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
       workout.exerciseSlugs = workout.exerciseSlugs.join(", ")
       workout.muscleGroups = workout.muscleGroups.join(", ");
 
 
+
       //Make sure they have selected a duration and focus area
       if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
+        console.log(workout);
 
         sendWorkoutToMake(workout);      
       } else {
@@ -4027,24 +4077,6 @@ async function main() {
           exerciseItem.querySelector('#guideName').innerText = formData.get('exerciseName');
           exerciseItem.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
 
-          // Grab the first category from the comma-separated string
-          var firstCategory = formData.get('categories').split(',')[0];
-
-          // Check if firstCategory has spaces
-          if (firstCategory.includes(' ')) {
-            // Lowercase and replace spaces with hyphens in firstCategory
-            firstCategory = firstCategory.toLowerCase().replace(/\s+/g, '-');
-          }
-
-          // Update loadingMechanism field
-          exerciseItem.querySelector('#loadingMechanism').innerText = firstCategory;
-
-          // Update loading-icon image
-          const loadingIcon = exerciseItem.querySelector('#loading-icon');
-          loadingIcon.parentElement.id = firstCategory; // Set the id for styling
-
-          loadingIcon.src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${firstCategory}.webp`; // Set the src
-
           // Clear and update casualMuscle field
           const casualMuscleFields = exerciseItem.querySelectorAll('#casualMuscle');
           casualMuscleFields.forEach((field, index) => {
@@ -4123,24 +4155,6 @@ async function main() {
       // Update fields with form data
       clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
       clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
-
-      // Grab the first category from the comma-separated string
-      var firstCategory = formData.get('categories').split(',')[0];
-
-      // Check if firstCategory has spaces
-      if (firstCategory.includes(' ')) {
-        // Lowercase and replace spaces with hyphens in firstCategory
-        firstCategory = firstCategory.toLowerCase().replace(/\s+/g, '-');
-      }
-
-      // Update loadingMechanism field
-      clonedElement.querySelector('#loadingMechanism').innerText = firstCategory;
-
-      // Update loading-icon image
-      const loadingIcon = clonedElement.querySelector('#loading-icon');
-      loadingIcon.parentElement.id = firstCategory; // Set the id for styling
- 
-      loadingIcon.src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${firstCategory}.webp`; // Set the src
       
       // Clear and update casualMuscle field
       const casualMuscleFields = clonedElement.querySelectorAll('#casualMuscle');
@@ -6168,6 +6182,7 @@ async function main() {
                   title.style.color = "black";
                   title.style.fontSize = "16px";
                   title.style.fontWeight = "600";
+                  title.classList.add("week-title");
               
                   // Create the copy button as an image
                   const copyButton = document.createElement("img");
@@ -6181,7 +6196,23 @@ async function main() {
                     table.selectRow();
                     table.copyToClipboard();
                     table.deselectRow();
-                  });
+                    var pasteButtons = document.querySelectorAll(".paste-week-button");
+                    pasteButtons.forEach (pasteButton => {
+                      if(pasteButton != this.nextElementSibling) {
+                        pasteButton.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/6578342aad3d8d106ce4b69e_paste_god_mode.webp"; 
+                        pasteButton.style.display = "";
+                      }
+                    });
+
+                    //Hide all copy buttons
+                    var copyButtons = document.querySelectorAll(".copy-week-button");
+                    copyButtons.forEach (copyButton => {
+                      if(copyButton != this) {
+                        copyButton.style.display = "none";
+                      }
+                    });
+
+                    });
 
                 // Create the copy button as an image
                 const pasteButton = document.createElement("img");
@@ -6189,8 +6220,10 @@ async function main() {
                 pasteButton.alt = "Paste";
                 pasteButton.classList.add("paste-week-button"); 
                 pasteButton.title = "Paste entire week";  // Set hover text
+                pasteButton.style.display = "none";  // Set hover text
 
                 pasteButton.addEventListener("click", async function () {
+
                   const clipboardText = await navigator.clipboard.readText();
               
                   // Split the clipboardText into an array of lines
@@ -6245,8 +6278,7 @@ async function main() {
                       
                     }
                   }
-                  console.log(workouts);
-                  console.log(table.getData());
+
                   table.updateData(workouts).then(function(){
                     //Update all buttons
                     var copyButtons = document.querySelectorAll(".copy-week-button")
@@ -6258,6 +6290,25 @@ async function main() {
                     //handle error updating data
                     console.log(error)
                   });
+
+                  this.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/657d3bf4b8e1715feca010fd_pasteBlue.webp";
+
+                  // Pause for 1 second to show blue
+                  setTimeout(function (button) {
+                    //Hide all paste buttons
+                    var copyButtons = document.querySelectorAll(".copy-week-button");
+                    copyButtons.forEach (copyButton => {
+                      copyButton.style.display = "";
+                      copyButton.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp";
+                    });
+                    //Hide all paste buttons
+                    var pasteButtons = document.querySelectorAll(".paste-week-button");
+                    pasteButtons.forEach (pasteButton => {
+                      pasteButton.style.display = "none";
+                    });
+                    
+                  }, 200);
+
                 });
               
                   // Append the title and copy button to the container
@@ -6430,50 +6481,58 @@ async function main() {
               isSuperset = true;
             }
 
+            // Define an array of labels from A to E
+            var labelArray = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+
             // Iterate over all exercises within exerciseData
             //Iterating through supersets or exercise
             for (var k = 0; k < exerciseData.length; k++) {
-              var individualExercise = exerciseData[k];
+                var individualExercise = exerciseData[k];
 
-              // Iterate over all exercises within individualExercise
-              //Iterating through sets in exercise
-              for (var l = 0; l < individualExercise.exercises.length; l++) {
-                var exercise = individualExercise.exercises[l];
-                if(workoutNameIndex[workoutName]) {
-                  workoutNameIndex[workoutName] += 1;
-                } else {
-                  workoutNameIndex[workoutName] = 1;
+                // Iterate over all exercises within individualExercise
+                // Iterating through sets in exercise
+                for (var l = 0; l < individualExercise.exercises.length; l++) {
+                    var exercise = individualExercise.exercises[l];
+                    if (workoutNameIndex[workoutName]) {
+                        workoutNameIndex[workoutName] += 1;
+                    } else {
+                        workoutNameIndex[workoutName] = 1;
+                    }
+
+                    // Calculate the label based on the value of k
+                    var labelIndex = k % labelArray.length;
+                    var exerciseLabel = labelArray[labelIndex];
+
+                    // Create an exercise object for each exercise
+                    var exerciseObject = {
+                        "id": workoutName + workoutNameIndex[workoutName],
+                        "week": "Week " + week,
+                        "workoutName": workoutName,
+                        "exercise": isSuperset ? `${exerciseCount}${exerciseLabel} - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
+                        "reps": exercise.reps,
+                        "load": exercise.measure,
+                        "loadAmount": (exercise.loadAmount != undefined) ? exercise.loadAmount : "",
+                        "exerciseRestMinutes": exercise.exerciseRestMinutes,
+                        "exerciseRestSeconds": exercise.exerciseRestSeconds,
+                        "quantityUnit": exercise.quantityUnit,
+                        "notes": individualExercise.exerciseNotes,
+                        "workoutNumber": `workout ${i}`,
+                        "setNumber": l,
+                        "results": "",
+                        "startDate": event.start,
+                        "guideID": individualExercise.guideID,
+                        "uniqueWorkoutID": uniqueWorkoutID
+                    };
+
+                    // Push the exercise object to the convertedData array
+                    convertedData.push(exerciseObject);
                 }
-                // Create an exercise object for each exercise
-                var exerciseObject = {
-                  "id": workoutName+workoutNameIndex[workoutName],
-                  "week": "Week " + week,
-                  "workoutName": workoutName,
-                  "exercise": isSuperset ? k == 0 ? `${exerciseCount}A - ${individualExercise.exerciseName}` : `${exerciseCount}B - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
-                  "reps": exercise.reps,
-                  "load": exercise.measure,
-                  "loadAmount": (exercise.loadAmount != undefined) ? exercise.loadAmount : "",
-                  "exerciseRestMinutes": exercise.exerciseRestMinutes,
-                  "exerciseRestSeconds": exercise.exerciseRestSeconds,
-                  "quantityUnit": exercise.quantityUnit,
-                  "notes": individualExercise.exerciseNotes,
-                  "workoutNumber": `workout ${i}`,
-                  "setNumber": l,
-                  "results": "" ,
-                  "startDate": event.start,
-                  "guideID": individualExercise.guideID,
-                  "uniqueWorkoutID": uniqueWorkoutID
-                };
-                // Push the exercise object to the convertedData array
-                convertedData.push(exerciseObject);
-
-              }
             }
             exerciseCount += 1; //Increment exercise count
           }
         }
       }
-      console.log(convertedData)
+
       // Now 'convertedData' contains the converted data in the format of your first JSON object
       return convertedData;
     }
@@ -6780,32 +6839,41 @@ async function main() {
       for(var i = 0; i < workout.exercises.length; i++) {
         var incrementIndex = false;
         var jsonExercises = null;
-        var exerciseList = null;
-        //Get superset if it exists
-        if(workoutJSON != "" && count < workoutJSON.length && workoutJSON[count].length > 1 ) {
+        var exerciseList = [];
+        var incrementAmount = 1;
+        var exerciseInfo = [];
+        
+        if(workoutJSON != "" && workoutJSON[count].length > 1 ) {
+
           jsonExercises = workoutJSON[count];
-          exerciseList = [createGuideCopy(workout, i), createGuideCopy(workout, i+1)];
+
+          for (let j = 0; j < jsonExercises.length; j++) {
+            exerciseList.push(createGuideCopy(workout, i + j));
+            exerciseInfo.push(workout.exercises[i+j]);
+            //Add guide ID to list
+            listOfGuideIDs.push(workout.exercises[i+j].exerciseGuideID);
+          }
+
+          incrementAmount = jsonExercises.length - 1;
           count += 1;
           incrementIndex = true;
 
         } else if (workoutJSON != "" && count <= workoutJSON.length) {
+
           jsonExercises = workoutJSON[count];
           exerciseList = [createGuideCopy(workout, i)];
+          exerciseInfo.push(workout.exercises[i]);
+          listOfGuideIDs.push(workout.exercises[i].exerciseGuideID);
           count += 1;
         }
 
-        var [copyOfGuide, exerciseThumbnail, svgPersonDiv] = createGuideCopy(workout, i)
-        //Add guide ID to list
-        
-        listOfGuideIDs.push(workout.exercises[i].exerciseGuideID);
+        var [copyOfGuide, exerciseThumbnail, svgPersonDiv] = createGuideCopy(workout, i);
 
         if(incrementIndex) { //check if superset
-          addExerciseToWorkoutList(copyOfGuide, [workout.exercises[i], workout.exercises[i+1]], true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
+          addExerciseToWorkoutList(copyOfGuide, exerciseInfo, true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
+          i += incrementAmount; //increase i by superset size 
         } else {
-          addExerciseToWorkoutList(copyOfGuide, workout.exercises[i], true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
-        }
-        if(incrementIndex) {
-          i += 1;
+          addExerciseToWorkoutList(copyOfGuide, exerciseInfo, true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
         }
         
       }
@@ -6843,7 +6911,7 @@ async function main() {
 
         //Ensure proper guide ID is set
         copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
-  
+
         //Remove info button
         copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
 
@@ -6857,7 +6925,6 @@ async function main() {
         //Copy thumbnail and svg person into a separate div
         var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
         var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-
         return [copyOfGuide, exerciseThumbnail, svgPersonDiv];
     }
 
