@@ -5709,7 +5709,15 @@ async function main() {
 
     function ensureSameRowCount(jsonData) {
       // Sort the JSON data by the 'week' attribute
-      jsonData.sort((a, b) => a.week.localeCompare(b.week));
+      const customSort = (a, b) => {
+        const weekA = parseInt(a.week.match(/\d+/)[0]); // Extract and convert week to numeric value
+        const weekB = parseInt(b.week.match(/\d+/)[0]);
+
+        return weekA - weekB; // Compare and sort based on numeric value
+      };
+
+      // Sort the array using the custom sorting function
+      jsonData.sort(customSort);
 
       var groupedData = {};
       var currentWeek = null;
