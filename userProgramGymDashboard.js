@@ -6112,7 +6112,7 @@ async function main() {
                 const line = lines[i];
 
                 // Check if the line is a numeric value (indicating a new workout)
-                if (/\s*-\s*/.test(line)) {
+                if (/\s*-\s*/.test(line) && foundWorkout) {
                   // If the line contains a pattern resembling an exercise description,
                   // set the 'exercise' field in the currentWorkout
                   currentWorkout['exercise'] = line.trim();
@@ -6252,7 +6252,7 @@ async function main() {
                     const line = lines[i];
     
                     // Check if the line is a numeric value (indicating a new workout)
-                    if (/\s*-\s*/.test(line)) {
+                    if (/\s*-\s*/.test(line) && foundWorkout) {
                       // If the line contains a pattern resembling an exercise description,
                       // set the 'exercise' field in the currentWorkout
                       currentWorkout['exercise'] = line.trim();
