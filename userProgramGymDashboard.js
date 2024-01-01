@@ -6851,7 +6851,7 @@ async function main() {
         var incrementAmount = 1;
         var exerciseInfo = [];
         
-        if(workoutJSON != "" && workoutJSON[count].length > 1 ) {
+        if(workoutJSON != "" && workoutJSON[count] && workoutJSON[count].length > 1 ) {
 
           jsonExercises = workoutJSON[count];
 
