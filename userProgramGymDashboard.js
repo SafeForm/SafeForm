@@ -442,33 +442,58 @@ async function main() {
           var lastName = clientName.split(' ')[1];
 
           //Add client name to list
-          var clientRow = document.querySelector("#clientList .w-dyn-item").cloneNode(true);
-          clientRow.querySelector("#initials").innerText = firstName[0]+lastName[0];
-          clientRow.querySelector("#userSummaryName").innerText = firstName + " " + lastName;
-          clientRow.querySelector("#clientJoined").innerText = "";
-          clientRow.querySelector("#clientType").innerText = "";
-          clientRow.querySelector("#customWorkouts").innerText = "";
-          clientRow.querySelector("#customWorkouts").style.backgroundColor = "";
-          clientRow.querySelector("#customProgram").innerText = "";
-          clientRow.querySelector("#customProgram").style.backgroundColor = "";
-          clientRow.querySelector("#status").innerText = "Pending";
-          clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
-          clientRow.onclick = null; // Remove the old event
+          var clientRow = document.querySelector("#clientList .w-dyn-item");
 
-          clientRow.onclick = (event) => { 
-            //Hide user summary list
-            document.getElementById("userSummaryPage").style.display = "block";
+          //Check if there is no first item
+          if(!clientRow) {
+            clientRow = document.querySelector("#userSummaryEmpty").cloneNode(true);
+            clientRow.style.display = 'grid';
+          }
 
-            alert("Please wait for your client to fill out the form before making a program"); 
-            document.getElementById("programPage").style.display = "none";
-            document.getElementById("programBuilder").style.display = "none";
-            document.getElementById("userDetailsPage").style.display = "none";
+          if(clientRow) {
+            clientRow = clientRow.cloneNode(true);
+            clientRow.querySelector("#initials").innerText = firstName[0]+lastName[0];
+            clientRow.querySelector("#userSummaryName").innerText = firstName + " " + lastName;
+            clientRow.querySelector("#clientJoined").innerText = "";
+            clientRow.querySelector("#clientType").innerText = "";
+            clientRow.querySelector("#customWorkouts").innerText = "";
+            clientRow.querySelector("#customWorkouts").style.backgroundColor = "";
+            clientRow.querySelector("#customProgram").innerText = "";
+            clientRow.querySelector("#customProgram").style.backgroundColor = "";
+            clientRow.querySelector("#status").innerText = "Pending";
+            clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
+            clientRow.onclick = null; // Remove the old event
+  
+            clientRow.onclick = (event) => { 
+              //Hide user summary list
+              document.getElementById("userSummaryPage").style.display = "block";
+  
+              alert("Please wait for your client to fill out the form before making a program"); 
+              document.getElementById("programPage").style.display = "none";
+              document.getElementById("programBuilder").style.display = "none";
+              document.getElementById("userDetailsPage").style.display = "none";
+  
+              
+              return
+            };
 
+            if(document.querySelector("#clientList .w-dyn-item")) {
+              document.getElementById("clientList").appendChild(clientRow);
+            } else {
+
+            //If not then append to list wrapper
             
-            return
-          };
+            //Insert cloned item in wrapper list
+            var listWrapper = document.querySelector(".clientlistwrapper");
 
-          document.getElementById("clientList").appendChild(clientRow);
+            // Add clonedExercise as the first child of wrapper
+            listWrapper.insertBefore(clientRow, listWrapper.firstChild);
+            //Hide empty state
+            document.querySelector(".userlistemptystate").style.display = "none";
+            }
+            
+          }
+          
         }
 
       }
@@ -2282,7 +2307,7 @@ async function main() {
         if(workoutList[i].classList.contains("exercise-list-item-superset")) {
           var supersetExerciseList = [];
           const supersetExercises = workoutList[i].querySelectorAll(".exercise-list-item");
-          console.log(supersetExercises);
+
           //If it is, iterate through each item in the superset
           for(var k = 0; k < supersetExercises.length; k++) {
             
@@ -3098,7 +3123,14 @@ async function main() {
           document.getElementById("copyInviteLink").style.display = "flex";
 
           //Add client name to list
-          var clientRow = document.querySelector("#clientList .w-dyn-item").cloneNode(true);
+          var clientRow = document.querySelector("#clientList .w-dyn-item");
+          if(clientRow) {
+            clientRow = clientRow.cloneNode(true);
+          } else {
+            clientRow = document.querySelector("#userSummaryEmpty").cloneNode(true);
+            clientRow.style.display = 'grid';
+          }
+
           clientRow.querySelector("#initials").innerText = firstNameSignUp[0]+lastNameSignUp[0];
           clientRow.querySelector("#userSummaryName").innerText = firstNameSignUp + " " + lastNameSignUp;
           clientRow.querySelector("#clientJoined").innerText = "";
@@ -3125,7 +3157,23 @@ async function main() {
             return
           };
 
-          document.getElementById("clientList").appendChild(clientRow);
+          //Check if user list has items in it
+          if(document.querySelector("#clientList .w-dyn-item")) {
+
+            document.getElementById("clientList").appendChild(clientRow);
+
+          } else {
+            //If not then append to list wrapper
+            
+            //Insert cloned item in wrapper list
+            var listWrapper = document.querySelector(".clientlistwrapper");
+
+            // Add clonedExercise as the first child of wrapper
+            listWrapper.insertBefore(clientRow, listWrapper.firstChild);
+            //Hide empty state
+            document.querySelector(".userlistemptystate").style.display = "none";
+
+          }
 
           //Append gym id to onboard form
           const ptGymID = document.getElementById("gymID").innerText;
@@ -3683,7 +3731,7 @@ async function main() {
       } else if (event.target.type) {
         checkCheckboxFilters().then(res => { 
 
-          if(res.length == 6) {
+          if(res && res.length == 6) {
             //Check if the amount of active filters is more than 0
             if (res[0] > 0) {
               document.getElementById("filterOnModal").style.display = "block";
@@ -3719,14 +3767,14 @@ async function main() {
               document.getElementById("userFilterOn").style.display = "none";
             }
           } else {
-            if(res[0] > 0) {
+            if(res && res[0] > 0) {
               document.getElementById("filterOn").style.display = "block";
             } else {
               document.getElementById("clearExperienceExerciseFilters").style.display = "none";
               document.getElementById("filterOn").style.display = "none";
             }
 
-            if (res[1] > 0) {
+            if (res && res[1] > 0) {
               document.getElementById("clearExperienceExerciseFilters").style.display = "block";
               document.getElementById("filterOnIpad").style.display = "block";
               document.getElementById("reset-filters-ipad").style.display = "block";
@@ -4687,9 +4735,22 @@ async function main() {
         async (filterInstances) => {
           // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
           document.getElementById("exerciseSearch").value = "";
-          //Get muscle related filters
-          const [programModalFilters, workoutModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
-          if(addedItem) {
+
+          let workoutsSummary;
+          let workoutsBuilder;
+
+          // Firstly check if there is only one list:
+          if (filterInstances.length == 1) {
+            workoutsSummary = filterInstances[0];
+          } else {
+            // Get muscle related filters
+            const [programModalFilters, workoutModalFilters, tempWorkoutsSummary, programSummary, tempWorkoutsBuilder, userSummary] = filterInstances;
+            // Use tempWorkoutsSummary or assign it to workoutsSummary based on your requirement
+            workoutsSummary = tempWorkoutsSummary;
+            workoutsBuilder = tempWorkoutsBuilder;
+          }
+
+          if(addedItem && workoutsBuilder) {
             workoutsBuilder.listInstance.addItems([addedItem])
             workoutsBuilder.listInstance.renderItems(true);
           }
@@ -4698,7 +4759,7 @@ async function main() {
           if(filterInstances.length > 5) { 
             !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
-          } else {
+          } else if(workoutsSummary) {
             !onlyCheckboxes ? await workoutsSummary.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsSummary.resetFilters(filterKeys=["musclenamefilter"], null);
           }
@@ -4797,10 +4858,17 @@ async function main() {
           //Get muscle related filters
           //const [summaryFilters, filterInstance] = filterInstances;
           const [workoutModalFilters, programModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
-          await workoutsSummary.resetFilters(filterKeys=["workoutname-2"], null);
-          await workoutModalFilters.resetFilters(filterKeys=["workoutmodalname"], null);
-          await programModalFilters.resetFilters(filterKeys=["programname-5"], null);
+          if(workoutsSummary) {
+            await workoutsSummary.resetFilters(filterKeys=["workoutname-2"], null);
+          }
 
+          if(workoutModalFilters) {
+            await workoutModalFilters.resetFilters(filterKeys=["workoutmodalname"], null);
+          }
+
+          if(programModalFilters) {
+            await programModalFilters.resetFilters(filterKeys=["programname-5"], null);
+          }
 
         },
       ]);
@@ -4868,7 +4936,7 @@ async function main() {
           var filtersTotalSize5 = filterInstance5[1].values.size + filterInstance5[2].values.size;
 
           return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4, filtersTotalSize5];
-        } else {
+        } else if(res[1]) {
 
           //Workout summary page
           var filterInstance = res[1].filtersData;
@@ -5660,6 +5728,7 @@ async function main() {
       } else if(action == "update" && !prefillingProgram && !isPasteState && !updatingCalendar && !addProgram && !isEventPasteState) {
         // Get new json data from calendar
         console.log("populating god mode");
+        
         getUserTrainingPlan();
         var fullTableData = null;
         // Get table data version of this
@@ -5709,6 +5778,7 @@ async function main() {
 
     function ensureSameRowCount(jsonData) {
       // Sort the JSON data by the 'week' attribute
+      // Define a custom sorting function
       const customSort = (a, b) => {
         const weekA = parseInt(a.week.match(/\d+/)[0]); // Extract and convert week to numeric value
         const weekB = parseInt(b.week.match(/\d+/)[0]);
@@ -6081,6 +6151,7 @@ async function main() {
           const weekData = groupedData[week];
           const tableDiv = document.createElement("div");
           tableDiv.className = "week-table";
+
           const table = new Tabulator(tableDiv, {
             clipboard: true, // Enable clipboard module
             clipboardCopyConfig: {
@@ -6204,6 +6275,7 @@ async function main() {
                     table.selectRow();
                     table.copyToClipboard();
                     table.deselectRow();
+
                     var pasteButtons = document.querySelectorAll(".paste-week-button");
                     pasteButtons.forEach (pasteButton => {
                       if(pasteButton != this.nextElementSibling) {
@@ -6250,22 +6322,24 @@ async function main() {
                   for (let i = 0; i < lines.length; i++) {
                     // Get the current line
                     const line = lines[i];
-    
+
                     // Check if the line is a numeric value (indicating a new workout)
                     if (/\s*-\s*/.test(line) && foundWorkout) {
                       // If the line contains a pattern resembling an exercise description,
                       // set the 'exercise' field in the currentWorkout
                       currentWorkout['exercise'] = line.trim();
-                    } else if (currentWorkout && !line.includes('workout') && foundWorkout) {
+                    } else if (currentWorkout && !line.includes('workout') && foundWorkout ) {
                         
                       // reps, loadAmount, and notes information. Split the line and store the values
                       const values = line.split(/\t/);
+
                       currentWorkout['id'] = currentWorkout.workoutName+workoutNameIndexObj[currentWorkout.workoutName];
                       currentWorkout['reps'] = values[0];
                       currentWorkout['loadAmount'] = values[1] || '';
                       currentWorkout['notes'] = values[2] || '';
                       exerciseCount += 1;
                       if(currentWorkout && currentWorkout['exercise']) {
+
                         // Push a copy of the currentWorkout into the workouts array
                         workouts.push({ ...currentWorkout });
                         workoutNameIndexObj[currentWorkout.workoutName] += 1;
@@ -6273,9 +6347,10 @@ async function main() {
                   } else if(foundWorkout && /\bworkout\b.*\d/.test(line)) {
                     //A new workout
                     foundWorkout = false;
+
                   } else {
                     //If its not just a number
-                    if (line && !line.includes('workout') && !line.trim().match(/^\d+$/)) {
+                    if (line && !line.includes('workout') && !line.trim().match(/^\d+$/) && !foundWorkout) {
                       foundWorkout = true;
                       currentWorkout = { workoutName: lines[i].trim() };
                       if(!workoutNameIndexObj[lines[i].trim()]) {
@@ -6289,6 +6364,7 @@ async function main() {
 
                   table.updateData(workouts).then(function(){
                     //Update all buttons
+                    console.log(workouts);
                     var copyButtons = document.querySelectorAll(".copy-week-button")
                     copyButtons.forEach(copyButton => {
                       copyButton.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp";
@@ -6296,6 +6372,7 @@ async function main() {
                   })
                   .catch(function(error){
                     //handle error updating data
+                    console.log(workouts);
                     console.log(error)
                   });
 
@@ -6850,7 +6927,7 @@ async function main() {
         var exerciseList = [];
         var incrementAmount = 1;
         var exerciseInfo = [];
-        
+
         if(workoutJSON != "" && workoutJSON[count] && workoutJSON[count].length > 1 ) {
 
           jsonExercises = workoutJSON[count];
