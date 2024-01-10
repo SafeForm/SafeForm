@@ -989,36 +989,53 @@ async function main() {
       if(listLength == 1) {
         saveWorkout.style.display = "block";
         document.getElementById("firstExercisePlaceholder").style.display = "none";
+        workoutItem.querySelector(".supersetparent").style.display = "none";
 
       } else if(listLength == 2) {
         if(!programWorkout) {
           workoutItem.querySelector("#moveUp").style.display = "block";
           workoutItem.querySelector("#moveDown").style.display = "none";
         }
+
+        if(!programWorkout && !workoutItem.previousSibling.classList.contains("exercise-list-item")) {
+          workoutItem.querySelector(".supersetparent").style.display = "block";
+        } else {
+          workoutItem.querySelector(".supersetparent").style.display = "none";
+        }
         
         document.getElementById("firstExercisePlaceholder").style.display = "none";
+
       } else if(listLength == 3) {
 
         if(!programWorkout) {
           workoutItem.querySelector("#moveDown").style.display = "none";
           workoutItem.querySelector("#moveUp").style.display = "block";
+          workoutItem.querySelector(".supersetparent").style.display = "none";
           //Check if previous is superset
           if(!workoutItem.previousSibling.classList.contains("exercise-list-item")) {
             var previousElement = workoutItem.previousSibling;
             previousElement.querySelectorAll("#moveDown")[1].style.display = "block";
+            workoutItem.querySelector(".supersetparent").style.display = "block";
+            previousElement.querySelectorAll(".supersetparent")[1].style.display = "block";
           } else {
             workoutItem.previousSibling.querySelector("#moveDown").style.display = "block";
           }
         }
         
         saveWorkout.style.display = "block";
+
       } else if(listLength > 3) {
         if(!programWorkout) {
+
+          workoutItem.querySelector(".supersetparent").style.display = "block";
+          //Check if previous is superset
           if(!workoutItem.previousSibling.classList.contains("exercise-list-item")) {
+
             var previousElement = workoutItem.closest(".exercise-list-item").previousSibling;
 
             var moveDownElements = previousElement.querySelectorAll("#moveDown");
             var moveUpElements = previousElement.querySelectorAll("#moveUp");
+            var supersetIconElements = previousElement.querySelectorAll(".supersetparent");
             
             // Set the style.display property for all moveDown elements - if superset
             for (var i = 0; i < moveDownElements.length; i++) {
@@ -1029,16 +1046,25 @@ async function main() {
             for (var i = 0; i < moveUpElements.length; i++) {
               moveUpElements[i].style.display = "block";
             }
+
+            // Set the style.display property for all superset icon elements - if superset
+            for (var i = 0; i < supersetIconElements.length; i++) {
+              supersetIconElements[i].style.display = "block";
+            }
+
+
           } else {
             workoutItem.previousSibling.querySelector("#moveDown").style.display = "block";
             workoutItem.previousSibling.querySelector("#moveUp").style.display = "block";
           }
 
           workoutItem.querySelector("#moveDown").style.display = "none";
+          workoutItem.querySelector(".supersetparent").style.display = "none";
           workoutItem.querySelector("#moveUp").style.display = "block";
         }
 
         saveWorkout.style.display = "block";
+
       }
 
       //If second exercise find parent and click superset button
@@ -2396,8 +2422,6 @@ async function main() {
 
       //Make sure they have selected a duration and focus area
       if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
-        console.log(workout);
-
         sendWorkoutToMake(workout);      
       } else {
         if(workout["length"] == "Duration") {
