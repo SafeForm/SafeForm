@@ -85,12 +85,6 @@ async function main() {
   sessionStorage.setItem("editExercise", "false");
   var updatedMedia = false;
   var currentCopiedWorkout = "";
-
-
-  const closeButtons = document.querySelectorAll("#removeFullExercise");
-  for(var i = 0; i < closeButtons.length; i++) {
-    closeButtons[i].style.display = "none"
-  }
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
