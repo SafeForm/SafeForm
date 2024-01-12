@@ -85,6 +85,12 @@ async function main() {
   sessionStorage.setItem("editExercise", "false");
   var updatedMedia = false;
   var currentCopiedWorkout = "";
+
+
+  const closeButtons = document.querySelectorAll("#removeFullExercise");
+  for(var i = 0; i < closeButtons.length; i++) {
+    closeButtons[i].style.display = "none"
+  }
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -864,6 +870,8 @@ async function main() {
 
       //Add guide to workout exercise template
       workoutItem.querySelector("#guidePlaceHolder").append(copyOfGuide);
+
+
       //If extra information is provided fill in fields
       if(exerciseInformation != null) {
         if(!programWorkout) {
@@ -901,6 +909,10 @@ async function main() {
       workoutItem.querySelector("#exerciseRestMin").value = 3;
       workoutItem.querySelector("#exerciseRestSec").value = 0;
 
+      //Ensure reps input when adding from list is required
+      //Code below will handle the rest for rir and rpe required
+      workoutItem.querySelector("#repsInput").required = true;
+
       //Place remove button in the correct location
       const removeFullExercise = workoutItem.querySelector("#removeFullExercise").cloneNode(true);
       workoutItem.querySelector("#removeFullExercise").remove();
@@ -919,8 +931,20 @@ async function main() {
           exerciseInfoDiv.querySelector("#measureInput").value = exerciseInfo.measure;
           exerciseInfoDiv.querySelector(".repsinput").value = exerciseInfo.reps;
           exerciseInfoDiv.querySelector("#quantityUnit").value = exerciseInfo.quantityUnit;
+          exerciseInfoDiv.querySelector("#loadAmountInput").value = exerciseInfo.loadAmount;
           exerciseInfoDiv.querySelector("#exerciseRestSec").value = exerciseInfo.exerciseRestSeconds;
           exerciseInfoDiv.querySelector("#exerciseRestMin").value = exerciseInfo.exerciseRestMinutes;
+
+          //Show relevant input
+          if(exerciseInfo.measure.toLowerCase() == "rir" || exerciseInfo.measure.toLowerCase() == "rpe") {
+            exerciseInfoDiv.querySelector(".middle-item").style.display = "none";
+            exerciseInfoDiv.querySelector(".middle-loadamount").style.display = "flex";
+            exerciseInfoDiv.querySelector("#loadAmountInput").required = true;
+            exerciseInfoDiv.querySelector(".repsinput").required = false;
+          } else {
+            exerciseInfoDiv.querySelector(".repsinput").required = true;
+            exerciseInfoDiv.querySelector("#loadAmountInput").required = false;
+          }
 
           //Add to exercise divs
           const workoutItemExercise = workoutItem;
@@ -969,10 +993,6 @@ async function main() {
 
       //Ensure required fields are set as required
       if(listLength >= 2) {
-        workoutItem.querySelector("#measureInput").setAttribute("required", "");
-        workoutItem.querySelector("#quantityUnit").setAttribute("required", "");
-        workoutItem.querySelector(".setrestinput").setAttribute("required", "");
-        workoutItem.querySelector(".setrestinputm").setAttribute("required", "");
         //Hide superset button at the end
         if(!programWorkout) {
           workoutItem.previousSibling.querySelector(".supersetparent").style.display = "block";
@@ -2060,6 +2080,8 @@ async function main() {
       })(userSummaryList[i]);
     }
 
+
+
     // JavaScript function to prevent form submission on Enter key press
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Enter') {
@@ -2069,6 +2091,14 @@ async function main() {
 
     //Catching mouse over and out events for showing the thumbnail and svg person
     document.addEventListener('mouseover', function (event) {
+
+      if(event.target.closest("#guidePlaceHolder")) {
+        event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "block";
+      }
+
+      // if(event.target.closest(".exercise-details-parent")) {
+      //   event.target.closest(".exercise-details-parent").querySelector("#removeExercise").style.display = "block";
+      // }
       
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') || event.target.closest(".add-event-button")) ) {
 
@@ -2124,6 +2154,14 @@ async function main() {
     }, false);
 
     document.addEventListener('mouseout', function (event) {
+
+      if(event.target.closest("#guidePlaceHolder")) {
+        event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "none";
+      }
+
+      // if(event.target.closest(".exercise-details-parent")) {
+      //   event.target.closest(".exercise-details-parent").querySelector("#removeExercise").style.display = "none";
+      // }
 
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') || event.target.closest(".add-event-button"))) {
         var hoveredRow = event.target.closest('[role="row"]');
@@ -2359,7 +2397,7 @@ async function main() {
               exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value;
               exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
               exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
-              exerciseInformation["loadAmount"] = "";
+              exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
               
               exerciseList.push(exerciseInformation);
             }
@@ -2396,7 +2434,7 @@ async function main() {
             exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value;
             exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
             exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
-            exerciseInformation["loadAmount"] = "";
+            exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
             exerciseList.push(exerciseInformation);
           }
           workoutExercise["exerciseName"] = exerciseName.innerText;
@@ -2411,7 +2449,6 @@ async function main() {
           workout.listOfExercises.push([workoutExercise]);
         }
 
-        
       }
 
       workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
@@ -3645,6 +3682,28 @@ async function main() {
 
     //Listen for change events:
     document.addEventListener('change', function (event) {
+
+      if(event.target.id == "measureInput") {
+
+        if(event.target.value.toLowerCase() == "rpe" || event.target.value.toLowerCase() == "rir") {
+          //Hide reps input
+          event.target.closest("#exerciseInfo").querySelector(".middle-item").style.display = "none";
+          event.target.closest("#exerciseInfo").querySelector("#repsInput").required = false;     
+          //Show load amount input
+          event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.display = "flex";
+          event.target.closest("#exerciseInfo").querySelector("#loadAmountInput").required = true;     
+
+        } else {
+          //Hide reps input
+          event.target.closest("#exerciseInfo").querySelector(".middle-item").style.display = "flex";
+          event.target.closest("#exerciseInfo").querySelector("#loadAmountInput").required = false;   
+          
+          //Show load amount input
+          event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.display = "none";
+          event.target.closest("#exerciseInfo").querySelector("#repsInput").required = true; 
+            
+        }
+      }
 
       if(event.target.id == "estTime") {
         document.getElementById("estTimeDiv").style.borderRadius = "0px";
