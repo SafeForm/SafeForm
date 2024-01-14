@@ -1098,16 +1098,6 @@ async function main() {
       } else {
         sessionStorage.setItem("viewingEditFirstTime", 'false');
       }
-      
-      //Check if experience label needs to be updated i.e intermediate or advanced
-      const exerciseDifficulty = workoutItem.querySelector("#exerciseDifficulty").innerText;
-      var currentDifficulty = document.getElementById("experience");
-  
-      if (currentDifficulty.innerText != "Advanced" && exerciseDifficulty == "Intermediate") {
-        currentDifficulty.innerText = "Intermediate";
-      } else if(exerciseDifficulty == "Advanced") {
-        currentDifficulty.innerText = "Advanced";
-      }
 
 
       //Remove original exerciseInfo
@@ -1238,7 +1228,6 @@ async function main() {
             supersetItem = supersetItem.nextElementSibling;
             supersetItem.querySelector("#removeFullExercise").style.display = "block";
             supersetItem.querySelector("#guideCopy").style.border = '';
-            console.log(supersetItem)
             insertAfter(supersetItem, supersetParent);
           }
 
@@ -2335,56 +2324,97 @@ async function main() {
 
     }
 
-    document.getElementById("workoutBuilderForm").onsubmit = function() {
+    document.getElementById("submitWorkoutBuilderForm").onclick = function(event) {
 
-      var workout = {};
+      var workoutBuilderForm = document.getElementById("workoutBuilderForm");
+      
+      //Ensure all fields are filled in
+      if (workoutBuilderForm.checkValidity()) {
 
-      //Obtain form data
-      workout["name"] = document.getElementById("workoutName").value;
-      workout["length"] = document.getElementById("estTime").value;
-      workout["description"] = document.getElementById("workoutDescription").value;
-      workout["focusArea"] = document.getElementById("focusArea").value;
-      workout["gymName"] = document.getElementById("gymFullName").innerText;
-      workout["gymID"] = document.getElementById("gymID").innerText;
-      workout["experience"] = document.getElementById("experience").innerText;
-      workout["workoutID"] = document.getElementById("workoutSummaryID").innerText;
-      workout["workoutFullName"] = document.getElementById("workoutSummaryFullName").innerText;
-      workout["listOfExercises"] = [];
-      workout["exerciseIDs"] = [];
-      workout["exerciseSlugs"] = [];
-      workout["muscleGroups"] = [];
+        var workout = {};
 
-      const workoutList = document.getElementById("workoutList").children;
-
-      //Loop through list and obtain rest of data and add to object 
-      for(var i = 1; i < workoutList.length; i++) {
-        var workoutExercise = {};
-
-        var exerciseList = [];
-        //Check if list element is superset
-        if(workoutList[i].classList.contains("exercise-list-item-superset")) {
-          var supersetExerciseList = [];
-          const supersetExercises = workoutList[i].querySelectorAll(".exercise-list-item");
-
-          //If it is, iterate through each item in the superset
-          for(var k = 0; k < supersetExercises.length; k++) {
-            
-            const setInformation = supersetExercises[k].querySelectorAll("#exerciseInfo");
-            const exerciseName = supersetExercises[k].querySelector("#workoutExercisename");
-            var exerciseSlug = supersetExercises[k].querySelector("#guideLinkInfo").href.split("/");
-            var muscleGroups = supersetExercises[k].querySelectorAll("#scientificPrimaryMuscle");
-            for(var m = 0; m < muscleGroups.length; m++) {
-              workout.muscleGroups.push(muscleGroups[m].innerText);
+        //Obtain form data
+        workout["name"] = document.getElementById("workoutName").value;
+        workout["length"] = document.getElementById("estTime").value;
+        workout["description"] = document.getElementById("workoutDescription").value;
+        workout["focusArea"] = document.getElementById("focusArea").value;
+        workout["gymName"] = document.getElementById("gymFullName").innerText;
+        workout["gymID"] = document.getElementById("gymID").innerText;
+        workout["workoutID"] = document.getElementById("workoutSummaryID").innerText;
+        workout["workoutFullName"] = document.getElementById("workoutSummaryFullName").innerText;
+        workout["listOfExercises"] = [];
+        workout["exerciseIDs"] = [];
+        workout["exerciseSlugs"] = [];
+        workout["muscleGroups"] = [];
+  
+        const workoutList = document.getElementById("workoutList").children;
+  
+        //Loop through list and obtain rest of data and add to object 
+        for(var i = 1; i < workoutList.length; i++) {
+          var workoutExercise = {};
+  
+          var exerciseList = [];
+          //Check if list element is superset
+          if(workoutList[i].classList.contains("exercise-list-item-superset")) {
+            var supersetExerciseList = [];
+            const supersetExercises = workoutList[i].querySelectorAll(".exercise-list-item");
+  
+            //If it is, iterate through each item in the superset
+            for(var k = 0; k < supersetExercises.length; k++) {
+              
+              const setInformation = supersetExercises[k].querySelectorAll("#exerciseInfo");
+              const exerciseName = supersetExercises[k].querySelector("#workoutExercisename");
+              var exerciseSlug = supersetExercises[k].querySelector("#guideLinkInfo").href.split("/");
+              var muscleGroups = supersetExercises[k].querySelectorAll("#scientificPrimaryMuscle");
+              for(var m = 0; m < muscleGroups.length; m++) {
+                workout.muscleGroups.push(muscleGroups[m].innerText);
+              }
+  
+              if(exerciseSlug.length > 4) {
+                workout.exerciseSlugs.push(exerciseSlug[4]);
+              }
+             
+              exerciseList = [];
+              workoutExercise = {};
+              for(var j = 0; j < setInformation.length; j++) {
+  
+                var exerciseInformation = {};
+                exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
+                exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
+                exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value;
+                exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
+                exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
+                exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
+                
+                exerciseList.push(exerciseInformation);
+              }
+              workoutExercise["exerciseName"] = exerciseName.innerText;
+              workoutExercise["exerciseNotes"] = supersetExercises[k].querySelector("#exerciseNotes").value;
+              workoutExercise["sets"] = setInformation.length;
+              workoutExercise["exercises"] = exerciseList;
+      
+              workoutExercise["guideID"] = supersetExercises[k].querySelector("#itemID").innerText;
+              workout.exerciseIDs.push(supersetExercises[k].querySelector("#itemID").innerText);
+              workoutExercise["workoutExerciseItemID"] = supersetExercises[k].querySelector("#itemID").innerText;
+              workoutExercise["workoutExerciseFullName"] = supersetExercises[k].querySelector("#workoutExercisename").innerText;
+              supersetExerciseList.push(workoutExercise);
             }
-
+  
+            workout.listOfExercises.push(supersetExerciseList);
+  
+          } else {
+            var exerciseSlug = workoutList[i].querySelector("#guideLinkInfo").href.split("/");
             if(exerciseSlug.length > 4) {
               workout.exerciseSlugs.push(exerciseSlug[4]);
             }
+            var muscleGroups = workoutList[i].querySelectorAll("#scientificPrimaryMuscle");
+            for(var m = 0; m < muscleGroups.length; m++) {
+              workout.muscleGroups.push(muscleGroups[m].innerText);
+            }
            
-            exerciseList = [];
-            workoutExercise = {};
+            const setInformation = workoutList[i].querySelectorAll("#exerciseInfo");
+            const exerciseName = workoutList[i].querySelector("#workoutExercisename");
             for(var j = 0; j < setInformation.length; j++) {
-
               var exerciseInformation = {};
               exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
               exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
@@ -2392,84 +2422,52 @@ async function main() {
               exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
               exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
               exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
-              
               exerciseList.push(exerciseInformation);
             }
             workoutExercise["exerciseName"] = exerciseName.innerText;
-            workoutExercise["exerciseNotes"] = supersetExercises[k].querySelector("#exerciseNotes").value;
+            workoutExercise["exerciseNotes"] = workoutList[i].querySelector("#exerciseNotes").value;
             workoutExercise["sets"] = setInformation.length;
             workoutExercise["exercises"] = exerciseList;
     
-            workoutExercise["guideID"] = supersetExercises[k].querySelector("#itemID").innerText;
-            workout.exerciseIDs.push(supersetExercises[k].querySelector("#itemID").innerText);
-            workoutExercise["workoutExerciseItemID"] = supersetExercises[k].querySelector("#itemID").innerText;
-            workoutExercise["workoutExerciseFullName"] = supersetExercises[k].querySelector("#workoutExercisename").innerText;
-            supersetExerciseList.push(workoutExercise);
+            workoutExercise["guideID"] = workoutList[i].querySelector("#itemID").innerText;
+            workout.exerciseIDs.push(workoutList[i].querySelector("#itemID").innerText);
+            workoutExercise["workoutExerciseItemID"] = workoutList[i].querySelector("#itemID").innerText;
+            workoutExercise["workoutExerciseFullName"] = workoutList[i].querySelector("#workoutExercisename").innerText;
+            workout.listOfExercises.push([workoutExercise]);
           }
-
-          workout.listOfExercises.push(supersetExerciseList);
-
-        } else {
-          var exerciseSlug = workoutList[i].querySelector("#guideLinkInfo").href.split("/");
-          if(exerciseSlug.length > 4) {
-            workout.exerciseSlugs.push(exerciseSlug[4]);
-          }
-          var muscleGroups = workoutList[i].querySelectorAll("#scientificPrimaryMuscle");
-          for(var m = 0; m < muscleGroups.length; m++) {
-            workout.muscleGroups.push(muscleGroups[m].innerText);
-          }
-         
-          const setInformation = workoutList[i].querySelectorAll("#exerciseInfo");
-          const exerciseName = workoutList[i].querySelector("#workoutExercisename");
-          for(var j = 0; j < setInformation.length; j++) {
-            var exerciseInformation = {};
-            exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
-            exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
-            exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value;
-            exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
-            exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
-            exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
-            exerciseList.push(exerciseInformation);
-          }
-          workoutExercise["exerciseName"] = exerciseName.innerText;
-          workoutExercise["exerciseNotes"] = workoutList[i].querySelector("#exerciseNotes").value;
-          workoutExercise["sets"] = setInformation.length;
-          workoutExercise["exercises"] = exerciseList;
   
-          workoutExercise["guideID"] = workoutList[i].querySelector("#itemID").innerText;
-          workout.exerciseIDs.push(workoutList[i].querySelector("#itemID").innerText);
-          workoutExercise["workoutExerciseItemID"] = workoutList[i].querySelector("#itemID").innerText;
-          workoutExercise["workoutExerciseFullName"] = workoutList[i].querySelector("#workoutExercisename").innerText;
-          workout.listOfExercises.push([workoutExercise]);
         }
-
-      }
-
-      workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
-      workout.exerciseSlugs = workout.exerciseSlugs.join(", ")
-      workout.muscleGroups = workout.muscleGroups.join(", ");
-
-
-
-      //Make sure they have selected a duration and focus area
-      if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
-        sendWorkoutToMake(workout);      
-      } else {
-        if(workout["length"] == "Duration") {
-          document.getElementById("estTimeDiv").style.borderRadius = "8px";
-          document.getElementById("estTimeDiv").style.border = "1px solid red";
-          document.getElementById("durationRequired").style.display = "block";
-        } else if(workout["focusArea"] == "Focus Area") {
-          document.getElementById("focusArea").style.borderRadius = "8px";
-          document.getElementById("focusArea").style.border = "1px solid red";
-          document.getElementById("focusAreaRequired").style.display = "block";
+  
+        workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
+        workout.exerciseSlugs = workout.exerciseSlugs.join(", ")
+        workout.muscleGroups = workout.muscleGroups.join(", ");
+  
+        //Make sure they have selected a duration and focus area
+        if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
+          document.getElementById("saveWorkout").value = "Please wait...";
+          sendWorkoutToMake(workout);      
+        } else {
+          if(workout["length"] == "Duration") {
+            document.getElementById("estTimeDiv").style.borderRadius = "8px";
+            document.getElementById("estTimeDiv").style.border = "1px solid red";
+            document.getElementById("durationRequired").style.display = "block";
+          } else if(workout["focusArea"] == "Focus Area") {
+            document.getElementById("focusArea").style.borderRadius = "8px";
+            document.getElementById("focusArea").style.border = "1px solid red";
+            document.getElementById("focusAreaRequired").style.display = "block";
+          }
         }
       }
+          
     }
 
     //Listen for click events specifically for in paste state when clicking on cells
     //Otherwise if in paste state and not clicked on a day cancel paste state
     document.addEventListener('click', function(event) {
+
+      if(!event.target.closest(".search-filters-parent") && document.getElementById("searchFilterImg").classList.contains("filtericonclicked")) {
+        document.getElementById("searchFilterImg").click();
+      }
 
       //Check if in paste state and anywhere in the row is clicked
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') || event.target.classList.contains('fc-daygrid-day-events')) && (isPasteState || isEventPasteState || addProgram)) {
@@ -2876,6 +2874,20 @@ async function main() {
         document.getElementById("userPage").click();
 
       
+      } else if(event.target.id == "searchFilterImg") { 
+
+        //Check if clicked or not
+        if(event.target.classList.contains("filtericon")) {
+          //Not clicked - change to filled
+          event.target.classList.remove("filtericon");
+          event.target.classList.add("filtericonclicked");
+        } else {
+          event.target.classList.add("filtericon");
+          event.target.classList.remove("filtericonclicked");
+        }
+
+
+      
       } else if(event.target.id == "closeCreateUserModal" || event.target.id == "createUserModal") {
 
         document.getElementById("linkCopiedTextSignUp").style.display = "none";
@@ -3106,6 +3118,32 @@ async function main() {
           document.getElementById("helpImageClicked").style.display = "none";
         }
 
+      } else if(event.target.id == "saveWorkout") {
+
+        event.preventDefault();
+
+        const workoutListForm = document.getElementById("workoutListForm");
+
+        // Select all elements with the 'required' attribute
+        const requiredElements = workoutListForm.querySelectorAll('[required]');
+        
+        // Convert NodeList to an array and reverse it
+        const reversedRequiredElements = Array.from(requiredElements).reverse();
+
+        // Iterate through reversed required elements
+        reversedRequiredElements.forEach(element => {
+          // Use reportValidity to show the validation message
+          element.reportValidity();
+        });
+        
+        // Check overall form validity
+        const formValidity = workoutListForm.checkValidity();
+        
+        if (formValidity) {
+          // The entire form is valid, submit other workout form
+          document.getElementById("submitWorkoutBuilderForm").click();
+        } 
+        
       } else if(event.target.id == "submitWorkoutOrProgram") {
 
         //Hide confirm close modal
@@ -3277,7 +3315,6 @@ async function main() {
         
         if (listLength == 1) {
           document.getElementById("firstExercisePlaceholder").style.display = "block";
-          document.getElementById("experience").innerText = "Beginner";
 
           //Hide workout button if there is only one exercise in list
           saveWorkout.style.display = "none";
@@ -3349,7 +3386,7 @@ async function main() {
         }
  
 
-      } else if(event.target.closest("#createExercise") || event.target.closest("#emptyCreateExercise")) {
+      } else if(event.target.closest("#createExercise") || event.target.closest("#emptyCreateExercise") || event.target.closest("#addCustomExerciseWorkout")) {
 
         //Show Modal
         var createExerciseModal = document.getElementById("createExerciseModal");
@@ -3623,6 +3660,8 @@ async function main() {
         }
 
       } else if(event.target.id == "clearExperienceExerciseFilters") {
+
+        document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
         resetGeneralFilters();
         
       } else {
@@ -3830,10 +3869,12 @@ async function main() {
             }
 
             if (res[4] > 0) {
+              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
               document.getElementById("clearExperienceExerciseFilters").style.display = "block";
               document.getElementById("filterOnIpad").style.display = "block";
               document.getElementById("reset-filters-ipad").style.display = "block";
             } else {
+              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
               document.getElementById("filterOnIpad").style.display = "none";
               document.getElementById("reset-filters-ipad").style.display = "none";
             }
@@ -4435,7 +4476,6 @@ async function main() {
       var fileNameContainer = document.getElementById('fileNameContainer');
       fileNameContainer.innerHTML = '';
 
-      
       document.getElementById('fileUploaded').innerHTML = "Click to select from files";
 
       //Update text
@@ -5006,7 +5046,7 @@ async function main() {
 
           //Workouts builder page
           var filterInstance4 = res[4].filtersData;
-          var filtersTotalSize4 = filterInstance4[1].values.size + filterInstance4[2].values.size;
+          var filtersTotalSize4 = filterInstance4[2].values.size + filterInstance4[3].values.size;
 
           //User summary page
           var filterInstance5 = res[5].filtersData;
@@ -6981,7 +7021,6 @@ async function main() {
         document.getElementById("workoutName").value = workout.workoutName;
         document.getElementById("estTime").value = workout.workoutDuration;
         document.getElementById("focusArea").value = workout.workoutFocusArea;
-        document.getElementById("experience").innerText = workout.workoutDifficulty;
         document.getElementById("workoutDescription").value = workout.workoutSummaryDescription;
         document.getElementById("workoutSummaryID").innerText = workout.workoutSummaryID;
         document.getElementById("workoutSummaryFullName").innerText = workout.workoutFullName;
@@ -7497,8 +7536,6 @@ async function main() {
         document.getElementById("focusArea").value = "Focus Area";
         //Reset description value
         document.getElementById("workoutDescription").value = "";
-        // Reset experience value
-        document.getElementById("experience").innerText = "Beginner";
       } else {
         workoutList = document.getElementById("programWorkoutList").children;
 
