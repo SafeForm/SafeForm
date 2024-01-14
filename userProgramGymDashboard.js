@@ -1741,7 +1741,6 @@ async function main() {
               document.getElementById("selectedWorkoutDescription").innerText = selectedWorkout.workoutSummaryDescription;
               document.getElementById("selectedWorkoutDuration").innerText = selectedWorkout.workoutDuration;
               document.getElementById("selectedWorkoutFocusArea").innerText = selectedWorkout.workoutFocusArea;
-              document.getElementById("selectedWorkoutExperience").innerText = selectedWorkout.workoutDifficulty;
 
               //Now populate exercises
               prefillWorkoutBuilder(selectedWorkout, true)
@@ -1770,7 +1769,6 @@ async function main() {
               targetArea: selectedWorkout.workoutFocusArea,
               length: selectedWorkout.workoutDuration,
               workoutID: selectedWorkout.workoutSummaryID,
-              difficulty: selectedWorkout.workoutDifficulty,
               uniqueWorkoutID: uuidv4()
             },
             start: desiredDate,
@@ -7139,8 +7137,6 @@ async function main() {
       workout["workoutDuration"] = selectedWorkout.querySelector("#workoutDuration").innerText;
       // Workout focus area
       workout["workoutFocusArea"] = selectedWorkout.querySelector("#workoutFocusArea").innerText;
-      // Workout Difficulty
-      workout["workoutDifficulty"] = selectedWorkout.querySelector("#workoutDifficulty").innerText;
       // Workout Description
       workout["workoutSummaryDescription"] = selectedWorkout.querySelector("#workoutSummaryDescription").innerText;
 
