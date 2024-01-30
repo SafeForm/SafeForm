@@ -2318,6 +2318,8 @@ async function main() {
         program["programID"] = document.getElementById("programSummaryID").value;
       } 
 
+      program["extendedJSON"] = JSON.stringify(createExtendedProgram(JSON.parse(program.eventData)));
+
       sendProgramToMake(program);
 
     }
@@ -5851,8 +5853,14 @@ async function main() {
 
         let newTableData;
         if(updatedProgram.length > 0) {
+
+          console.log(updatedProgram);
           
           newTableData = translateProgramDataToTable(updatedProgram);
+
+          console.log(newTableData);
+
+          
 
           newTableData = ensureSameRowCount(newTableData);
 
@@ -6626,9 +6634,6 @@ async function main() {
 
     }
 
-
-    
-
     function translateProgramDataToTable(updatedProgram) {
 
       // Extract the startWeek from the first program
@@ -6705,23 +6710,23 @@ async function main() {
 
                     // Create an exercise object for each exercise
                     var exerciseObject = {
-                        "id": workoutName + workoutNameIndex[workoutName],
-                        "week": "Week " + week,
-                        "workoutName": workoutName,
-                        "exercise": isSuperset ? `${exerciseCount}${exerciseLabel} - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
-                        "reps": exercise.reps,
-                        "load": exercise.measure,
-                        "loadAmount": (exercise.loadAmount != undefined) ? exercise.loadAmount : "",
-                        "exerciseRestMinutes": exercise.exerciseRestMinutes,
-                        "exerciseRestSeconds": exercise.exerciseRestSeconds,
-                        "quantityUnit": exercise.quantityUnit,
-                        "notes": individualExercise.exerciseNotes,
-                        "workoutNumber": `workout ${i}`,
-                        "setNumber": l,
-                        "results": "",
-                        "startDate": event.start,
-                        "guideID": individualExercise.guideID,
-                        "uniqueWorkoutID": uniqueWorkoutID
+                      "id": workoutName + workoutNameIndex[workoutName],
+                      "week": "Week " + week,
+                      "workoutName": workoutName,
+                      "exercise": isSuperset ? `${exerciseCount}${exerciseLabel} - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
+                      "reps": exercise.reps,
+                      "load": exercise.measure,
+                      "loadAmount": (exercise.loadAmount != undefined) ? exercise.loadAmount : "",
+                      "exerciseRestMinutes": exercise.exerciseRestMinutes,
+                      "exerciseRestSeconds": exercise.exerciseRestSeconds,
+                      "quantityUnit": exercise.quantityUnit,
+                      "notes": individualExercise.exerciseNotes,
+                      "workoutNumber": `workout ${i}`,
+                      "setNumber": l,
+                      "results": "",
+                      "startDate": event.start,
+                      "guideID": individualExercise.guideID,
+                      "uniqueWorkoutID": uniqueWorkoutID
                     };
 
                     // Push the exercise object to the convertedData array
@@ -6751,6 +6756,19 @@ async function main() {
           index += 1;
         }
       }
+      return programJSON;
+
+    }
+
+    function createExtendedProgram(programJSON) {
+
+      for(const workout of programJSON) {
+        const workoutID = workout.extendedProps.workoutID;
+        const workoutElem = getWorkoutElement(workoutID);
+        const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
+        workout.workoutJSON = JSON.parse(workoutJSON);
+      }
+
       return programJSON;
 
     }
