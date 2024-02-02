@@ -2473,7 +2473,7 @@ async function main() {
         var clientFilterArrow = document.querySelector(".clientfilterarrow");
         var rotatedValue = clientFilterArrow.style.transform.match(/rotateX\(([^)]+)\)/);
         
-        if(rotatedValue.length > 0) {
+        if(rotatedValue && rotatedValue.length > 0) {
           if(rotatedValue[1] == "180deg") {
             //Click div to activate 'webflow interation'
             document.querySelector(".client-filters").click();
