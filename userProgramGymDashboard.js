@@ -2469,6 +2469,19 @@ async function main() {
         document.getElementById("searchFilterImg").click();
       }
 
+      if(!event.target.closest(".client-filters")) {
+        var clientFilterArrow = document.querySelector(".clientfilterarrow");
+        var rotatedValue = clientFilterArrow.style.transform.match(/rotateX\(([^)]+)\)/);
+        
+        if(rotatedValue.length > 0) {
+          if(rotatedValue[1] == "180deg") {
+            //Click div to activate 'webflow interation'
+            document.querySelector(".client-filters").click();
+          }
+
+        }
+      }
+
       //Check if in paste state and anywhere in the row is clicked
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') || event.target.classList.contains('fc-daygrid-day-events')) && (isPasteState || isEventPasteState || addProgram)) {
         //Get entire row of paste button
@@ -2722,6 +2735,10 @@ async function main() {
 
     //Listen for click events:
     document.addEventListener('click', function (event) {
+
+      if(event.target.id == "clearClientFilters") {
+        resetFilters();
+      }
 
       if(event.target.id == "machine-parent") {
         document.getElementById("pin-checkbox").click();
@@ -3880,9 +3897,12 @@ async function main() {
             }
 
             if (res[5] > 0) {
-              document.getElementById("userFilterOn").style.display = "block";
+              document.getElementById("clearClientFilters").style.display = "block";
+              document.getElementById("clientFilterImage").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
+
             } else {
-              document.getElementById("userFilterOn").style.display = "none";
+              document.getElementById("clearClientFilters").style.display = "none";
+              document.getElementById("clientFilterImage").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
             }
           } else {
             if(res && res[0] > 0) {
@@ -4855,16 +4875,18 @@ async function main() {
 
           let workoutsSummary;
           let workoutsBuilder;
+          let userSummary;
 
           // Firstly check if there is only one list:
           if (filterInstances.length == 1) {
             workoutsSummary = filterInstances[0];
           } else {
             // Get muscle related filters
-            const [programModalFilters, workoutModalFilters, tempWorkoutsSummary, programSummary, tempWorkoutsBuilder, userSummary] = filterInstances;
+            const [programModalFilters, workoutModalFilters, tempWorkoutsSummary, programSummary, tempWorkoutsBuilder, tempUserSummary] = filterInstances;
             // Use tempWorkoutsSummary or assign it to workoutsSummary based on your requirement
             workoutsSummary = tempWorkoutsSummary;
             workoutsBuilder = tempWorkoutsBuilder;
+            userSummary = tempUserSummary;
           }
 
           if(addedItem && workoutsBuilder) {
@@ -4876,9 +4898,14 @@ async function main() {
           if(filterInstances.length > 5) { 
             !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
+            if(userSummary) {
+              await userSummary.resetFilters(filterKeys=["clientproduct"], null);
+            }
           } else if(workoutsSummary) {
             !onlyCheckboxes ? await workoutsSummary.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
             await workoutsSummary.resetFilters(filterKeys=["musclenamefilter"], null);
+          } else if(userSummary) {
+            await userSummary.resetFilters(filterKeys=["clientproduct"], null);
           }
 
           //Clear focus area filters:
