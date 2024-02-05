@@ -48,7 +48,7 @@ function main() {
 
   MemberStack.onReady.then(async function(member) {  
     const gymName = member["current-gym"];
-    localStorage.setItem("fromGym", gymName)
+    localStorage.setItem("fromGym", gymName);
 
   });
 
@@ -340,13 +340,6 @@ function main() {
 
     progressBar.max = selectedWeekWorkouts.length;
     progressBar.value = completedWorkouts;
-    //Check if all complete
-    if(progressBar.max/progressBar.value == 1) {
-      document.getElementById("guideListParent").style.display = "none";
-      document.getElementById("workout-empty-state").style.display = "flex";
-      document.getElementById("emptyStateText").innerText = "This weeks workouts have been completed - great work!";
-
-    }
 
     // Get the current workout element
     var currentWorkout = document.querySelector('.current-workout');
