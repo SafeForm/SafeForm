@@ -429,7 +429,7 @@ function main() {
   }
 
   //If coming direct to site, only show finish button
-  if ((document.referrer == "" || sessionStorage.getItem("onlyFinish") == "true") || (!fromProgram || !currentProgram)) {
+  if ((document.referrer == "" || sessionStorage.getItem("onlyFinish") == "true") || (!fromProgram && !currentProgram)) {
     sessionStorage.setItem("onlyFinish", "true");
     document.getElementById("workoutNavigation").style.display = "none";
     document.getElementById("shareWorkout").style.display = "block";
@@ -495,6 +495,7 @@ function main() {
         } else if(checkEmptyLoadAmount(exerciseInformation)) {
           //Check if there is no quantity amount
           exerciseList[i].querySelector("#load").innerText = "-";
+          exerciseList[i].querySelector("#load").closest("#weightDiv").style.display = "none";
         } else if(checkSameLoadAmount(exerciseInformation)) {
           //Another if to check if the amounts are the same - 'amount unit.. 12 Kg' 
           exerciseList[i].querySelector("#load").innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
@@ -509,6 +510,7 @@ function main() {
         if(checkEmptyQuantity(exerciseInformation)) {
           //Check if there is no quantity amount
           exerciseList[i].querySelector("#quantityUnit").innerText = "-";
+          exerciseList[i].querySelector("#quantityUnit").closest("#quantityParent").style.display = "none";
         } else if(checkSameQuantityUnit(exerciseInformation)) {
           //Another if to check if the amounts are the same - 'amount unit.. 12 Reps'
           exerciseList[i].querySelector("#repInput").innerText = `${exerciseInformation[0].reps}`;
