@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   //Update workout index
   const workoutList = document.querySelectorAll(".workoutprogramitem");
   for(var i = 0; i < workoutList.length; i++) {
@@ -132,6 +131,7 @@ function main() {
       weeks.push(currentWeek);
     }
 
+
     const buttons = document.querySelectorAll('a[id^="week-"]');
     const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
     const workoutList = document.getElementById('programWorkoutList');
@@ -144,11 +144,13 @@ function main() {
         $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
         event.target.classList.remove("week-button");
         event.target.classList.add("current-week");
+
+        //Set current week number again
+        sessionStorage.setItem("currentWeekNumber", event.target.innerText.split(" ")[1])
       });
     });
 
     weekButton = document.getElementById("week-1");
-
     //Check if there are workouts in this week, otherwise show empty state
     if(thisWeek != null) {
       weekButton = document.getElementById(`week-${thisWeek}`);
@@ -163,8 +165,11 @@ function main() {
     document.getElementById("workout-empty-state").style.display = "flex";
   }
 
-
-  
+  var weekButtonOffset = document.querySelector(".current-week").offsetLeft - 25;
+  //Get current week and scroll to it
+  document.getElementById("weekParentDiv").scrollTo({
+    left: weekButtonOffset
+  })
 
   // Function to check if the device is iOS
   function isIOS() {
