@@ -143,30 +143,6 @@ function main() {
             }
           });
 
-          var memberJSONExerciseName = memberJSON[exerciseName];
-
-          if(memberJSONExerciseName != undefined) {
-            if(memberJSONExerciseName.weight != undefined) {
-              var arrayLength = memberJSONExerciseName.weight.length;
-              
-              if (arrayLength > 0 && memberJSONExerciseName.weight[arrayLength-1] != undefined && memberJSONExerciseName.weight[arrayLength-1].toLowerCase().includes(exerciseInformation[0].load.toLowerCase())) {
-                weightInput.value = `${memberJSONExerciseName.weight[arrayLength-1]}`;
-              } else if (arrayLength > 0 && memberJSONExerciseName.weight[arrayLength-1] != undefined) {
-                weightInput.value = `${memberJSONExerciseName.weight[arrayLength-1]} ${exerciseInformation[0].load}`;
-              }
-            }
-
-            if(memberJSONExerciseName.reps != undefined) {
-              if(memberJSONExerciseName.reps.length > 0) {
-                if (memberJSONExerciseName.reps[0].toLowerCase().includes(exerciseInformation[0].quantityUnit.toLowerCase())) {
-                  repsInput.placeholder = `${memberJSONExerciseName.reps[0]}`;
-                } else {
-                  repsInput.placeholder = `${memberJSONExerciseName.reps[0]} ${exerciseInformation[0].quantityUnit}`;
-                }
-              }
-            }
-          }
-
           //Set placeholder of the first rep input text box for each exercise
           inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
 
@@ -176,6 +152,31 @@ function main() {
           //Check if load has inputs from PT
           if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
             inputList[i].querySelector("#weight").value = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+          }
+
+          var memberJSONExerciseName = memberJSON[exerciseName];
+
+          if(memberJSONExerciseName != undefined) {
+            if(memberJSONExerciseName.weight != undefined) {
+
+              //Inputting in the first weight text box
+              var arrayLength = memberJSONExerciseName.weight.length;
+              if (arrayLength > 0 && memberJSONExerciseName.weight[0].toLowerCase().includes(exerciseInformation[0].load.toLowerCase())) {
+                weightInput.value = `${memberJSONExerciseName.weight[0]}`;
+              } else if (arrayLength > 0 && memberJSONExerciseName.weight[0] != undefined) {
+                weightInput.value = `${memberJSONExerciseName.weight[0]} ${exerciseInformation[0].load}`;
+              }
+            }
+
+            if(memberJSONExerciseName.reps != undefined) {
+              if(memberJSONExerciseName.reps.length > 0) {
+                if (memberJSONExerciseName.reps[0].toLowerCase().includes(exerciseInformation[0].quantityUnit.toLowerCase())) {
+                  repsInput.value = `${memberJSONExerciseName.reps[0]}`;
+                } else {
+                  repsInput.value = `${memberJSONExerciseName.reps[0]} ${exerciseInformation[0].quantityUnit}`;
+                }
+              }
+            }
           }
 
           //Fill in rest fields
@@ -266,9 +267,9 @@ function main() {
               if(memberJSONExerciseName.reps != undefined) {
                 if(memberJSONExerciseName.reps.length > j+1) {
                   if (memberJSONExerciseName.reps[j+1].includes(exerciseInformation[j+1].quantityUnit.toLowerCase())) {
-                    newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]}`;
+                    newRepsInput.value = `${memberJSONExerciseName.reps[j+1]}`;
                   } else {
-                    newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]} ${exerciseInformation[j+1].quantityUnit}`;
+                    newRepsInput.value = `${memberJSONExerciseName.reps[j+1]} ${exerciseInformation[j+1].quantityUnit}`;
                   }
                 } 
               }
@@ -841,8 +842,9 @@ function main() {
         exerciseInfo.reps = exerciseRepsObj;
         
         const updatedJSON = {[exerciseName] : exerciseInfo};
-
-        member.updateMetaData(updatedJSON);
+        lockInputFields();
+        await member.updateMetaData(updatedJSON);
+        unlockInputFields();
 
       } else {
 
@@ -850,7 +852,7 @@ function main() {
         var weightArr = exerciseInfo.weight;
 
         if(weightArr == null) {
-          //Reps array is empty so just put input value into array and update
+          //Weight array is empty so just put input value into array and update
           var exerciseRepsObj = [inputValue];
         } else {
           //There is rep info
@@ -867,10 +869,37 @@ function main() {
 
         exerciseInfo.weight = exerciseRepsObj;
         const updatedJSON = {[exerciseName] : exerciseInfo};
-
-        member.updateMetaData(updatedJSON);
+        lockInputFields();
+        await member.updateMetaData(updatedJSON);
+        unlockInputFields();
       }
 
+    });
+  }
+
+  function lockInputFields() {
+    const weightInputs = document.querySelectorAll("#weight");
+    const repInputs = document.querySelectorAll("#reps");
+
+    weightInputs.forEach(input => {
+      input.disabled = true;
+    });
+
+    repInputs.forEach(input => {
+      input.disabled = true;
+    });
+  }
+
+  function unlockInputFields() {
+    const weightInputs = document.querySelectorAll("#weight");
+    const repInputs = document.querySelectorAll("#reps");
+
+    weightInputs.forEach(input => {
+      input.disabled = false;
+    });
+
+    repInputs.forEach(input => {
+      input.disabled = false;
     });
   }
 
