@@ -156,7 +156,7 @@ function main() {
 
           //Check if load has inputs from PT
           if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
-            inputList[i].querySelector("#weight").value = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+            inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
           }
 
           var memberJSONExerciseName = memberJSON[exerciseName];
@@ -167,18 +167,18 @@ function main() {
               //Inputting in the first weight text box
               var arrayLength = memberJSONExerciseName.weight.length;
               if (arrayLength > 0 && memberJSONExerciseName.weight[0].toLowerCase().includes(exerciseInformation[0].load.toLowerCase())) {
-                weightInput.value = `${memberJSONExerciseName.weight[0]}`;
+                weightInput.placeholder = `${memberJSONExerciseName.weight[0]}`;
               } else if (arrayLength > 0 && memberJSONExerciseName.weight[0] != undefined && memberJSONExerciseName.weight[0] != "") {
-                weightInput.value = `${memberJSONExerciseName.weight[0]} ${exerciseInformation[0].load}`;
+                weightInput.placeholder = `${memberJSONExerciseName.weight[0]} ${exerciseInformation[0].load}`;
               }
             }
 
             if(memberJSONExerciseName.reps != undefined) {
               if(memberJSONExerciseName.reps.length > 0) {
                 if (memberJSONExerciseName.reps[0].toLowerCase().includes(exerciseInformation[0].quantityUnit.toLowerCase())) {
-                  repsInput.value = `${memberJSONExerciseName.reps[0]}`;
+                  repsInput.placeholder = `${memberJSONExerciseName.reps[0]}`;
                 } else if(memberJSONExerciseName.reps[0] != "") {
-                  repsInput.value = `${memberJSONExerciseName.reps[0]} ${exerciseInformation[0].quantityUnit}`;
+                  repsInput.placeholder = `${memberJSONExerciseName.reps[0]} ${exerciseInformation[0].quantityUnit}`;
                 }
               }
             }
@@ -213,7 +213,7 @@ function main() {
               //Set weight field if exists
               //Check if load has inputs from PT
               if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
-                newWeightInput.value = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
+                newWeightInput.placeholder = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
               }
 
               //Set rest
@@ -267,13 +267,10 @@ function main() {
             if(memberJSONExerciseName != undefined) {
               if(memberJSONExerciseName.weight != undefined) {
                 if(memberJSONExerciseName.weight[j+1] != undefined) {
-                  console.log(memberJSONExerciseName.weight)
-                  console.log(j+1)
-                  console.log(memberJSONExerciseName.weight[j+1])
                   if (memberJSONExerciseName.weight[j+1].toLowerCase().includes(exerciseInformation[j+1].load.toLowerCase())) {
-                    newWeightInput.value = `${memberJSONExerciseName.weight[j+1]}`;
+                    newWeightInput.placeholder = `${memberJSONExerciseName.weight[j+1]}`;
                   } else if(memberJSONExerciseName.weight[j+1] != "") {
-                    newWeightInput.value = `${memberJSONExerciseName.weight[j+1]} ${exerciseInformation[j+1].load}`;
+                    newWeightInput.placeholder = `${memberJSONExerciseName.weight[j+1]} ${exerciseInformation[j+1].load}`;
                   }
 
                 }
@@ -283,9 +280,9 @@ function main() {
               if(memberJSONExerciseName.reps != undefined) {
                 if(memberJSONExerciseName.reps.length > j+1) {
                   if (memberJSONExerciseName.reps[j+1].includes(exerciseInformation[j+1].quantityUnit.toLowerCase())) {
-                    newRepsInput.value = `${memberJSONExerciseName.reps[j+1]}`;
+                    newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]}`;
                   } else if(memberJSONExerciseName.reps[j+1] != "") {
-                    newRepsInput.value = `${memberJSONExerciseName.reps[j+1]} ${exerciseInformation[j+1].quantityUnit}`;
+                    newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]} ${exerciseInformation[j+1].quantityUnit}`;
                   }
                 } 
               }
@@ -326,6 +323,19 @@ function main() {
         }
 
         button.addEventListener("click", () => {
+
+          //Get both input boxes from that row
+          var inputBoxes = button.closest("#inputSection").querySelectorAll("input");
+
+          inputBoxes.forEach((element) => {
+            //Check if it has a value
+            if(element.value == "") {
+              //Check if it had a previous value
+              if(element.placeholder.split(" ").length > 1) {
+                element.value = element.placeholder
+              }
+            }
+          });
 
           hideCompleteButton(button);
 
