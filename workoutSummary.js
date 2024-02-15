@@ -43,6 +43,7 @@ function main() {
   weekWorkouts = "";
   currentWorkoutIndex = "";
   workoutInformation = "";
+  var loadUnit = "kg";
   
   if(fromProgram && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
@@ -69,6 +70,13 @@ function main() {
 
     if(fromProgram && member.loggedIn && currentProgram) {
 
+      //Get load measurement unit
+      loadUnit = member.weightUnit;
+
+      if(!loadUnit && localStorage.getItem("weightUnit")) {
+        loadUnit = localStorage.getItem("weightUnit");
+      }
+
       //Iterate through existing exercise list and change names
       for(var i = 0; i < inputList.length; i++) {
         var exerciseName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
@@ -76,7 +84,6 @@ function main() {
         for (const exercise of workoutInformation) {
           if(exercise.exercise.includes(exerciseName)) {
             inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
-            //inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
             break;
           }
         }
@@ -110,8 +117,8 @@ function main() {
           weightInput.addEventListener('blur', function(event) {
             const inputValue = event.target.value;
             
-            if(!event.target.value.toLowerCase().includes(exerciseInformation[0].load.toLowerCase()) && event.target.value != "") {
-              event.target.value = `${inputValue} ${exerciseInformation[0].load}`;
+            if(!event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
+              event.target.value = `${inputValue} ${loadUnit}`;
             }
 
             const exerciseBlock = event.target.closest("#inputSectionBlock");
@@ -156,20 +163,52 @@ function main() {
 
           //Check if load has inputs from PT
           if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
-            inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+            if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase()) {
+              inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load.toLowerCase()}`;
+              document.querySelectorAll("#load")[i].innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load.toLowerCase()}`;
+            } else {
+              if(loadUnit.toLowerCase() == "kg") {
+                //We need to convert from lbs to kg
+                inputList[i].querySelector("#weight").placeholder = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
+                document.querySelectorAll("#load")[i].innerText = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
+              } else {
+                inputList[i].querySelector("#weight").placeholder = `${kgToLbs(exerciseInformation[0].loadAmount)} ${loadUnit}`;
+                document.querySelectorAll("#load")[i].innerText = `${kgToLbs(exerciseInformation[0].loadAmount)} ${loadUnit}`;
+              }
+            }
           }
 
           var memberJSONExerciseName = memberJSON[exerciseName];
 
           if(memberJSONExerciseName != undefined) {
             if(memberJSONExerciseName.weight != undefined) {
+              const summaryWeightLoad = document.querySelectorAll("#load");
+              if(i < summaryWeightLoad.length && summaryWeightLoad[i].innerText.toLowerCase() != "bodyweight" && memberJSONExerciseName.weight[0] != "") {
+
+                if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase()) {
+                  document.querySelectorAll("#load")[i].innerText = `${memberJSONExerciseName.weight[0]} ${exerciseInformation[0].load}`;
+                } else {
+                  document.querySelectorAll("#load")[i].innerText = `${memberJSONExerciseName.weight[0]} ${loadUnit}`;
+                }
+              } 
+
+              //If text is still just load amount - then hide
+              if(summaryWeightLoad[i].innerText.toLowerCase() != "bodyweight" && summaryWeightLoad[i].innerText.toLowerCase() != "Band" && summaryWeightLoad[i].innerText.toLowerCase() == exerciseInformation[0].load.toLowerCase()) {
+                document.querySelectorAll("#load")[i].parentElement.style.display = "none";
+              }
 
               //Inputting in the first weight text box
               var arrayLength = memberJSONExerciseName.weight.length;
-              if (arrayLength > 0 && memberJSONExerciseName.weight[0].toLowerCase().includes(exerciseInformation[0].load.toLowerCase())) {
+              if (arrayLength > 0 && memberJSONExerciseName.weight[0].toLowerCase().includes(loadUnit.toLowerCase())) {
                 weightInput.placeholder = `${memberJSONExerciseName.weight[0]}`;
+
               } else if (arrayLength > 0 && memberJSONExerciseName.weight[0] != undefined && memberJSONExerciseName.weight[0] != "") {
-                weightInput.placeholder = `${memberJSONExerciseName.weight[0]} ${exerciseInformation[0].load}`;
+
+                if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase()) {
+                  weightInput.placeholder = `${memberJSONExerciseName.weight[0]} ${exerciseInformation[0].load}`;
+                } else {
+                  weightInput.placeholder = `${memberJSONExerciseName.weight[0]} ${loadUnit}`;
+                }
               }
             }
 
@@ -213,7 +252,17 @@ function main() {
               //Set weight field if exists
               //Check if load has inputs from PT
               if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
-                newWeightInput.placeholder = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
+                if(exerciseInformation[j+1].load.toLowerCase() == loadUnit.toLowerCase()) {
+                  newWeightInput.placeholder = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
+                } else {
+                  if(loadUnit.toLowerCase() == "kg") {
+                    //We need to convert from lbs to kg
+                    newWeightInput.placeholder = `${lbsToKg(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
+                  } else {
+                    newWeightInput.placeholder = `${kgToLbs(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
+                  }
+
+                }
               }
 
               //Set rest
@@ -222,8 +271,8 @@ function main() {
     
             newWeightInput.addEventListener('blur', function(event) {
               const inputValue = event.target.value;
-              if(!event.target.value.toLowerCase().includes(exerciseInformation[j+1].load.toLowerCase()) && event.target.value != "") {
-                event.target.value = `${inputValue} ${exerciseInformation[j+1].load}`;
+              if(!event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
+                event.target.value = `${inputValue} ${loadUnit}`;
               }
 
               var allWeightInputs = event.target.closest("#inputSectionBlock").querySelectorAll("#weight");
@@ -267,10 +316,11 @@ function main() {
             if(memberJSONExerciseName != undefined) {
               if(memberJSONExerciseName.weight != undefined) {
                 if(memberJSONExerciseName.weight[j+1] != undefined) {
-                  if (memberJSONExerciseName.weight[j+1].toLowerCase().includes(exerciseInformation[j+1].load.toLowerCase())) {
+
+                  if (memberJSONExerciseName.weight[j+1].toLowerCase().includes(loadUnit.toLowerCase())) {
                     newWeightInput.placeholder = `${memberJSONExerciseName.weight[j+1]}`;
                   } else if(memberJSONExerciseName.weight[j+1] != "") {
-                    newWeightInput.placeholder = `${memberJSONExerciseName.weight[j+1]} ${exerciseInformation[j+1].load}`;
+                    newWeightInput.placeholder = `${memberJSONExerciseName.weight[j+1]} ${loadUnit}`;
                   }
 
                 }
@@ -519,13 +569,20 @@ function main() {
         //Another if to check if the exercise is bodyweight
         if(checkBodyWeight(exerciseList[i])) {
           exerciseList[i].querySelector("#load").innerText = "Bodyweight";
-        } else if(checkEmptyLoadAmount(exerciseInformation)) {
-          //Check if there is no quantity amount
-          exerciseList[i].querySelector("#load").innerText = "-";
-          exerciseList[i].querySelector("#load").closest("#weightDiv").style.display = "none";
         } else if(checkSameLoadAmount(exerciseInformation)) {
           //Another if to check if the amounts are the same - 'amount unit.. 12 Kg' 
-          exerciseList[i].querySelector("#load").innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+          if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase()) {
+            exerciseList[i].querySelector("#load").innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+          } else {
+            if(loadUnit.toLowerCase() == "kg") {
+              //We need to convert from lbs to kg
+              exerciseList[i].querySelector("#load").innerText = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
+            } else {
+              exerciseList[i].querySelector("#load").innerText = `${kgToLbs(exerciseInformation[0].loadAmount)} ${loadUnit}`;
+            }
+          }
+          //exerciseList[i].querySelector("#load").innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+
         } else {
           //Another if statement to check if there is a range - 'amount range unit.. 12-15 Kg' 
           var minLoad = getLoadAmountMin(exerciseInformation)
@@ -625,22 +682,27 @@ function main() {
   }
   
 
-  function checkEmptyLoadAmount(exerciseInformation) {
-    // Flag to keep track of empty loadAmount
-    let allEmpty = true;
-
-    // Iterate through each object in the exerciseInformation array
-    for (let exercise of exerciseInformation) {
-        // If any loadAmount is not empty, update the flag and break the loop
-        if (exercise.loadAmount !== "") {
-            allEmpty = false;
-            break;
-        }
-    }
-
-    return allEmpty; // Return the flag indicating whether all loadAmount fields are empty
+  /**
+   * Converts kilograms to pounds.
+   * @param {number} kilograms - The weight in kilograms.
+   * @returns {number} - The equivalent weight in pounds.
+   */
+  function kgToLbs(kilograms) {
+    // 1 kilogram is approximately 2.20462 pounds
+    const pounds = kilograms * 2.20462;
+    return Math.round(pounds);
   }
 
+  /**
+   * Converts pounds to kilograms.
+   * @param {number} pounds - The weight in pounds.
+   * @returns {number} - The equivalent weight in kilograms.
+   */
+  function lbsToKg(pounds) {
+    // 1 pound is approximately 0.453592 kilograms
+    const kilograms = pounds * 0.453592;
+    return Math.round(kilograms);
+  }
   
   function checkEmptyQuantity(exerciseInformation) {
     // Flag to keep track of empty loadAmount
@@ -876,7 +938,6 @@ function main() {
         updatedJSON = {[exerciseName] : exerciseInfo};
 
       }
-      console.log(updatedJSON);
       await member.updateMetaData(updatedJSON);
 
     });
