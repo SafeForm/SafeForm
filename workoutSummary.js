@@ -183,7 +183,7 @@ function main() {
           if(memberJSONExerciseName != undefined) {
             if(memberJSONExerciseName.weight != undefined) {
               const summaryWeightLoad = document.querySelectorAll("#load");
-              if(i < summaryWeightLoad.length && summaryWeightLoad[i].innerText.toLowerCase() != "bodyweight" && memberJSONExerciseName.weight[0] != "") {
+              if(i < summaryWeightLoad.length && summaryWeightLoad[i].innerText.toLowerCase() != "bodyweight" && memberJSONExerciseName.weight[0] && memberJSONExerciseName.weight[0] != "") {
 
                 if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase()) {
                   document.querySelectorAll("#load")[i].innerText = `${memberJSONExerciseName.weight[0]} ${exerciseInformation[0].load}`;
@@ -688,6 +688,7 @@ function main() {
    * @returns {number} - The equivalent weight in pounds.
    */
   function kgToLbs(kilograms) {
+   
     // 1 kilogram is approximately 2.20462 pounds
     const pounds = kilograms * 2.20462;
     return Math.round(pounds);
