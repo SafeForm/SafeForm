@@ -14,6 +14,10 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+  //Check what page the user is on:
+  const pathname = window.location.pathname;
+  var baseURL = window.location.origin;
+
 
   //Check if user is logged in
   MemberStack.onReady.then(function(member) {  
@@ -24,11 +28,26 @@ async function main() {
       var baseURL = window.location.origin;
       window.location = baseURL + "/user-sign-in";
     }
+
+    if(pathname == "/user-space/user-account-info") {
+      const weightUnit = member.weightUnit;
+
+      if(weightUnit) {
+        if(weightUnit == "kg") {
+          document.getElementById("kgRadio").previousElementSibling.classList.add("w--redirected-checked");
+        } else {
+          document.getElementById("lbsRadio").previousElementSibling.classList.add("w--redirected-checked");
+        }
+      } else {
+        document.getElementById("kgRadio").previousElementSibling.classList.add("w--redirected-checked");
+      }
+
+    }
+
+
   })
 
-  //Check what page the user is on:
-  const pathname = window.location.pathname;
-  var baseURL = window.location.origin;
+
   if(pathname == "/user-sign-up-experience") {
     var nextPage = baseURL+"/user-sign-up-goals";
     document.getElementById("beginner").onclick = async function () {
@@ -189,7 +208,23 @@ async function main() {
       const lastName = document.getElementById("last-name").value;
       updateProfile("last-name", lastName, null, true);
     });
-    
+
+    document.addEventListener('click', function(event) {
+
+      if(event.target.id == "kgRadio" || event.target.id == "lbsRadio") {
+
+        if(event.target.id == "kgRadio") {
+          updateProfile("weightUnit", "kg", null, true);
+          localStorage.setItem("weightUnit", "kg");
+        } else {
+          updateProfile("weightUnit", "lbs", null, true);
+          localStorage.setItem("weightUnit", "lbs");
+        }
+      }
+
+    });
+
+    /*
     document.getElementById('experience').addEventListener('blur', function(event) {
       const experience = document.getElementById("experience").value;
       updateProfile("experience", experience, null, true);
@@ -224,6 +259,7 @@ async function main() {
       const physicalLimitations = document.getElementById("physical-limitations").value;
       updateProfile("physical-limitations", physicalLimitations, null, true);
     });
+    */
   }
 
   async function updateProfile(attributeKey, attributeValue, nextPage, userProfile=false) {
@@ -240,17 +276,17 @@ async function main() {
         }, true);
         member["last-name"] = attributeValue;
         attributeKey = "family_name";
-      } else if (attributeKey == "email") {
-        await member.updateProfile({
-          "email": attributeValue
-        }, true);
-        member["email"] = attributeValue;
       } else if (attributeKey == "mobile") {
         await member.updateProfile({
           "mobile": attributeValue
         }, true);
         member["mobile"] = attributeValue;
         attributeKey = "phone";
+      } else if (attributeKey == "weightUnit") {
+        await member.updateProfile({
+          "weightUnit": attributeValue
+        }, true);
+        member["weightUnit"] = attributeValue;
       } else if (attributeKey == "height") {
         await member.updateProfile({
           "height": attributeValue
@@ -328,6 +364,7 @@ async function main() {
         }
 
       }
+
       var cognitoKey = ""
 
       if(attributeKey != "given_name" && attributeKey != "family_name") {
@@ -335,7 +372,7 @@ async function main() {
       } else {
         cognitoKey = attributeKey;
       }
-      
+
       await updateAttributes(member["email"], atob(member["cognito-password"]), cognitoKey, attributeValue, nextPage);
 
       if(userProfile) {
