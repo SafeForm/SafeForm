@@ -27,7 +27,10 @@ function mainFunc() {
 
         // If the response is not empty, redirect the user to the page
         if (responseData.trim().toLowerCase() != 'accepted') {
-          window.location.href = window.location.origin + `/user-programs/${responseData}`;
+          setTimeout(() => {
+            window.location.href = window.location.origin + `/user-programs/${responseData}`;
+        }, 7000);
+
         } else {
           console.log("Empty member page");
         }
@@ -38,7 +41,7 @@ function mainFunc() {
     }
 
     // Check for member page every 7 seconds
-    const intervalId = setInterval(checkMemberPage, 7000);
+    const intervalId = setInterval(checkMemberPage, 5000);
 
   });
 }
