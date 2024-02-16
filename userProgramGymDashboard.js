@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
+
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -85,6 +86,7 @@ async function main() {
   sessionStorage.setItem("editExercise", "false");
   var updatedMedia = false;
   var currentCopiedWorkout = "";
+  var globalWeightUnit = "";
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -838,6 +840,7 @@ async function main() {
       const workoutItemTemplate = workoutList.querySelector("ul > li:first-child");
       
       var workoutItem = workoutItemTemplate.cloneNode(true);
+      console.log(workoutItem)
 
       //Add set rep info into guide template
       const setRepInfo = workoutItem.querySelector("#guidePlaceHolder").cloneNode(true);
@@ -977,6 +980,10 @@ async function main() {
       //Reduce headers font size:
       workoutItem.querySelector("#workoutExercisename").style.fontSize = "16px";
       workoutItem.querySelector("#exerciseDifficultyParent").style.display = "none";
+      console.log(globalWeightUnit)
+      if(globalWeightUnit == "lbs") {
+        workoutItem.querySelector("#measureInput").selectedIndex = 1;
+      }
 
       //workoutItem.querySelector(".supersetparent").style.display = "none";
 
@@ -1273,6 +1280,35 @@ async function main() {
       var membership = member.membership  
       var memberID = member["id"];
       var equipmentStatus = member["equipment-upload-complete"];
+
+      //Get weight unit and click relevant one
+      var weightUnit = member.weightUnit;
+
+      //If it is equal to kg or 
+      if(weightUnit && weightUnit.toLowerCase() == "lbs") {
+        //Click lbs radio button
+        document.getElementById("lbsRadio").click();
+
+        //Set first template element in workout list to lbs
+        globalWeightUnit = "lbs";
+        
+      } else {
+        //Catch all for kgs
+        document.getElementById("kgRadio").click();
+        globalWeightUnit = "kg";
+      }
+
+      document.addEventListener('click', function(event) {
+
+        if(event.target.name == "weightUnit") {
+          member.updateProfile({
+            "weightUnit": event.target.value
+          }, true);
+
+          globalWeightUnit = event.target.value
+        }
+
+      });
 
       const baseURL = window.location.origin;
       //set link to dashboard page
