@@ -45,6 +45,18 @@ signUpForm.addEventListener('click', async function(event) {
 
   const password = document.getElementById('password').value;
 
+  const kgRadio = document.getElementById('lbsRadio');
+  const lbsRadio = document.getElementById('lbsRadio');
+
+  let weightUnit = "kg";
+  if(kgRadio.checked) {
+    weightUnit = "kg"
+  }
+
+  if(lbsRadio.checked) {
+    weightUnit = "lbs"
+  }
+
   if (!cognitoComplete && !disableForm) {
 
     event.preventDefault();
@@ -54,11 +66,15 @@ signUpForm.addEventListener('click', async function(event) {
     const lastNameValidation = document.getElementById("lastName").reportValidity();
     const firstNameValidation = document.getElementById("firstName").reportValidity();
     const usernameValidation = document.getElementById("email").reportValidity();
+
+    if(!(kgRadio.checked || lbsRadio.checked)) {
+      alert("Please select a weight unit");
+    }
     
-    if(usernameValidation && firstNameValidation && lastNameValidation && passwordValidation) {
+    if(usernameValidation && firstNameValidation && lastNameValidation && passwordValidation && (kgRadio.checked || lbsRadio.checked)) {
       document.getElementById("ms-loader").style.display = "flex";
       // Sign up user to cognito
-      await signUpUser(username, username, cognitoPw, firstName, lastName, "Users");
+      await signUpUser(username, username, cognitoPw, firstName, lastName, weightUnit, "Users");
     }
 
     
@@ -186,7 +202,7 @@ async function getUser(userName){
 	return cognitoUser;
 }
 
-async function signUpUser(userName, userEmail, userPassword, firstName, lastName, group) {	 
+async function signUpUser(userName, userEmail, userPassword, firstName, lastName, weightUnit, group) {	 
 
 	let dataEmail = {
 	    Name : 'email',
@@ -209,9 +225,14 @@ async function signUpUser(userName, userEmail, userPassword, firstName, lastName
     Value : lastName
   };	
 
+  let dataWeightUnit = {
+    Name : 'custom:weightUnit',
+    Value : weightUnit
+  }
+
   //var userDetails = {"email":userEmail, "firstName":firstName, "lastName":lastName, "phone_number":phone, "group":group}
 	var attributeList = [ new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail),
-						  new AmazonCognitoIdentity.CognitoUserAttribute(dataName), new AmazonCognitoIdentity.CognitoUserAttribute(dataGroup), new AmazonCognitoIdentity.CognitoUserAttribute(dataLastName), new AmazonCognitoIdentity.CognitoUserAttribute(dataFirstName)];
+						  new AmazonCognitoIdentity.CognitoUserAttribute(dataName), new AmazonCognitoIdentity.CognitoUserAttribute(dataGroup), new AmazonCognitoIdentity.CognitoUserAttribute(dataLastName), new AmazonCognitoIdentity.CognitoUserAttribute(dataFirstName), new AmazonCognitoIdentity.CognitoUserAttribute(dataWeightUnit)];
 
   var userPool = await getUserPool();
 
