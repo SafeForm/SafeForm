@@ -45,7 +45,7 @@ signUpForm.addEventListener('click', async function(event) {
 
   const password = document.getElementById('password').value;
 
-  const kgRadio = document.getElementById('lbsRadio');
+  const kgRadio = document.getElementById('kgRadio');
   const lbsRadio = document.getElementById('lbsRadio');
 
   let weightUnit = "kg";
