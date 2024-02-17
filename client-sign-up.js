@@ -4,12 +4,21 @@ const urlParams = new URLSearchParams(window.location.search);
 // Get the parameter values
 const fcID = urlParams.get('fcID');
 const programID = urlParams.get('programID');
+const emailParam = urlParams.get('email');
+const airtableID = urlParams.get('id');
+
 var disableForm = false;
 
 //If no parameter, lock form - because everything will break
-if(fcID == null || programID == null) {
+if(fcID == null || programID == null || airtableID == null) {
   disableFormFunc();
 }
+
+//Set email text box if we have the email
+if(emailParam) {
+  document.getElementById('email').value = emailParam;
+}
+
 
 //Listen for changes on password textbox and update cognito password text box
 const pwTextBox = document.getElementById('password');
@@ -90,6 +99,7 @@ signUpForm.addEventListener('click', async function(event) {
     client["lastName"] = lastName;
     client["programID"] = programID;
     client["fcID"] = fcID;
+    client["airtableID"] = airtableID;
     
     sendClientToMake(client);
 
