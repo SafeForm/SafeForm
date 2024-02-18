@@ -48,8 +48,8 @@ function main() {
       }
     }
 
-    // Check for member page every 7 seconds
-    const intervalId = setInterval(checkMemberPage, 5000);
+    // Check for member page every 2 seconds
+    const intervalId = setInterval(checkMemberPage, 2000);
 
   });
 }
