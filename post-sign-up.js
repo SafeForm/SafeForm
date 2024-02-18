@@ -1,13 +1,21 @@
+const devMode = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  mainFunc();
+  if(devMode == undefined) {
+    main();
+  }
+  
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    mainFunc();
+    if(devMode == undefined) {
+      main();
+    }
   });
 }
 
-function mainFunc() {
+function main() {
+
   MemberStack.onReady.then(async function (member) {
+
     // Function to check member page and redirect if not set
     async function checkMemberPage() {
       var membershipId = member.id;
@@ -27,9 +35,9 @@ function mainFunc() {
 
         // If the response is not empty, redirect the user to the page
         if (responseData.trim().toLowerCase() != 'accepted') {
-          setTimeout(() => {
-            window.location.href = window.location.origin + `/user-programs/${responseData}`;
-        }, 7000);
+          //sessionStorage.setItem("memberPage", responseData)
+          localStorage.removeItem("memberstack");
+          window.location.href = window.location.origin + `/user-programs/${responseData}`;
 
         } else {
           console.log("Empty member page");
