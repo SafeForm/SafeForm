@@ -599,12 +599,11 @@ async function main() {
       var summaryUserSlug = $(userSummary).find('#summaryUserSlug').text().trim();
       var summaryFullEventDataField = $(userSummary).find('#summaryFullEventData');
       var summaryEventDataField = $(userSummary).find('#summaryEventData');
-      var clientTypeField = $(userSummary).find('#clientType');
       var summaryUserName = $(userSummary).find('#userSummaryName').text();
 
       var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
 
-      if (!clientTypeField.attr('class').includes("w-dyn-bind-empty")) {
+      if (summaryUserSlug) {
 
         // Use $.get to fetch the content of #fullEventData from the specified URL
         var getRequest = $.get(programURL, function (data, status) {
@@ -6814,9 +6813,8 @@ async function main() {
         var index = 0;
         for(const workout of program.events) {
           const workoutID = workout.extendedProps.workoutID;
-          console.log(workoutID)
+
           const workoutElem = getWorkoutElement(workoutID);
-          console.log(workoutElem)
           if(workoutElem) {
             const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
             workout.workoutJSON = JSON.parse(workoutJSON);
