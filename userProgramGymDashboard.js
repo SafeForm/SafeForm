@@ -598,18 +598,21 @@ async function main() {
     function loadAndUpdateSummary(userSummary) {
       var summaryUserSlug = $(userSummary).find('#summaryUserSlug').text().trim();
       var summaryFullEventDataField = $(userSummary).find('#summaryFullEventData');
-      var summaryEventData = $(userSummary).find('#summaryEventData');
+      var summaryEventDataField = $(userSummary).find('#summaryEventData');
+      var clientTypeField = $(userSummary).find('#clientType');
       var summaryUserName = $(userSummary).find('#userSummaryName').text();
       var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
 
-      if (!summaryEventData.attr('class').includes("w-dyn-bind-empty")) {
+      if (!clientTypeField.attr('class').includes("w-dyn-bind-empty")) {
 
         // Use $.get to fetch the content of #fullEventData from the specified URL
         var getRequest = $.get(programURL, function (data, status) {
           if (status === 'success') {
             // Find #fullEventData in the fetched content and update the field
             var fullEventData = $(data).find('#programFullEventData').html();
+            var summaryEventData = $(data).find('#programEventData').html();
             summaryFullEventDataField.html(fullEventData);
+            summaryEventDataField.html(summaryEventData);
           } else {
             alert('Error loading program data for ' + summaryUserName);
           }
@@ -6115,7 +6118,6 @@ async function main() {
     }
 
     function prefillProgramBuilder(program, programType="builder") {
-
 
       // Convert the Start Date strings to Date objects
       var eventsData = "";
