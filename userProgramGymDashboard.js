@@ -601,6 +601,7 @@ async function main() {
       var summaryEventDataField = $(userSummary).find('#summaryEventData');
       var clientTypeField = $(userSummary).find('#clientType');
       var summaryUserName = $(userSummary).find('#userSummaryName').text();
+
       var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
 
       if (!clientTypeField.attr('class').includes("w-dyn-bind-empty")) {
@@ -613,6 +614,7 @@ async function main() {
             var summaryEventData = $(data).find('#programEventData').html();
             summaryFullEventDataField.html(fullEventData);
             summaryEventDataField.html(summaryEventData);
+
           } else {
             alert('Error loading program data for ' + summaryUserName);
           }
@@ -5919,14 +5921,8 @@ async function main() {
 
         let newTableData;
         if(updatedProgram.length > 0) {
-
-          console.log(updatedProgram);
           
           newTableData = translateProgramDataToTable(updatedProgram);
-
-          console.log(newTableData);
-
-          
 
           newTableData = ensureSameRowCount(newTableData);
 
@@ -6743,63 +6739,66 @@ async function main() {
           var exerciseCount = 1;
           // Iterate over the workoutJSON and create objects for each exercise
           //Iterating through exercises in workout - supersets or individual exercises
-          for (var j = 0; j < workoutJSON.length; j++) {
-            var exerciseData = workoutJSON[j];
-
-            var isSuperset = false;
-            if(exerciseData.length > 1) {
-              isSuperset = true;
+          if(workoutJSON) {
+            for (var j = 0; j < workoutJSON.length; j++) {
+              var exerciseData = workoutJSON[j];
+  
+              var isSuperset = false;
+              if(exerciseData.length > 1) {
+                isSuperset = true;
+              }
+  
+              // Define an array of labels from A to E
+              var labelArray = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+  
+              // Iterate over all exercises within exerciseData
+              //Iterating through supersets or exercise
+              for (var k = 0; k < exerciseData.length; k++) {
+                  var individualExercise = exerciseData[k];
+  
+                  // Iterate over all exercises within individualExercise
+                  // Iterating through sets in exercise
+                  for (var l = 0; l < individualExercise.exercises.length; l++) {
+                      var exercise = individualExercise.exercises[l];
+                      if (workoutNameIndex[workoutName]) {
+                          workoutNameIndex[workoutName] += 1;
+                      } else {
+                          workoutNameIndex[workoutName] = 1;
+                      }
+  
+                      // Calculate the label based on the value of k
+                      var labelIndex = k % labelArray.length;
+                      var exerciseLabel = labelArray[labelIndex];
+  
+                      // Create an exercise object for each exercise
+                      var exerciseObject = {
+                        "id": workoutName + workoutNameIndex[workoutName],
+                        "week": "Week " + week,
+                        "workoutName": workoutName,
+                        "exercise": isSuperset ? `${exerciseCount}${exerciseLabel} - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
+                        "reps": exercise.reps,
+                        "load": exercise.measure,
+                        "loadAmount": (exercise.loadAmount != undefined) ? exercise.loadAmount : "",
+                        "exerciseRestMinutes": exercise.exerciseRestMinutes,
+                        "exerciseRestSeconds": exercise.exerciseRestSeconds,
+                        "quantityUnit": exercise.quantityUnit,
+                        "notes": individualExercise.exerciseNotes,
+                        "workoutNumber": `workout ${i}`,
+                        "setNumber": l,
+                        "results": "",
+                        "startDate": event.start,
+                        "guideID": individualExercise.guideID,
+                        "uniqueWorkoutID": uniqueWorkoutID
+                      };
+  
+                      // Push the exercise object to the convertedData array
+                      convertedData.push(exerciseObject);
+                  }
+              }
+              exerciseCount += 1; //Increment exercise count
             }
-
-            // Define an array of labels from A to E
-            var labelArray = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
-
-            // Iterate over all exercises within exerciseData
-            //Iterating through supersets or exercise
-            for (var k = 0; k < exerciseData.length; k++) {
-                var individualExercise = exerciseData[k];
-
-                // Iterate over all exercises within individualExercise
-                // Iterating through sets in exercise
-                for (var l = 0; l < individualExercise.exercises.length; l++) {
-                    var exercise = individualExercise.exercises[l];
-                    if (workoutNameIndex[workoutName]) {
-                        workoutNameIndex[workoutName] += 1;
-                    } else {
-                        workoutNameIndex[workoutName] = 1;
-                    }
-
-                    // Calculate the label based on the value of k
-                    var labelIndex = k % labelArray.length;
-                    var exerciseLabel = labelArray[labelIndex];
-
-                    // Create an exercise object for each exercise
-                    var exerciseObject = {
-                      "id": workoutName + workoutNameIndex[workoutName],
-                      "week": "Week " + week,
-                      "workoutName": workoutName,
-                      "exercise": isSuperset ? `${exerciseCount}${exerciseLabel} - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
-                      "reps": exercise.reps,
-                      "load": exercise.measure,
-                      "loadAmount": (exercise.loadAmount != undefined) ? exercise.loadAmount : "",
-                      "exerciseRestMinutes": exercise.exerciseRestMinutes,
-                      "exerciseRestSeconds": exercise.exerciseRestSeconds,
-                      "quantityUnit": exercise.quantityUnit,
-                      "notes": individualExercise.exerciseNotes,
-                      "workoutNumber": `workout ${i}`,
-                      "setNumber": l,
-                      "results": "",
-                      "startDate": event.start,
-                      "guideID": individualExercise.guideID,
-                      "uniqueWorkoutID": uniqueWorkoutID
-                    };
-
-                    // Push the exercise object to the convertedData array
-                    convertedData.push(exerciseObject);
-                }
-            }
-            exerciseCount += 1; //Increment exercise count
           }
+          
         }
       }
 
@@ -6815,9 +6814,14 @@ async function main() {
         var index = 0;
         for(const workout of program.events) {
           const workoutID = workout.extendedProps.workoutID;
+          console.log(workoutID)
           const workoutElem = getWorkoutElement(workoutID);
-          const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
-          workout.workoutJSON = JSON.parse(workoutJSON);
+          console.log(workoutElem)
+          if(workoutElem) {
+            const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
+            workout.workoutJSON = JSON.parse(workoutJSON);
+          }
+
           index += 1;
         }
       }
