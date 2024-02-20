@@ -599,6 +599,7 @@ async function main() {
       var summaryUserSlug = $(userSummary).find('#summaryUserSlug').text().trim();
       var summaryFullEventDataField = $(userSummary).find('#summaryFullEventData');
       var summaryEventDataField = $(userSummary).find('#summaryEventData');
+
       var summaryUserName = $(userSummary).find('#userSummaryName').text();
 
       var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
@@ -741,6 +742,7 @@ async function main() {
       //Set edit flag
       sessionStorage.setItem("editExercise", "true");
       var exercideUploadName = exerciseItem.querySelector("#exerciseLibraryName").innerHTML;
+
       // Exercise name
       document.getElementById("uploadExerciseName").value = exercideUploadName;
 
@@ -768,40 +770,16 @@ async function main() {
       //Seconday muscle
       document.getElementById("uploadSecondaryMuscle").value = exerciseItem.querySelector("#secondaryExerciseLibraryMuscles").innerHTML;
 
-      // Key points
-      var keyPointsListItems = exerciseItem.querySelectorAll('#libraryKeyPoints li');
-      var keyPointInputs = document.querySelectorAll('#uploadKeyPoints input');
+      //exercise notes
+      var exerciseNotes = exerciseItem.querySelector('#libraryExerciseNotes').innerHTML;
 
-      // Loop through list items and set the values in the form fields
-      keyPointsListItems.forEach(function(listItem, index) {
-        if (listItem) {
-          var keyPointText = listItem.textContent;
-          
-          // Remove '- ' at the start of the keyPointText
-          keyPointText = keyPointText.replace('- ', '');
-
-          keyPointInputs[index].value = keyPointText;
-        }
-      });
-
-
-      // Common Mistakes
-      var commonMistakesListItems = exerciseItem.querySelectorAll('#libraryCommonMistakes li');
-      var commonMistakeInputs = document.querySelectorAll('#uploadCommonMistakes input');
-
-      // Loop through list items and set the values in the form fields
-      commonMistakesListItems.forEach(function(listItem, index) {
-          if(listItem) {
-            var commonMistakeText = listItem.textContent;
-            commonMistakeText = commonMistakeText.replace('- ', '');
-            commonMistakeInputs[index].value = commonMistakeText;
-        }
-      });
+      //Set exercise note field
+      document.querySelector(".editor").innerHTML = exerciseNotes;
 
       // Video link
       const uploadType = exerciseItem.querySelector("#uploadType").innerText;
       
-      if(uploadType == "true") {
+      if(uploadType.toLowerCase() == "true") {
         document.getElementById("videoLink").value = exerciseItem.querySelector("#libraryVideoLink").innerHTML;
       } else {
         document.getElementById("fileNameContainer").innerText = `File: ${exercideUploadName}.mp4`
@@ -813,9 +791,6 @@ async function main() {
 
       //Guide Id
       document.getElementById("libraryFormGuideID").innerText = exerciseItem.querySelector("#exerciseLibraryID").innerText;
-
-      //Temp Id
-      //document.getElementById("libraryFormTempD").innerText = exerciseItem.querySelector("#exerciseLibraryID").innerText;
       
 
     }
@@ -844,7 +819,6 @@ async function main() {
       const workoutItemTemplate = workoutList.querySelector("ul > li:first-child");
       
       var workoutItem = workoutItemTemplate.cloneNode(true);
-      console.log(workoutItem)
 
       //Add set rep info into guide template
       const setRepInfo = workoutItem.querySelector("#guidePlaceHolder").cloneNode(true);
@@ -984,7 +958,6 @@ async function main() {
       //Reduce headers font size:
       workoutItem.querySelector("#workoutExercisename").style.fontSize = "16px";
       workoutItem.querySelector("#exerciseDifficultyParent").style.display = "none";
-      console.log(globalWeightUnit)
       if(globalWeightUnit == "lbs") {
         workoutItem.querySelector("#measureInput").selectedIndex = 1;
       }
@@ -2105,7 +2078,7 @@ async function main() {
 
     // JavaScript function to prevent form submission on Enter key press
     document.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' && event.target.id != "richTextEditor") {
         event.preventDefault(); // Prevent form submission
       }
     });
@@ -3462,6 +3435,7 @@ async function main() {
         const videoValid = checkInvalidVideoLink();
         const videoLinkValue = document.getElementById("videoLink").value;
         const videoInput = document.getElementById('videoInput');
+        var uploadedVideoText = document.getElementById("fileNameContainer").innerText;
 
         if(exerciseCategories.size == 0) {
           alert("Please select a category for the exercise.");
@@ -3473,7 +3447,7 @@ async function main() {
           //Highlight video input as error - videoValid
           alert(videoValid);
 
-        } else if(videoLinkValue == "" && videoInput.files.length == 0) {
+        } else if(videoLinkValue == "" && uploadedVideoText == "" && videoInput.files.length == 0) {
           alert("Please add media to your exercise");
         } else if(exerciseForm.checkValidity()) {
           //Submit exercise form
@@ -3485,7 +3459,7 @@ async function main() {
 
 
 
-      } else if(event.target.id == "createExerciseModal" || event.target.id == "closeCreateExerciseModal") {
+      } else if(event.target.id == "closeCreateExerciseModal") {
         updatedMedia = false;
         hideAndClearExerciseUploadModal();
 
@@ -4083,7 +4057,8 @@ async function main() {
       const videoLink = document.getElementById("videoLink").value;
 
       // Define regex patterns for YouTube and Vimeo video links
-      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+
       const vimeoPattern = /https?:\/\/(www\.)?vimeo\.com\/\d+/i;
 
       // Check if the link is a valid YouTube or Vimeo link
@@ -4124,25 +4099,8 @@ async function main() {
       //Secondary Muscles
       const uploadSecondaryMuscles = document.getElementById("uploadSecondaryMuscle").value;
 
-      //Key points
-      const keyPoints = document.getElementById("uploadKeyPoints").children;
-      var dotPointKeyPoints = "";
-      for(var i = 0; i < keyPoints.length; i++) {
-        var keyPoint = keyPoints[i].querySelector("input").value;
-        if(keyPoint != "") {
-          dotPointKeyPoints += `- ${keyPoint}\n`;
-        }
-      }
-
-      //Common mistakes
-      const commonMistakes = document.getElementById("uploadCommonMistakes").children;
-      var dotPointCommonMistakes = "";
-      for(var i = 0; i < commonMistakes.length; i++) {
-        var commonMistake = commonMistakes[i].querySelector("input").value;
-        if(commonMistake != "") {
-          dotPointCommonMistakes += `- ${commonMistake}\n`;
-        }
-      }
+      //Exercise Notes
+      const exerciseNotes = document.querySelector(".editor").innerHTML;
 
       //Link
       const videoLink = document.getElementById("videoLink").value;
@@ -4164,13 +4122,12 @@ async function main() {
       formData.append('primaryScientificMuscles', reverseMuscleMapping[uploadPrimaryMuscles]);
       formData.append('secondaryCasualMuscles', uploadSecondaryMuscles);
       formData.append('secondaryScientificMuscles', reverseMuscleMapping[uploadSecondaryMuscles]);
-      formData.append('keyPoints', dotPointKeyPoints);
-      formData.append('commonMistakes', dotPointCommonMistakes);
       formData.append('gymID', document.getElementById("gymID").innerText);
       formData.append('gymName', document.getElementById("gymFullName").innerText);
       formData.append('tempID', tempID);
       formData.append('guideID', document.getElementById("libraryFormGuideID").innerText);
       formData.append('mediaUpdated', updatedMedia);
+      formData.append('exerciseNotes', exerciseNotes);
       
       if(videoFile) {
         if(sessionStorage.getItem("editExercise") == 'false') {
@@ -4224,7 +4181,7 @@ async function main() {
 
     function getVideoThumbnail(videoLink) {
       // Define regex patterns for YouTube and Vimeo video links
-      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
       const vimeoPattern = /https?:\/\/(www\.)?vimeo\.com\/\d+/i;
   
       // Check if the link is a valid YouTube or Vimeo link
@@ -4265,8 +4222,6 @@ async function main() {
           exerciseItem.querySelector("#exerciseLibraryName").innerText = formData.get('exerciseName');
           exerciseItem.querySelector("#primaryExerciseLibraryMuscles").innerText = formData.get('primaryCasualMuscles');
           exerciseItem.querySelector("#secondaryExerciseLibraryMuscles").innerText = formData.get('secondaryCasualMuscles');
-          exerciseItem.querySelector("#libraryKeyPoints").innerHTML = '<ul><li>' + formData.get('keyPoints').split('\n').filter(Boolean).join('</li><li>') + '</li></ul>';
-          exerciseItem.querySelector("#libraryCommonMistakes").innerHTML = '<ul><li>' + formData.get('commonMistakes').split('\n').filter(Boolean).join('</li><li>') + '</li></ul>';
 
           //Update category
           exerciseItem.querySelector("#exerciseLibraryCategory").innerText = formData.get("categories");
@@ -4481,11 +4436,10 @@ async function main() {
         
       }
 
-      
     }
 
     function parseReturnedVideoLink(videoLink) {
-      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+      const youtubePattern = /(https?:\/\/)?(www\.)?(youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
       const vimeoPattern = /https?:\/\/(www\.)?vimeo\.com\/(\d+)/i;
 
       if (youtubePattern.test(videoLink)) {
@@ -4521,6 +4475,9 @@ async function main() {
 
       //Clear form
       document.getElementById("exerciseForm").reset();
+
+      //Clear exercise notes
+      document.querySelector(".editor").innerHTML = "";
 
       //Unclick all categories clicked
       const clickedCategories = document.querySelectorAll(".categorytextselected");
