@@ -266,9 +266,16 @@ async function main() {
       // Calculate the difference in days
       var daysDifference = programDate.diff(today, 'days');
 
-      updateUrgencyDayText(clientList[i].querySelector("#customProgram"),daysDifference);
+      if(!customProgramDate) {
+        daysDifference = 0;
+      }
 
-      styleProgramUrgencyDay(clientList[i].querySelector("#customProgram"), daysDifference);
+      updateUrgencyDayText(clientList[i].querySelector("#customProgram"), daysDifference);
+
+      if(clientList[i].querySelector("#status").innerText.toLowerCase() == "active") {
+        styleProgramUrgencyDay(clientList[i].querySelector("#customProgram"), daysDifference);
+      }
+      
     }
   }
 
@@ -331,6 +338,9 @@ async function main() {
   }
 
   function styleProgramUrgencyDay(element, daysDifference) {
+    if(element.classList.contains("w-dyn-bind-empty")) {
+      element.classList.remove("w-dyn-bind-empty");
+    }
     if(daysDifference < 7) {
       element.style.backgroundColor = "rgba(238,29,41,0.25)";
       element.style.borderColor = "rgb(238,29,41)";
@@ -824,6 +834,7 @@ async function main() {
       //Add set rep info into guide template
       const setRepInfo = workoutItem.querySelector("#guidePlaceHolder").cloneNode(true);
       setRepInfo.id = "setRepInfoParent";
+      setRepInfo.style.width = "100%";
       copyOfGuide.append(setRepInfo);
   
       //Add workout Exercise ID and Name into guide template as well
@@ -1091,7 +1102,7 @@ async function main() {
       if(programWorkout) {
         workoutItem.paddingBottom = 0;
         workoutItem.paddingTop = 0;
-        workoutItem.querySelector("#removeFullExercise").style.display = "none";
+        workoutItem.querySelector("#removeFullExercise").remove();
         workoutItem.querySelector(".supersetparent").style.display = "none";
         workoutItem.querySelector(".addset").style.display = "none";
         //Check if notes is empty 
@@ -1169,7 +1180,10 @@ async function main() {
         //Remove supersetimageopen class
         supersetImage.classList.remove("supersetimageopen");
         supersetImage.classList.add("supersetimageclosed");
-        supersetParent.querySelector("#removeFullExercise").style.display = "none";
+        if(supersetParent.querySelector("#removeFullExercise")) {
+          supersetParent.querySelector("#removeFullExercise").style.display = "none";
+        }
+        
 
         
       } else {
@@ -1928,7 +1942,7 @@ async function main() {
     
       const isWorkoutOfTheWeek = workoutSummaryList[i].querySelector("#isWorkoutOfTheWeek").innerText;
       if(isWorkoutOfTheWeek == "true") {
-        workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
+        //workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
         break;
       }
     }
@@ -2091,7 +2105,10 @@ async function main() {
     document.addEventListener('mouseover', function (event) {
 
       if(event.target.closest("#guidePlaceHolder")) {
-        event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "block";
+        if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise")) {
+          event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "block";
+        }
+        
       }
 
       // if(event.target.closest(".exercise-details-parent")) {
@@ -2154,7 +2171,10 @@ async function main() {
     document.addEventListener('mouseout', function (event) {
 
       if(event.target.closest("#guidePlaceHolder")) {
-        event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "none";
+        
+        if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise")) {
+          event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "none";
+        }
       }
 
       // if(event.target.closest(".exercise-details-parent")) {
