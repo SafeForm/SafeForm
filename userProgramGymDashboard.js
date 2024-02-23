@@ -846,7 +846,6 @@ async function main() {
       //Add guide to workout exercise template
       workoutItem.querySelector("#guidePlaceHolder").append(copyOfGuide);
 
-
       //If extra information is provided fill in fields
       if(exerciseInformation != null) {
         if(!programWorkout) {
@@ -961,8 +960,6 @@ async function main() {
       if(globalWeightUnit == "lbs") {
         workoutItem.querySelector("#measureInput").selectedIndex = 1;
       }
-
-      //workoutItem.querySelector(".supersetparent").style.display = "none";
 
       //Add to 'workouts' list
       workoutList.appendChild(workoutItem);
@@ -1096,10 +1093,16 @@ async function main() {
         workoutItem.querySelector("#removeFullExercise").style.display = "none";
         workoutItem.querySelector(".supersetparent").style.display = "none";
         workoutItem.querySelector(".addset").style.display = "none";
+        //Check if notes is empty 
+        if(workoutItem.querySelector("#exerciseNotes").value == "") {
+          workoutItem.querySelector("#exerciseNotes").style.display = "none";
+        }
         var removeButtons = workoutItem.querySelectorAll("#removeExercise");
         for(var i = 0; i < removeButtons.length; i++) {
           removeButtons[i].style.display = "none";
         }
+
+
       }
       
     }
@@ -3212,6 +3215,7 @@ async function main() {
         event.preventDefault();
         navigator.clipboard.writeText(event.target.href);
         event.target.innerText = "Copied!";
+        event.target.style.color = "#ffffff";
         event.target.style.backgroundColor = "#0c08d5";
 
       } else if(event.target.id == "copyInviteLinkDropdown") {
@@ -7597,8 +7601,6 @@ async function main() {
         document.getElementById("selectedWorkoutFocusArea").value = "";
         //Reset description value
         document.getElementById("selectedWorkoutDescription").value = "";
-        // Reset experience value
-        document.getElementById("selectedWorkoutExperience").innerText = "";
       }
       
       const firstElement = workoutList[0];
