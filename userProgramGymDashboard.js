@@ -82,6 +82,8 @@ async function main() {
   var prefillingProgram = true;
   var updatingCalendar = false;
   var exerciseCategories = new Set();
+  var primaryMuscles = new Set();
+  var secondaryMuscles = new Set();
   var responseData = "";
   sessionStorage.setItem("editExercise", "false");
   var updatedMedia = false;
@@ -760,7 +762,7 @@ async function main() {
       // Category
       const category = exerciseItem.querySelector("#exerciseLibraryCategory").innerText;
 
-      const categories = category.split(", ");
+      const categories = category.split(",");
 
       var categoryOptions = document.querySelectorAll(".categorytext");
 
@@ -776,10 +778,40 @@ async function main() {
       });
 
       //Primary muscle
-      document.getElementById("uploadPrimaryMuscle").value = exerciseItem.querySelector("#primaryExerciseLibraryMuscles").innerHTML;
+      const selectedPrimaryMuscle = exerciseItem.querySelector("#primaryExerciseLibraryMuscles").innerHTML;
+
+      const selectedPrimaryMuscles = selectedPrimaryMuscle.split(",");
+
+      var selectedPrimaryMuscleOptions = document.querySelectorAll(".primarymuscletext");
+
+      selectedPrimaryMuscles.forEach(function(primaryMuscle) {
+        for(var j = 0; j < selectedPrimaryMuscleOptions.length; j++) {
+          if(primaryMuscle == selectedPrimaryMuscleOptions[j].innerText) {
+            primaryMuscles.add(primaryMuscle);
+            selectedPrimaryMuscleOptions[j].classList.add("primarytextselected");
+            selectedPrimaryMuscleOptions[j].classList.remove("primarymuscletext");
+            break;
+          }
+        }
+      });
 
       //Seconday muscle
-      document.getElementById("uploadSecondaryMuscle").value = exerciseItem.querySelector("#secondaryExerciseLibraryMuscles").innerHTML;
+      const selectedSecondaryMuscle = exerciseItem.querySelector("#secondaryExerciseLibraryMuscles").innerHTML;
+
+      const selectedSecondaryMuscles = selectedSecondaryMuscle.split(",");
+
+      var selectedSecondaryMuscleOptions = document.querySelectorAll(".secondarymuscletext");
+
+      selectedSecondaryMuscles.forEach(function(secondaryMuscle) {
+        for(var j = 0; j < selectedSecondaryMuscleOptions.length; j++) {
+          if(secondaryMuscle == selectedSecondaryMuscleOptions[j].innerText) {
+            secondaryMuscles.add(secondaryMuscle);
+            selectedSecondaryMuscleOptions[j].classList.add("secondarytextselected");
+            selectedSecondaryMuscleOptions[j].classList.remove("secondarymuscletext");
+            break;
+          }
+        }
+      });
 
       //exercise notes
       var exerciseNotes = exerciseItem.querySelector('#libraryExerciseNotes').innerHTML;
@@ -3479,6 +3511,12 @@ async function main() {
           
           document.getElementById("categoryParent").style.borderColor = '#EE1D29';
 
+        } else if(primaryMuscles.size == 0) {
+
+          alert("Please select a primary muscle for the exercise.");
+          
+          document.getElementById("primaryParent").style.borderColor = '#EE1D29';
+
         } else if(videoLinkValue != "" && videoValid.includes("Invalid")) {
 
           //Highlight video input as error - videoValid
@@ -3490,8 +3528,9 @@ async function main() {
           //Submit exercise form
           submitExerciseUploadForm();
         } else {
+          console.log("Caught ehre")
           document.getElementById("uploadExerciseName").reportValidity();
-          document.getElementById("uploadPrimaryMuscle").reportValidity();
+          //document.getElementById("uploadPrimaryMuscle").reportValidity();
         }
 
 
@@ -3508,11 +3547,38 @@ async function main() {
         exerciseCategories.add(event.target.innerHTML);
         document.getElementById("categoryParent").style.borderColor = '#cacaca';
       
+      } else if(event.target.classList.contains("primarymuscletext")) {
+
+        event.target.classList.add("primarytextselected");
+        event.target.classList.remove("primarymuscletext");
+
+        primaryMuscles.add(event.target.innerHTML);
+        document.getElementById("primaryParent").style.borderColor = '#cacaca';
+      
+      } else if(event.target.classList.contains("secondarymuscletext")) {
+
+        event.target.classList.add("secondarytextselected");
+        event.target.classList.remove("secondarymuscletext");
+
+        secondaryMuscles.add(event.target.innerHTML);
+      
       } else if(event.target.classList.contains("categorytextselected")) {
         event.target.classList.remove("categorytextselected");
         event.target.classList.add("categorytext");
 
         exerciseCategories.delete(event.target.innerHTML);
+      
+      } else if(event.target.classList.contains("primarytextselected")) {
+        event.target.classList.remove("primarytextselected");
+        event.target.classList.add("primarymuscletext");
+
+        primaryMuscles.delete(event.target.innerHTML);
+      
+      } else if(event.target.classList.contains("secondarytextselected")) {
+        event.target.classList.remove("secondarytextselected");
+        event.target.classList.add("secondarymuscletext");
+
+        secondaryMuscles.delete(event.target.innerHTML);
       
       } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText" ||
       event.target.id == "createWorkoutTablet" || event.target.id == "createWorkoutImageTablet" || event.target.id == "createWorkoutTextTablet") {
@@ -4131,10 +4197,14 @@ async function main() {
       const categoriesString = Array.from(exerciseCategories).join(',');
 
       //Primary Muscles
-      const uploadPrimaryMuscles = document.getElementById("uploadPrimaryMuscle").value;
+      const uploadPrimaryMuscles = Array.from(primaryMuscles).join(',');
+      const uploadScientificMuscles = Array.from(primaryMuscles).map(muscle => reverseMuscleMapping[muscle]);
+
 
       //Secondary Muscles
-      const uploadSecondaryMuscles = document.getElementById("uploadSecondaryMuscle").value;
+      const uploadSecondaryMuscles = Array.from(secondaryMuscles).join(',');
+      const secondaryScientificMuscles = Array.from(secondaryMuscles).map(muscle => reverseMuscleMapping[muscle]);
+
 
       //Exercise Notes
       const exerciseNotes = document.querySelector(".editor").innerHTML;
@@ -4156,9 +4226,9 @@ async function main() {
       formData.append('exerciseName', exerciseUploadName);
       formData.append('categories', categoriesString);
       formData.append('primaryCasualMuscles', uploadPrimaryMuscles);
-      formData.append('primaryScientificMuscles', reverseMuscleMapping[uploadPrimaryMuscles]);
+      formData.append('primaryScientificMuscles', uploadScientificMuscles);
       formData.append('secondaryCasualMuscles', uploadSecondaryMuscles);
-      formData.append('secondaryScientificMuscles', reverseMuscleMapping[uploadSecondaryMuscles]);
+      formData.append('secondaryScientificMuscles', secondaryScientificMuscles);
       formData.append('gymID', document.getElementById("gymID").innerText);
       formData.append('gymName', document.getElementById("gymFullName").innerText);
       formData.append('tempID', tempID);
@@ -4520,6 +4590,18 @@ async function main() {
       const clickedCategories = document.querySelectorAll(".categorytextselected");
       for(var i = 0; i < clickedCategories.length; i++) {
         clickedCategories[i].click();
+      }
+
+      //Unclick all primary clicked
+      const clickedPMuscles = document.querySelectorAll(".primarytextselected");
+      for(var i = 0; i < clickedPMuscles.length; i++) {
+        clickedPMuscles[i].click();
+      }
+
+      //Unclick all secondary clicked
+      const clickedSMuscles = document.querySelectorAll(".secondarytextselected");
+      for(var i = 0; i < clickedSMuscles.length; i++) {
+        clickedSMuscles[i].click();
       }
 
       // Clear the file input field manually
