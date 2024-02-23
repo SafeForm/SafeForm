@@ -432,12 +432,13 @@ async function main() {
 
   function addPendingUsers() {
 
-    for(var i = 1; i <= 3; i++) {
+    for(var i = 1; i <= 20; i++) {
       if(localStorage.getItem(`newClientName-${i}`) != undefined) {
-
         var clientName = localStorage.getItem(`newClientName-${i}`);
-        if(checkIfNameInList(clientName)) {
+        var clientEmail = localStorage.getItem(`newClientEmail-${i}`);
+        if(checkIfEmailInList(clientEmail)) {
           localStorage.removeItem(`newClientName-${i}`);
+          localStorage.removeItem(`newClientEmail-${i}`);
         } else {
 
           var firstName = clientName.split(' ')[0];
@@ -504,17 +505,17 @@ async function main() {
 
   }
 
-  function checkIfNameInList(name) {
+  function checkIfEmailInList(email) {
 
     var clientList = document.querySelectorAll("#clientList .w-dyn-item");
-    var nameFound = false;
+    var emailFound = false;
     for(var i = 0; i < clientList.length; i++) {
-      if(clientList[i].querySelector("#userSummaryName").innerText == name) {
-        nameFound = true;
+      if(clientList[i].querySelector("#summaryUserEmail").innerText == email) {
+        emailFound = true;
         break;
       }
     }
-    return nameFound;
+    return emailFound;
 
   }
 
@@ -3230,10 +3231,20 @@ async function main() {
 
         var firstNameSignUp = document.getElementById("first-name-sign-up").value;
         var lastNameSignUp = document.getElementById("last-name-sign-up").value;
+        var emailSignUp = document.getElementById("email-sign-up").value;
+        
+        if(firstNameSignUp != "" && lastNameSignUp != "" && emailSignUp != "") {
 
-        if(firstNameSignUp != "" && lastNameSignUp != "") {
+          for(var i = 1; i <= 20; i++) {
+            if(localStorage.getItem(`newClientName-${i}`) == undefined) {
+              localStorage.setItem(`newClientName-${i}`, firstNameSignUp + " " + lastNameSignUp);
+              localStorage.setItem(`newClientEmail-${i}`, emailSignUp);
+              break;
+            }
+          }
 
           //Check if this place is taken
+          /*
           if(localStorage.getItem(`newClientName-1`) == undefined) {
             localStorage.setItem(`newClientName-1`, firstNameSignUp + " " + lastNameSignUp);
           } else if(localStorage.getItem(`newClientName-2`) == undefined) {
@@ -3245,6 +3256,7 @@ async function main() {
           } else if(localStorage.getItem(`newClientName-5`) == undefined) {
             localStorage.setItem(`newClientName-5`, firstNameSignUp + " " + lastNameSignUp);
           }
+          */
           
           event.target.style.display = "none";
           document.getElementById("copyInviteLink").style.display = "flex";
@@ -3265,6 +3277,7 @@ async function main() {
           clientRow.querySelector("#customWorkouts").innerText = "";
           clientRow.querySelector("#customWorkouts").style.backgroundColor = "white";
           clientRow.querySelector("#customProgram").innerText = "";
+          clientRow.querySelector("#customProgram").style.borderColor = "white";
           clientRow.querySelector("#customProgram").style.backgroundColor = "white";
           clientRow.querySelector("#status").innerText = "Pending";
           clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
@@ -3307,7 +3320,7 @@ async function main() {
           document.getElementById("copyInviteLink").href += `?pt=${ptGymID}`
 
         } else {
-          alert("Please fill in first & last name!");
+          alert("Please fill in all user details");
         }
 
       } else if(event.target.closest(".addset")) {
