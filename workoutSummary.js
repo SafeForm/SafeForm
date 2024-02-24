@@ -132,10 +132,13 @@ function main() {
       for(var i = 0; i < inputList.length; i++) {
         var inputGuideID = inputList[i].querySelector("#exerciseItemID").innerText;
 
-        const exerciseInformation = workoutInformation.filter(item => item.guideID.includes(inputGuideID));
+        const exerciseInformation = workoutInformation.filter(item => item.guideID && item.guideID.includes(inputGuideID));
 
         //Get number of sets for that exercise
-        const numberOfSets = exerciseInformation.length;
+        var numberOfSets = exerciseInformation.length;
+        if(numberOfSets == 0) {
+          numberOfSets = 3;
+        }
 
         //Get rest info for that exercise
         const restDiv = inputList[i].querySelector("#inputRest");
@@ -684,10 +687,15 @@ function main() {
           exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
           exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
           exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+          exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
+        } else {
+          exerciseList[i].querySelector("#setInput").innerText = 3;
+          exerciseList[i].querySelector("#repInput").innerText = 12;
+          exerciseList[i].querySelector("#restMinutes").innerText = 3;
+          exerciseList[i].querySelector("#restSeconds").innerText = 0;
         }
         
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
