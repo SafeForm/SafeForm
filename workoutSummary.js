@@ -106,11 +106,13 @@ function main() {
     if(fromProgram && member.loggedIn && currentProgram) {
 
       //Get load measurement unit
-      loadUnit = member.weightUnit;
+      if(member.weightunit) {
+        loadUnit = member.weightunit;
+      }
 
       if(!loadUnit && localStorage.getItem("weightUnit")) {
         loadUnit = localStorage.getItem("weightUnit");
-      }
+      } 
 
       //Iterate through existing exercise list and change names
       for(var i = 0; i < inputList.length; i++) {
