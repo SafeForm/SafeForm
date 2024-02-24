@@ -82,6 +82,7 @@ function main() {
       break;
     }
   }
+
   //Check if workouts exist
   if(workouts != null) {
 
@@ -100,6 +101,7 @@ function main() {
     const formattedDate = moment(currentDate).format('YYYY-MM-DD');
 
     var weekCount = 1;
+    
     for (const workout of workouts) {
       const startDate = moment(workout['start']);
 
