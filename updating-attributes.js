@@ -30,8 +30,8 @@ async function main() {
     }
 
     if(pathname == "/user-space/user-account-info") {
-      const weightUnit = member.weightUnit;
-
+      const weightUnit = member.weightunit;
+      console.log(weightUnit)
       if(weightUnit) {
         if(weightUnit == "kg") {
           document.getElementById("kgRadio").previousElementSibling.classList.add("w--redirected-checked");
@@ -264,6 +264,7 @@ async function main() {
 
   async function updateProfile(attributeKey, attributeValue, nextPage, userProfile=false) {
     MemberStack.onReady.then(async function(member) {  
+      
       if(attributeKey == "first-name") {
         await member.updateProfile({
           "first-name": attributeValue
@@ -284,9 +285,9 @@ async function main() {
         attributeKey = "phone";
       } else if (attributeKey == "weightUnit") {
         await member.updateProfile({
-          "weightUnit": attributeValue
+          "weightunit": attributeValue
         }, true);
-        member["weightUnit"] = attributeValue;
+        member["weightunit"] = attributeValue;
       } else if (attributeKey == "height") {
         await member.updateProfile({
           "height": attributeValue
