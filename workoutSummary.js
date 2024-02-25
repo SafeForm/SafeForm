@@ -103,6 +103,10 @@ function main() {
 
   MemberStack.onReady.then(async function(member) {  
 
+    if(member.memberPage) {
+      document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
+    }
+
     if(fromProgram && member.loggedIn && currentProgram) {
 
       //Get load measurement unit
