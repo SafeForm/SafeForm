@@ -12,7 +12,7 @@ if (document.readyState !== 'loading') {
   });
 }
 
-function mainFunc() {
+function main() {
 
   //Check if user is logged in
   MemberStack.onReady.then(function(member) {  
