@@ -1,13 +1,13 @@
-const devdevMode = localStorage.getItem("devMode");
+const devMode = localStorage.getItem("devMode");
 if (document.readyState !== 'loading') {
-  if(devdevMode != undefined) {
-    mainFunc();
+  if(devMode == undefined) {
+    main();
   }
   
 } else {
   document.addEventListener('DOMContentLoaded', function () {
-    if(devdevMode != undefined) {
-      mainFunc();
+    if(devMode == undefined) {
+      main();
     }
   });
 }
