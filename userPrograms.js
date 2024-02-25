@@ -46,6 +46,10 @@ function main() {
   }
 
   MemberStack.onReady.then(async function(member) {  
+
+    if(member.memberPage) {
+      document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
+    }
     const gymName = member["current-gym"];
     localStorage.setItem("fromGym", gymName);
 
