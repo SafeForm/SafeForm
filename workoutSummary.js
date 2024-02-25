@@ -744,6 +744,62 @@ function main() {
   //Set exercises in storage
   localStorage.setItem("workoutExercises", JSON.stringify(workoutExercises));
 
+  //Represent supersets where applicable
+  var workoutJSONObj = JSON.parse(document.getElementById("workoutJSON").innerText);
+  var exerciseCount = 0;
+  //Compare to listOfExercises > workoutExerciseItemID and remove if not in there
+  var listOfExercises = document.querySelectorAll("#listOfExercises .w-dyn-item");
+  var inputListExercises = document.querySelectorAll("#inputList .w-dyn-item");
+  workoutJSONObj.forEach((exercise, index) => {
+    
+    if(exercise.length > 1) {
+
+      // Create a new div with styling
+      const newDiv = document.createElement('div');
+      newDiv.classList.add('exercise-list-item-superset');
+      newDiv.style.borderRadius = '8px';
+      newDiv.style.marginBottom = '10px';
+      newDiv.style.border = '2px solid #0C08D5';
+      newDiv.style.display = "flex";
+      newDiv.style.flexDirection = "column";
+      newDiv.style.alignItems = "center";
+      const supersetText = document.createElement('div');
+      supersetText.innerText = "Superset";
+
+      //Add 'superset text to list'
+      listOfExercises[exerciseCount].parentNode.insertBefore(supersetText, listOfExercises[exerciseCount]);
+      //Add new div to list
+      listOfExercises[exerciseCount].parentNode.insertBefore(newDiv, listOfExercises[exerciseCount]);
+
+      //Cloning superset parent list
+      const inputNewDiv = newDiv.cloneNode(true);
+      const supersetTextInput = supersetText.cloneNode(true);
+
+      // Insert the new div before the superset parent
+      inputListExercises[exerciseCount].parentNode.insertBefore(supersetTextInput, inputListExercises[exerciseCount]);
+
+      inputListExercises[exerciseCount].parentNode.insertBefore(inputNewDiv, inputListExercises[exerciseCount]);
+        
+      exercise.forEach((item, index) => {
+        newDiv.appendChild(listOfExercises[exerciseCount]);
+        inputNewDiv.appendChild(inputListExercises[exerciseCount]);
+        
+        listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.border = "none";
+        listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.marginBottom = 0;
+        listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.marginTop = 0;
+
+        inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.border = "none";
+        inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.marginBottom = 0;
+        inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.marginTop = 0;
+        exerciseCount += 1;
+      })
+      
+    } else {
+      exerciseCount += 1;
+    }
+    
+  });
+
   function getTextboxValue(nodeList) {
     if (!nodeList || !nodeList.length) {
       return [];
