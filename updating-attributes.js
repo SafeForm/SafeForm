@@ -30,8 +30,10 @@ async function main() {
     }
 
     if(pathname == "/user-space/user-account-info") {
+      if(member.memberPage) {
+        document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
+      }
       const weightUnit = member.weightunit;
-      console.log(weightUnit)
       if(weightUnit) {
         if(weightUnit == "kg") {
           document.getElementById("kgRadio").previousElementSibling.classList.add("w--redirected-checked");
@@ -41,7 +43,6 @@ async function main() {
       } else {
         document.getElementById("kgRadio").previousElementSibling.classList.add("w--redirected-checked");
       }
-
     }
 
 
