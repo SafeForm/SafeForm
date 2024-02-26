@@ -759,7 +759,8 @@ function main() {
       newDiv.classList.add('exercise-list-item-superset');
       newDiv.style.borderRadius = '8px';
       newDiv.style.marginBottom = '10px';
-      newDiv.style.border = '2px solid #0C08D5';
+      newDiv.style.border = '2px solid #CBCBCB';
+      newDiv.style.backgroundColor = "white";
       newDiv.style.display = "flex";
       newDiv.style.flexDirection = "column";
       newDiv.style.alignItems = "center";
@@ -956,8 +957,6 @@ function main() {
 
     return maxQuantityAmount !== "" ? maxQuantityAmount : null; // Return the minimum loadAmount found or null if none is valid
   }
-
-
 
   async function showShareNavigation(shareData) {
     try {
