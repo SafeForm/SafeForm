@@ -52,6 +52,8 @@ function main() {
     if(member.loggedIn && !member.height) {
       // Check for member page every 2 seconds
       const intervalId = setInterval(checkMemberPage, 2000);
+    } else {
+      window.location.href = window.location.origin + "/post-sign-up-1-1";
     }
     
 
