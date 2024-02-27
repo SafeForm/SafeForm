@@ -135,8 +135,6 @@ signUpForm.addEventListener('click', async function(event) {
     
     sendClientToMake(client);
 
-    window.location.href = window.location.origin + "/post-sign-up-1-1";
-
   }
 });
 
