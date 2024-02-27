@@ -48,8 +48,12 @@ function main() {
       }
     }
 
-    // Check for member page every 2 seconds
-    const intervalId = setInterval(checkMemberPage, 2000);
+    //First check if they are a 1:1 client or not
+    if(member.loggedIn && !member.height) {
+      // Check for member page every 2 seconds
+      const intervalId = setInterval(checkMemberPage, 2000);
+    }
+    
 
   });
 }
