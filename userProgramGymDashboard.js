@@ -482,8 +482,11 @@ async function main() {
             clientRow.onclick = (event) => { 
               //Hide user summary list
               document.getElementById("userSummaryPage").style.display = "block";
-  
-              alert("Please wait for your client to fill out the form before making a program"); 
+              
+              if(event.target.id != "userOptionsLink") {
+                alert("Please wait for your client to fill out the form before making a program"); 
+              }
+
               document.getElementById("programPage").style.display = "none";
               document.getElementById("programBuilder").style.display = "none";
               document.getElementById("userDetailsPage").style.display = "none";
@@ -1016,7 +1019,6 @@ async function main() {
         if(!programWorkout) {
           workoutItem.previousSibling.querySelector(".supersetparent").style.display = "block";
         }
-       
       }
       
       const saveWorkout = document.getElementById("saveWorkout");
@@ -2096,7 +2098,7 @@ async function main() {
             //Hide user summary list
             document.getElementById("userSummaryPage").style.display = "none";
 
-            // //Show user details
+            // Show user details
             document.getElementById("userDetailsPage").style.display = "block";
 
             //Show user program
@@ -3031,7 +3033,6 @@ async function main() {
         }
       
       } else if(event.target.closest("#assignProgram")) {
-
         //Submit user details
         if(document.getElementById("userDetailsPage").style.display == "block") {
           saveUserDetails();
@@ -3528,7 +3529,6 @@ async function main() {
           //Submit exercise form
           submitExerciseUploadForm();
         } else {
-          console.log("Caught ehre")
           document.getElementById("uploadExerciseName").reportValidity();
           //document.getElementById("uploadPrimaryMuscle").reportValidity();
         }
@@ -3582,7 +3582,10 @@ async function main() {
       
       } else if (event.target.id == "createWorkout" || event.target.id == "createWorkoutImage" || event.target.id == "createWorkoutText" ||
       event.target.id == "createWorkoutTablet" || event.target.id == "createWorkoutImageTablet" || event.target.id == "createWorkoutTextTablet") {
-
+        //Hide save button
+        document.getElementById("saveWorkout").style.display = "none";
+        //Show place holder
+        document.getElementById("firstExercisePlaceholder").style.display = "block";
         //Change text for submit button
         const saveWorkout = document.getElementById("saveWorkout");
         saveWorkout.value = "Create Workout";
@@ -5359,8 +5362,6 @@ async function main() {
           }
 
           if(foundWorkout != null) {
-            console.log("Removing");
-            console.log(foundWorkout);
             foundWorkout.remove();
           }
 
@@ -5591,7 +5592,6 @@ async function main() {
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
       } 
-      console.log(userProgram);
 
       sendUserProgramToMake(userProgram, "create");
 
@@ -6707,6 +6707,7 @@ async function main() {
                 },},
                   { title: "Minutes Rest", field: "exerciseRestMinutes", visible: false },
                   { title: "Seconds Rest", field: "exerciseRestSeconds", visible: false },
+                  { title: "Workout ID", field: "workoutID", visible: false },
                   { title: "Unique Workout ID", field: "uniqueWorkoutID", visible: false },
                   { title: "Load", field: "loadAmount", hozAlign: "center" , clipboard:true, headerHozAlign:"center", width: 80, headerSort: false, resizable:false, editor:"input", cellEdited:function(cell){
              
@@ -6806,6 +6807,7 @@ async function main() {
             workoutNameIndex = {};
           }
           // Use the 'title' as the workoutName
+
           var workoutName = event.title;
 
           var workoutJSON = event.workoutJSON;
@@ -6850,6 +6852,7 @@ async function main() {
                         "id": workoutName + workoutNameIndex[workoutName],
                         "week": "Week " + week,
                         "workoutName": workoutName,
+                        "workoutID": event.extendedProps.workoutID,
                         "exercise": isSuperset ? `${exerciseCount}${exerciseLabel} - ${individualExercise.exerciseName}` : `${exerciseCount} - ${individualExercise.exerciseName}`,
                         "reps": exercise.reps,
                         "load": exercise.measure,
@@ -7391,7 +7394,7 @@ async function main() {
 
         //Navigate to selected page
         document.getElementById("dontSave").onclick = function() {
-
+          
           //Remove training plan header
           document.getElementById("trainingPlanName").style.display = "none";
 
@@ -7437,13 +7440,16 @@ async function main() {
           }
 
           document.getElementById(destinationScreen).style.display = "block";
+          console.log(destinationScreen)
 
           if(destinationScreen == "userInfoDetails") {
+            console.log("BYe")
             document.getElementById(destinationScreen).style.display = "flex";
             document.getElementById(destinationScreen).style.justifyContent = "center";
           }
           
           if(secondaryDestination != null) {
+            console.log("Hrllo")
             document.getElementById(secondaryDestination).style.display = "block";
           }
 
@@ -7585,7 +7591,6 @@ async function main() {
           document.getElementById("workoutSummaryPage").style.display = "none";
 
           document.getElementById(destinationScreen).style.display = "block";
-  
           //Clear session storage
           sessionStorage.setItem('editWorkout', 'false');
           sessionStorage.setItem('duplicateWorkout', 'false');
@@ -7600,6 +7605,10 @@ async function main() {
 
           if(secondaryDestination != null) {
             document.getElementById(secondaryDestination).style.display = "block";
+          }
+
+          if(destinationScreen != "userDetailsPage") {
+            document.getElementById("userDetailsPage").style.display = "none";
           }
         }
   
@@ -7684,7 +7693,6 @@ async function main() {
         document.getElementById("firstExercisePlaceholder").style.display = "block";
         //Hide submit button
         document.getElementById("saveWorkout").style.display = "none";
-    
         // Clear workout name
         document.getElementById("workoutName").value = "";
         // Reset duration value
