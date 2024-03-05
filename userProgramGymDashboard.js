@@ -482,8 +482,8 @@ async function main() {
             clientRow.onclick = (event) => { 
               //Hide user summary list
               document.getElementById("userSummaryPage").style.display = "block";
-              
-              if(event.target.id != "userOptionsLink") {
+
+              if(!event.target.closest("#userOptionsLink") && event.target.id != "copyInviteLinkDropdown") {
                 alert("Please wait for your client to fill out the form before making a program"); 
               }
 
@@ -3340,11 +3340,14 @@ async function main() {
           clientRow.onclick = (event) => { 
             //Hide user summary list
             document.getElementById("userSummaryPage").style.display = "block";
+            if(!event.target.closest("#userOptionsLink") && event.target.id != "copyInviteLinkDropdown") {
+              alert("Please wait for your client to fill out the form before making a program"); 
 
-            alert("Please wait for your client to fill out the form before making a program"); 
+            }
             document.getElementById("programPage").style.display = "none";
             document.getElementById("programBuilder").style.display = "none";
             document.getElementById("userDetailsPage").style.display = "none";
+
 
             
             return
@@ -7197,7 +7200,7 @@ async function main() {
 
       var listOfGuideIDs = [];
       var count = 0;
-
+      console.log(workout)
       //Copy guide template and replace all values with exercise from workout
       for(var i = 0; i < workout.exercises.length; i++) {
         var incrementIndex = false;
