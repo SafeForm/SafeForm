@@ -116,6 +116,8 @@ async function main() {
     }
   }
 
+  await addWorkoutDetails();
+
   //Check if any workouts have more than 5 (CMS limit) exercises and add them if not
   addMoreThanFiveWorkouts();
 
@@ -531,6 +533,58 @@ async function main() {
       }
     }
     return emailFound;
+
+  }
+
+  async function addWorkoutDetails() {
+
+    // Select all elements with class 'userSummary'
+    var workoutSummaries = document.querySelectorAll('#workoutSummaryList .workoutsummaryitem');
+
+    // Define a function to perform the loading and updating for a single workout summary
+    function loadAndUpdateWorkoutSummary(workoutSummary) {
+      var summaryWorkoutSlug = $(workoutSummary).find('#workoutLink').prop("href");
+
+      var summaryWorkoutNameField = $(workoutSummary).find('#workoutSummaryName');
+      var summaryWorkoutDescriptionField = $(workoutSummary).find('#workoutSummaryDescription');
+      var summaryWorkoutJSONField = $(workoutSummary).find('#workoutJSON');
+
+      if (summaryWorkoutSlug) {
+
+        // Use $.get to fetch the content of #fullEventData from the specified URL
+        var getRequest = $.get(summaryWorkoutSlug, function (data, status) {
+          if (status === 'success') {
+            // Find #fullEventData in the fetched content and update the field
+            var workoutName = $(data).find('#workoutHeaderName').html();
+            var workoutDescription = $(data).find('#workoutDescription').html();
+            //var workoutJSON = $(data).find('div').prevObject[39].id;
+            var workoutJSON = $(data).find('#workoutJSON').html();
+
+            summaryWorkoutNameField.html(workoutName);
+            summaryWorkoutDescriptionField.html(workoutDescription);
+            summaryWorkoutJSONField.html(workoutJSON);
+
+          } else {
+            alert('Error loading workout data for ' + summaryWorkoutSlug);
+          }
+        });
+      
+        return getRequest;
+      } else {
+        // Return a resolved promise
+        return $.when();
+      }
+    }
+    
+  
+    // Create an array to store the load requests for each user summary
+    var loadRequests = [];
+    
+    // Iterate over each user summary and initiate the loading process
+    $.each(workoutSummaries, function (index, workoutSummary) {
+      var loadRequest = loadAndUpdateWorkoutSummary(workoutSummary);
+      loadRequests.push(loadRequest);
+    });
 
   }
 
