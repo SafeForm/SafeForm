@@ -2144,10 +2144,6 @@ async function main() {
         }
         
       }
-
-      // if(event.target.closest(".exercise-details-parent")) {
-      //   event.target.closest(".exercise-details-parent").querySelector("#removeExercise").style.display = "block";
-      // }
       
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') || event.target.closest(".add-event-button")) ) {
 
@@ -2210,10 +2206,6 @@ async function main() {
           event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "none";
         }
       }
-
-      // if(event.target.closest(".exercise-details-parent")) {
-      //   event.target.closest(".exercise-details-parent").querySelector("#removeExercise").style.display = "none";
-      // }
 
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') || event.target.closest(".add-event-button"))) {
         var hoveredRow = event.target.closest('[role="row"]');
@@ -2365,6 +2357,7 @@ async function main() {
       // Calculate number of weeks between start of first event and end of last event
       var numWeeks = Math.ceil((events[events.length-1].start.getTime() - events[0].start.getTime()) / (1000 * 60 * 60 * 24 * 7));
 
+      programWorkoutsArr = programWorkoutsArr.reverse();
       program["workouts"] = programWorkoutsArr;
 
       program["eventData"] = JSON.stringify(events);
@@ -3295,21 +3288,6 @@ async function main() {
               break;
             }
           }
-
-          //Check if this place is taken
-          /*
-          if(localStorage.getItem(`newClientName-1`) == undefined) {
-            localStorage.setItem(`newClientName-1`, firstNameSignUp + " " + lastNameSignUp);
-          } else if(localStorage.getItem(`newClientName-2`) == undefined) {
-            localStorage.setItem(`newClientName-2`, firstNameSignUp + " " + lastNameSignUp);
-          } else if(localStorage.getItem(`newClientName-3`) == undefined) {
-            localStorage.setItem(`newClientName-3`, firstNameSignUp + " " + lastNameSignUp);
-          } else if(localStorage.getItem(`newClientName-4`) == undefined) {
-            localStorage.setItem(`newClientName-4`, firstNameSignUp + " " + lastNameSignUp);
-          } else if(localStorage.getItem(`newClientName-5`) == undefined) {
-            localStorage.setItem(`newClientName-5`, firstNameSignUp + " " + lastNameSignUp);
-          }
-          */
           
           event.target.style.display = "none";
           document.getElementById("copyInviteLink").style.display = "flex";
@@ -5422,7 +5400,7 @@ async function main() {
         throw new Error("Something went wrong")
       })
       .then((data) => {
-
+        individualGuide
       })
       .catch((error) => {
         alert("Could not delete workout - as it exists in a current program");
