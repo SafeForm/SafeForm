@@ -118,6 +118,8 @@ async function main() {
 
   await addWorkoutDetails();
 
+  addCustomWorkouts();
+
   //Check if any workouts have more than 5 (CMS limit) exercises and add them if not
   addMoreThanFiveWorkouts();
 
@@ -533,6 +535,180 @@ async function main() {
       }
     }
     return emailFound;
+
+  }
+
+  function addCustomWorkouts() {
+
+    //List all custom exercises
+    const customGuides = document.getElementById("exerciseLibraryList").children;
+
+    for(var i = 0; i < customGuides.length; i++) {
+      var exerciseUploadName = customGuides[i].querySelector("#exerciseLibraryName").innerText;
+      var guideID = customGuides[i].querySelector("#exerciseLibraryID").innerText;
+      var uploadPrimaryMuscles = customGuides[i].querySelector("#primaryExerciseLibraryMuscles").innerText;
+      var uploadScientificMuscles = customGuides[i].querySelector("#primaryScientificExerciseLibraryMuscles").innerText;
+      var videoThumbnail = customGuides[i].querySelector(".exerciseThumbnail").src;
+      var muscleImage = customGuides[i].querySelector("#customExerciseMuscleImage").innerText;
+
+      var formData = new FormData();
+      formData.append('exerciseName', exerciseUploadName);
+      formData.append('primaryCasualMuscles', uploadPrimaryMuscles);
+      formData.append('primaryScientificMuscles', uploadScientificMuscles);
+      formData.append('guideID', guideID);
+      formData.append('videoThumbnail', videoThumbnail);
+      formData.append('gymName', document.getElementById("gymFullName").innerText);
+      formData.append('muscleImage', muscleImage);
+      cloneAndFillExerciseList(formData, true);
+
+    }
+    
+  }
+
+  async function resetFilters(onlyCheckboxes=false, addedItem=null) {
+    window.fsAttributes = window.fsAttributes || [];
+    window.fsAttributes.push([
+      'cmsfilter',
+      async (filterInstances) => {
+        // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
+        document.getElementById("exerciseSearch").value = "";
+
+        let workoutsSummary;
+        let workoutsBuilder;
+        let userSummary;
+
+        // Firstly check if there is only one list:
+        if (filterInstances.length == 1) {
+          workoutsSummary = filterInstances[0];
+        } else {
+          // Get muscle related filters
+          const [programModalFilters, workoutModalFilters, tempWorkoutsSummary, programSummary, tempWorkoutsBuilder, tempUserSummary] = filterInstances;
+          // Use tempWorkoutsSummary or assign it to workoutsSummary based on your requirement
+          workoutsSummary = tempWorkoutsSummary;
+          workoutsBuilder = tempWorkoutsBuilder;
+          userSummary = tempUserSummary;
+        }
+
+        if(addedItem && workoutsBuilder) {
+          workoutsBuilder.listInstance.addItems([addedItem])
+          workoutsBuilder.listInstance.renderItems(true);
+        }
+        
+        //workoutsBuilder.listInstance.addItems(document.querySelectorAll("#individualGuide"));
+        if(filterInstances.length > 5) { 
+          !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
+          await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
+          if(userSummary) {
+            await userSummary.resetFilters(filterKeys=["clientproduct"], null);
+          }
+        } else if(workoutsSummary) {
+          !onlyCheckboxes ? await workoutsSummary.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
+          await workoutsSummary.resetFilters(filterKeys=["musclenamefilter"], null);
+        } else if(userSummary) {
+          await userSummary.resetFilters(filterKeys=["clientproduct"], null);
+        }
+
+        //Clear focus area filters:
+        document.getElementById("allFilter").click();
+        document.getElementById("allFilter").focus();
+
+      },
+    ]);
+  }
+
+
+  function cloneAndFillExerciseList(formData, customGuide=false) {
+    // Clone the first element
+    const firstListItem = document.querySelector("#individualGuide:not([addedToList]").parentElement;
+    const clonedElement = firstListItem.cloneNode(true);
+    const guideListItem = clonedElement.querySelector("#individualGuide");
+    //Add onclick
+    guideListItem.onclick = (event) => {
+
+      // Make sure when the info button is clicked, the exercise isn't added to the list
+      if (event.target.id !== "guideLinkInfo" && event.target.id !== "guideLinkInfoImage") {
+        var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
+
+        // Remove info button
+        copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
+
+        // Copy thumbnail and svg person into a separate div
+        var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+        var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+
+        // Change ID of exercise name
+        copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+
+        // Ensure copy border colour is BF blue
+        copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+
+        addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+
+        createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideListItem);
+      }
+    };
+  
+    // Update fields with form data
+    clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
+    clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
+    
+    // Clear and update casualMuscle field
+    const casualMuscleFields = clonedElement.querySelectorAll('#casualMuscle');
+    casualMuscleFields.forEach((field, index) => {
+      if (index === 0) {
+        field.innerText = formData.get('primaryCasualMuscles');
+      } else {
+        field.remove(); // Remove the extra elements
+      }
+    });
+
+    // Clear and update scientificPrimaryMuscle field
+    const scientificPrimaryMuscleFields = clonedElement.querySelectorAll('#scientificPrimaryMuscle');
+    scientificPrimaryMuscleFields.forEach((field, index) => {
+      if (index === 0) {
+        field.innerText = formData.get('primaryScientificMuscles');
+      } else {
+        field.remove(); // Remove the extra elements
+      }
+    });
+    
+    // Clear gym fields and leave only one
+    const gymFields = clonedElement.querySelectorAll('.text-block-52');
+    gymFields.forEach((field, index) => {
+      if (index === 0) {
+        field.innerText = formData.get('gymName');
+      } else {
+        field.remove(); 
+      }
+    });
+
+    //Set muscle image
+    if(customGuide) {
+      clonedElement.querySelector('#exerciseMuscleImage').src = formData.get("muscleImage");
+    } else {
+      const newMuscleValue = formData.get('primaryScientificMuscles').toLowerCase().replace(/ /g, '-');
+      clonedElement.querySelector('#exerciseMuscleImage').src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${newMuscleValue}.webp`; 
+    }
+
+
+    // Clear image and experience 
+    if(customGuide) {
+      clonedElement.querySelector('#exerciseThumbnail img').src = formData.get("videoThumbnail"); // Clear image source
+    } else {
+      clonedElement.querySelector('#exerciseThumbnail img').src = ''; // Clear image source
+    }
+  
+
+    clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
+    clonedElement.querySelector('#exerciseName').innerText = ''; 
+
+    //Update temp id
+    clonedElement.querySelector('#exerciseListTempID').innerText = formData.get("tempID");
+
+    resetFilters(false, clonedElement);
+  
+    // Append the cloned element to the document or do whatever is needed with it
+    document.getElementById("guideList").insertBefore(clonedElement, firstListItem);
 
   }
 
@@ -4447,91 +4623,6 @@ async function main() {
       }
     }
 
-    function cloneAndFillExerciseList(formData) {
-      // Clone the first element
-      const firstListItem = document.querySelector("#individualGuide:not([addedToList]").parentElement;
-      const clonedElement = firstListItem.cloneNode(true);
-      const guideListItem = clonedElement.querySelector("#individualGuide");
-      //Add onclick
-      guideListItem.onclick = (event) => {
-
-        // Make sure when the info button is clicked, the exercise isn't added to the list
-        if (event.target.id !== "guideLinkInfo" && event.target.id !== "guideLinkInfoImage") {
-          var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
-
-          // Remove info button
-          copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
-  
-          // Copy thumbnail and svg person into a separate div
-          var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-          var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-  
-          // Change ID of exercise name
-          copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
-  
-          // Ensure copy border colour is BF blue
-          copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
-  
-          addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
-  
-          createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideListItem);
-        }
-      };
-    
-      // Update fields with form data
-      clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
-      clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
-      
-      // Clear and update casualMuscle field
-      const casualMuscleFields = clonedElement.querySelectorAll('#casualMuscle');
-      casualMuscleFields.forEach((field, index) => {
-        if (index === 0) {
-          field.innerText = formData.get('primaryCasualMuscles');
-        } else {
-          field.remove(); // Remove the extra elements
-        }
-      });
-
-      // Clear and update scientificPrimaryMuscle field
-      const scientificPrimaryMuscleFields = clonedElement.querySelectorAll('#scientificPrimaryMuscle');
-      scientificPrimaryMuscleFields.forEach((field, index) => {
-        if (index === 0) {
-          field.innerText = formData.get('primaryScientificMuscles');
-        } else {
-          field.remove(); // Remove the extra elements
-        }
-      });
-    
-      // Clear gym fields and leave only one
-      const gymFields = clonedElement.querySelectorAll('.text-block-52');
-      gymFields.forEach((field, index) => {
-        if (index === 0) {
-          field.innerText = formData.get('gymName');
-        } else {
-          field.remove(); 
-        }
-      });
-
-      //Set muscle image
-      const newMuscleValue = formData.get('primaryScientificMuscles').toLowerCase().replace(/ /g, '-');
-      clonedElement.querySelector('#exerciseMuscleImage').src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${newMuscleValue}.webp`; 
-
-      // Clear image and experience 
-      clonedElement.querySelector('#exerciseThumbnail img').src = ''; // Clear image source
-      clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
-      clonedElement.querySelector('#exerciseName').innerText = ''; 
-
-      //Update temp id
-      clonedElement.querySelector('#exerciseListTempID').innerText = formData.get("tempID");
-
-      resetFilters(false, clonedElement);
-    
-      // Append the cloned element to the document or do whatever is needed with it
-      document.getElementById("guideList").insertBefore(clonedElement, firstListItem);
-
-    }
-    
-
     function cloneAndFillExerciseLibrary(formData) {
 
       const firstListItem = document.querySelector(".exerciseguideitem");
@@ -5017,57 +5108,6 @@ async function main() {
         }
       }
 
-    }
-    
-    async function resetFilters(onlyCheckboxes=false, addedItem=null) {
-      window.fsAttributes = window.fsAttributes || [];
-      window.fsAttributes.push([
-        'cmsfilter',
-        async (filterInstances) => {
-          // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
-          document.getElementById("exerciseSearch").value = "";
-
-          let workoutsSummary;
-          let workoutsBuilder;
-          let userSummary;
-
-          // Firstly check if there is only one list:
-          if (filterInstances.length == 1) {
-            workoutsSummary = filterInstances[0];
-          } else {
-            // Get muscle related filters
-            const [programModalFilters, workoutModalFilters, tempWorkoutsSummary, programSummary, tempWorkoutsBuilder, tempUserSummary] = filterInstances;
-            // Use tempWorkoutsSummary or assign it to workoutsSummary based on your requirement
-            workoutsSummary = tempWorkoutsSummary;
-            workoutsBuilder = tempWorkoutsBuilder;
-            userSummary = tempUserSummary;
-          }
-
-          if(addedItem && workoutsBuilder) {
-            workoutsBuilder.listInstance.addItems([addedItem])
-            workoutsBuilder.listInstance.renderItems(true);
-          }
-          
-          //workoutsBuilder.listInstance.addItems(document.querySelectorAll("#individualGuide"));
-          if(filterInstances.length > 5) { 
-            !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
-            await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
-            if(userSummary) {
-              await userSummary.resetFilters(filterKeys=["clientproduct"], null);
-            }
-          } else if(workoutsSummary) {
-            !onlyCheckboxes ? await workoutsSummary.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
-            await workoutsSummary.resetFilters(filterKeys=["musclenamefilter"], null);
-          } else if(userSummary) {
-            await userSummary.resetFilters(filterKeys=["clientproduct"], null);
-          }
-
-          //Clear focus area filters:
-          document.getElementById("allFilter").click();
-          document.getElementById("allFilter").focus();
-
-        },
-      ]);
     }
 
     function checkCalendarSheetButtons(destination) {
