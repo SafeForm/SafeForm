@@ -550,6 +550,9 @@ async function main() {
       var uploadScientificMuscles = customGuides[i].querySelector("#primaryScientificExerciseLibraryMuscles").innerText;
       var videoThumbnail = customGuides[i].querySelector(".exerciseThumbnail").src;
       var muscleImage = customGuides[i].querySelector("#customExerciseMuscleImage").innerText;
+      var guideLink = customGuides[i].querySelector("#libraryVideoSlug").innerText;
+      
+
 
       var formData = new FormData();
       formData.append('exerciseName', exerciseUploadName);
@@ -559,6 +562,7 @@ async function main() {
       formData.append('videoThumbnail', videoThumbnail);
       formData.append('gymName', document.getElementById("gymFullName").innerText);
       formData.append('muscleImage', muscleImage);
+      formData.append('guideLink', guideLink)
       cloneAndFillExerciseList(formData, true);
 
     }
@@ -639,6 +643,8 @@ async function main() {
         // Change ID of exercise name
         copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
 
+        copyOfGuide.querySelector("#itemID").innerText = formData.get('guideID');
+
         // Ensure copy border colour is BF blue
         copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
 
@@ -651,6 +657,7 @@ async function main() {
     // Update fields with form data
     clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
     clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
+    clonedElement.querySelector('#itemID').innerText = formData.get('guideID');
     
     // Clear and update casualMuscle field
     const casualMuscleFields = clonedElement.querySelectorAll('#casualMuscle');
@@ -682,19 +689,24 @@ async function main() {
       }
     });
 
+
+
     //Set muscle image
     if(customGuide) {
+      //Set muscle image
       clonedElement.querySelector('#exerciseMuscleImage').src = formData.get("muscleImage");
+
+      //Set thumbnail
+      clonedElement.querySelector('#exerciseThumbnail img').src = formData.get("videoThumbnail"); 
+
+      //Set slug
+      clonedElement.querySelector('#guideLinkInfo').href = `/guides/${formData.get("guideLink")}`; 
+
+
     } else {
       const newMuscleValue = formData.get('primaryScientificMuscles').toLowerCase().replace(/ /g, '-');
       clonedElement.querySelector('#exerciseMuscleImage').src = `https://d3l49f0ei2ot3v.cloudfront.net/WEBPs/${newMuscleValue}.webp`; 
-    }
 
-
-    // Clear image and experience 
-    if(customGuide) {
-      clonedElement.querySelector('#exerciseThumbnail img').src = formData.get("videoThumbnail"); // Clear image source
-    } else {
       clonedElement.querySelector('#exerciseThumbnail img').src = ''; // Clear image source
     }
   
@@ -7272,7 +7284,7 @@ async function main() {
 
       var listOfGuideIDs = [];
       var count = 0;
-      console.log(workout)
+
       //Copy guide template and replace all values with exercise from workout
       for(var i = 0; i < workout.exercises.length; i++) {
         var incrementIndex = false;
@@ -7515,16 +7527,15 @@ async function main() {
           }
 
           document.getElementById(destinationScreen).style.display = "block";
-          console.log(destinationScreen)
 
           if(destinationScreen == "userInfoDetails") {
-            console.log("BYe")
+
             document.getElementById(destinationScreen).style.display = "flex";
             document.getElementById(destinationScreen).style.justifyContent = "center";
           }
           
           if(secondaryDestination != null) {
-            console.log("Hrllo")
+
             document.getElementById(secondaryDestination).style.display = "block";
           }
 
