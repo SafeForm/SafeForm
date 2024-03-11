@@ -398,6 +398,9 @@ async function main() {
       var width = img.width;
       var height = img.height;
 
+      console.log("Width: ", width);
+      console.log("Height: ", width);
+
       // Check the condition after the image has loaded
       if (height > width) {
         thumbnail.style.borderRadius = 0;
@@ -1180,6 +1183,7 @@ async function main() {
       const removeFullExercise = workoutItem.querySelector("#removeFullExercise").cloneNode(true);
       workoutItem.querySelector("#removeFullExercise").remove();
       workoutItem.querySelector("#exerciseInfoDiv").firstChild.after(removeFullExercise);
+      workoutItem.querySelector("#exerciseInfoDiv").style.flexDirection = "row";
 
       //Add sets and fill in set rep info
       if(jsonExercises != null) {
@@ -1233,9 +1237,16 @@ async function main() {
       }
   
       //Make svg person smaller
-      svgPerson[0].style.width = "80%";
-      thumbnail[0].style.width = "100%";
-      thumbnail[0].style.height = "100%";
+      svgPerson[0].firstChild.style.width = "80px";
+      svgPerson[0].firstChild.style.height = "80px";
+      svgPerson[0].firstChild.querySelector("#exerciseMuscleImage").style.width = "80px";
+      svgPerson[0].firstChild.querySelector("#exerciseMuscleImage").style.height = "80px";
+      svgPerson[0].style.width = "80px";
+      svgPerson[0].style.height = "80px";
+      thumbnail[0].firstChild.style.width = "80px";
+      thumbnail[0].firstChild.style.height = "80px";
+      thumbnail[0].style.width = "80px";
+      thumbnail[0].style.height = "80px";
     
       //Add thumbnail and svg person to hover div
       $(workoutItem).find("#thumbnailAndMuscleDiv").append(thumbnail);
@@ -2751,7 +2762,8 @@ async function main() {
         //Make sure they have selected a duration and focus area
         if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
           document.getElementById("saveWorkout").value = "Please wait...";
-          sendWorkoutToMake(workout);      
+          console.log(workout)
+          //sendWorkoutToMake(workout);      
         } else {
           if(workout["length"] == "Duration") {
             document.getElementById("estTimeDiv").style.borderRadius = "8px";
