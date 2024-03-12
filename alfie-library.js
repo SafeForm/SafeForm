@@ -30,6 +30,9 @@ function main() {
   const tapMuscleText = document.getElementById("tapMuscleText");
   const backDiv = document.getElementById("backDiv");
   const backButton = document.getElementById("clearText");
+  
+  document.getElementById("backLink").href = document.getElementById("backLink").href.replace(".app/", ".app/alfiegetshard-exerciselibrary")
+
 
   url = new URL(window.location.href);
   var singleCablePressed = false;
