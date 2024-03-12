@@ -554,8 +554,7 @@ async function main() {
       var videoThumbnail = customGuides[i].querySelector(".exerciseThumbnail").src;
       var muscleImage = customGuides[i].querySelector("#customExerciseMuscleImage").innerText;
       var guideLink = customGuides[i].querySelector("#libraryVideoSlug").innerText;
-      
-
+      var exeriseCategory = customGuides[i].querySelector("#exerciseLibraryCategory").innerText;
 
       var formData = new FormData();
       formData.append('exerciseName', exerciseUploadName);
@@ -565,7 +564,9 @@ async function main() {
       formData.append('videoThumbnail', videoThumbnail);
       formData.append('gymName', document.getElementById("gymFullName").innerText);
       formData.append('muscleImage', muscleImage);
-      formData.append('guideLink', guideLink)
+      formData.append('guideLink', guideLink);
+      formData.append('exeriseCategory', exeriseCategory);
+
       cloneAndFillExerciseList(formData, true);
 
     }
@@ -613,6 +614,9 @@ async function main() {
           await workoutsSummary.resetFilters(filterKeys=["musclenamefilter"], null);
         } else if(userSummary) {
           await userSummary.resetFilters(filterKeys=["clientproduct"], null);
+        } else {
+          var workoutBuilder = filterInstances[0];
+          await workoutBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
         }
 
         //Clear focus area filters:
@@ -661,6 +665,7 @@ async function main() {
     clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
     clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
     clonedElement.querySelector('#itemID').innerText = formData.get('guideID');
+    clonedElement.querySelector('#loadingMechanism').innerText = formData.get('exeriseCategory');
     
     // Clear and update casualMuscle field
     const casualMuscleFields = clonedElement.querySelectorAll('#casualMuscle');
@@ -5301,11 +5306,26 @@ async function main() {
 
           //Workout summary page
           var filterInstance = res[1].filtersData;
-          var filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
+          var filtersTotalSize = 0;
+          if(filterInstance.length == 2) {
+            filtersTotalSize = filterInstance[1].values.size ;
+          } else if(filterInstance.length > 2) {
+            filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
+          }
 
-          //Workout builder page
-          var filterInstance1 = res[2].filtersData;
-          var filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
+
+          if(res[2]) {
+            //Workout builder page
+            var filterInstance1 = res[2].filtersData;
+            var filtersTotalSize1 = 0;
+            if(filterInstance1.length == 2) {
+              filtersTotalSize1 = filterInstance1[1].values.size ;
+            } else if(filterInstance1.length > 2) {
+              filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
+            }
+          }
+
+
           return [filtersTotalSize, filtersTotalSize1];
         }
 
