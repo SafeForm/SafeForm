@@ -2762,8 +2762,7 @@ async function main() {
         //Make sure they have selected a duration and focus area
         if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
           document.getElementById("saveWorkout").value = "Please wait...";
-          console.log(workout)
-          //sendWorkoutToMake(workout);      
+          sendWorkoutToMake(workout);      
         } else {
           if(workout["length"] == "Duration") {
             document.getElementById("estTimeDiv").style.borderRadius = "8px";
