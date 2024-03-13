@@ -4040,6 +4040,9 @@ async function main() {
         document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
         resetGeneralFilters();
         
+      } else if(event.target.id == "clearCustomExerciseFilters") {
+        document.getElementById("exerciseSearchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
+        resetGeneralFilters();
       } else {
         
         //Close filter menu:
@@ -4222,8 +4225,7 @@ async function main() {
   
       } else if (event.target.type) {
         checkCheckboxFilters().then(res => { 
-
-          if(res && res.length == 6) {
+          if(res && res.length == 7) {
             //Check if the amount of active filters is more than 0
             if (res[0] > 0) {
               document.getElementById("filterOnModal").style.display = "block";
@@ -4264,20 +4266,27 @@ async function main() {
               document.getElementById("clientFilterImage").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
             }
           } else {
-            if(res && res[0] > 0) {
+            if(res && res[1] && res[1] > 1) {
               document.getElementById("filterOn").style.display = "block";
-            } else {
-              document.getElementById("clearExperienceExerciseFilters").style.display = "none";
-              document.getElementById("filterOn").style.display = "none";
-            }
-
-            if (res && res[1] > 0) {
+              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
               document.getElementById("clearExperienceExerciseFilters").style.display = "block";
               document.getElementById("filterOnIpad").style.display = "block";
               document.getElementById("reset-filters-ipad").style.display = "block";
             } else {
+              document.getElementById("clearExperienceExerciseFilters").style.display = "none";
+              document.getElementById("filterOn").style.display = "none";
+              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
               document.getElementById("filterOnIpad").style.display = "none";
               document.getElementById("reset-filters-ipad").style.display = "none";
+            }
+
+            if (res && res[0] > 0) {
+              document.getElementById("exerciseSearchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
+              document.getElementById("clearCustomExerciseFilters").style.display = "block";
+              document.getElementById("exerciseFilterBodyIpad").style.display = "block";
+            } else {
+              document.getElementById("exerciseSearchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
+              document.getElementById("exerciseFilterBodyIpad").style.display = "none";
             }
           }
           
@@ -5276,7 +5285,7 @@ async function main() {
       ])
       return window.fsAttributes.cmsfilter.loading.then(res => {
 
-        if(res.length == 6) {
+        if(res.length == 7) {
           //Workouts modal form
           var filterInstance = res[0].filtersData;
           var filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
@@ -5301,10 +5310,15 @@ async function main() {
           var filterInstance5 = res[5].filtersData;
           var filtersTotalSize5 = filterInstance5[1].values.size + filterInstance5[2].values.size;
 
-          return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4, filtersTotalSize5];
+          var filterInstance6 = res[6].filtersData;
+          var filtersTotalSize6 = filterInstance6[1].values.size;
+
+          return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4, filtersTotalSize5, filtersTotalSize6];
+
         } else if(res[1]) {
 
-          //Workout summary page
+          console.log(res[1])
+          //Exercise library
           var filterInstance = res[1].filtersData;
           var filtersTotalSize = 0;
           if(filterInstance.length == 2) {
@@ -5313,15 +5327,14 @@ async function main() {
             filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
           }
 
-
-          if(res[2]) {
+          if(res[0]) {
             //Workout builder page
-            var filterInstance1 = res[2].filtersData;
+            var filterInstance1 = res[0].filtersData;
             var filtersTotalSize1 = 0;
             if(filterInstance1.length == 2) {
               filtersTotalSize1 = filterInstance1[1].values.size ;
             } else if(filterInstance1.length > 2) {
-              filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
+              filtersTotalSize1 = filterInstance1[2].values.size + filterInstance1[3].values.size;
             }
           }
 
