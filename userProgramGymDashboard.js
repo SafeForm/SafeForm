@@ -2791,6 +2791,10 @@ async function main() {
         document.getElementById("searchFilterImg").click();
       }
 
+      if(!event.target.closest(".search-filters-parent") && document.getElementById("exerciseSearchFilterImg").classList.contains("filtericonclicked")) {
+        document.getElementById("exerciseSearchFilterImg").click();
+      }
+
       if(!event.target.closest(".client-filters")) {
         var clientFilterArrow = document.querySelector(".clientfilterarrow");
         var rotatedValue = clientFilterArrow.style.transform.match(/rotateX\(([^)]+)\)/);
@@ -3213,7 +3217,7 @@ async function main() {
         document.getElementById("userPage").click();
 
       
-      } else if(event.target.id == "searchFilterImg") { 
+      } else if(event.target.id == "searchFilterImg" || event.target.id == "exerciseSearchFilterImg") { 
 
         //Check if clicked or not
         if(event.target.classList.contains("filtericon")) {
@@ -4225,28 +4229,39 @@ async function main() {
   
       } else if (event.target.type) {
         checkCheckboxFilters().then(res => { 
-          if(res && res.length == 7) {
-            //Check if the amount of active filters is more than 0
-            if (res[0] > 0) {
+
+          if (res["workoutFormModal"] !== undefined) {
+
+            if (res["workoutFormModal"] > 0) {
               document.getElementById("filterOnModal").style.display = "block";
             } else {
               document.getElementById("filterOnModal").style.display = "none";
             }
+          }
 
-            if (res[1] > 0) {
+          if (res["programFormModal"] !== undefined) {
+
+            if (res["programFormModal"] > 0) {
               document.getElementById("filterOnProgramModal").style.display = "block";
             } else {
               document.getElementById("filterOnProgramModal").style.display = "none";
             }
+          }
+              
+          if (res["workoutSummaryFilters"] !== undefined) {
 
-            if(res[2] > 0) {
+            if(res["workoutSummaryFilters"] > 0) {
               document.getElementById("filterOn").style.display = "block";
             } else {
               document.getElementById("clearExperienceExerciseFilters").style.display = "none";
               document.getElementById("filterOn").style.display = "none";
             }
+          } 
 
-            if (res[4] > 0) {
+          if (res["programSummaryForm"] !== undefined) {}
+          
+          if (res["workoutBuilderForm"] !== undefined) {
+            if (res["workoutBuilderForm"] > 0) {
               document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
               document.getElementById("clearExperienceExerciseFilters").style.display = "block";
               document.getElementById("filterOnIpad").style.display = "block";
@@ -4257,7 +4272,10 @@ async function main() {
               document.getElementById("reset-filters-ipad").style.display = "none";
             }
 
-            if (res[5] > 0) {
+          } 
+          
+          if (res["userSummaryForm"] !== undefined) {
+            if (res["userSummaryForm"] > 0) {
               document.getElementById("clearClientFilters").style.display = "block";
               document.getElementById("clientFilterImage").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
 
@@ -4265,22 +4283,12 @@ async function main() {
               document.getElementById("clearClientFilters").style.display = "none";
               document.getElementById("clientFilterImage").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
             }
-          } else {
-            if(res && res[1] && res[1] > 1) {
-              document.getElementById("filterOn").style.display = "block";
-              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
-              document.getElementById("clearExperienceExerciseFilters").style.display = "block";
-              document.getElementById("filterOnIpad").style.display = "block";
-              document.getElementById("reset-filters-ipad").style.display = "block";
-            } else {
-              document.getElementById("clearExperienceExerciseFilters").style.display = "none";
-              document.getElementById("filterOn").style.display = "none";
-              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
-              document.getElementById("filterOnIpad").style.display = "none";
-              document.getElementById("reset-filters-ipad").style.display = "none";
-            }
 
-            if (res && res[0] > 0) {
+          } 
+          
+          if (res["exerciseLibraryForm"] !== undefined) {
+
+            if (res["exerciseLibraryForm"] > 0) {
               document.getElementById("exerciseSearchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
               document.getElementById("clearCustomExerciseFilters").style.display = "block";
               document.getElementById("exerciseFilterBodyIpad").style.display = "block";
@@ -4288,8 +4296,7 @@ async function main() {
               document.getElementById("exerciseSearchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f411a1103276ef909_filter.webp";
               document.getElementById("exerciseFilterBodyIpad").style.display = "none";
             }
-          }
-          
+          }         
         });
       }
     }, false);
@@ -5231,18 +5238,16 @@ async function main() {
           // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
           document.getElementById("exerciseSearch").value = "";
           //Get muscle related filters
-          //const [summaryFilters, filterInstance] = filterInstances;
           const [workoutModalFilters, programModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
-          if(workoutsSummary) {
-            await workoutsSummary.resetFilters(filterKeys=["workoutname-2"], null);
-          }
 
-          if(workoutModalFilters) {
-            await workoutModalFilters.resetFilters(filterKeys=["workoutmodalname"], null);
-          }
-
-          if(programModalFilters) {
-            await programModalFilters.resetFilters(filterKeys=["programname-5"], null);
+          for(var i = 0; i < filterInstances.length; i++) {
+            if(filterInstances[i].form.id == "workoutSummaryFilters") {
+              await filterInstances[i].resetFilters(filterKeys=["workoutname-2"], null);
+            }else if(filterInstances[i].form.id == "workoutFormModal") {
+              filterInstances[i].resetFilters(filterKeys=["workoutmodalname"], null);
+            } else if(filterInstances[i].form.id == "programFormModal") {
+              await programModalFilters.resetFilters(filterKeys=["programname-5"], null);
+            }
           }
 
         },
@@ -5284,64 +5289,21 @@ async function main() {
         'cmsfilter',
       ])
       return window.fsAttributes.cmsfilter.loading.then(res => {
+        var filtersTotalSizes = {};
 
-        if(res.length == 7) {
-          //Workouts modal form
-          var filterInstance = res[0].filtersData;
-          var filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
-
-          //Program modal form
-          var filterInstance1 = res[1].filtersData;
-          var filtersTotalSize1 = filterInstance1[1].values.size + filterInstance1[2].values.size;
-
-          //Workouts Summary List
-          var filterInstance2 = res[2].filtersData;
-          var filtersTotalSize2 = filterInstance2[1].values.size + filterInstance2[2].values.size;
-
-          //Program Summary list
-          var filterInstance3 = res[3].filtersData;
-          var filtersTotalSize3 = filterInstance3[1].values.size + filterInstance3[2].values.size;
-
-          //Workouts builder page
-          var filterInstance4 = res[4].filtersData;
-          var filtersTotalSize4 = filterInstance4[2].values.size + filterInstance4[3].values.size;
-
-          //User summary page
-          var filterInstance5 = res[5].filtersData;
-          var filtersTotalSize5 = filterInstance5[1].values.size + filterInstance5[2].values.size;
-
-          var filterInstance6 = res[6].filtersData;
-          var filtersTotalSize6 = filterInstance6[1].values.size;
-
-          return [filtersTotalSize, filtersTotalSize1, filtersTotalSize2, filtersTotalSize3, filtersTotalSize4, filtersTotalSize5, filtersTotalSize6];
-
-        } else if(res[1]) {
-
-          console.log(res[1])
-          //Exercise library
-          var filterInstance = res[1].filtersData;
+        for(var i = 0; i < res.length; i++) {
           var filtersTotalSize = 0;
-          if(filterInstance.length == 2) {
-            filtersTotalSize = filterInstance[1].values.size ;
-          } else if(filterInstance.length > 2) {
-            filtersTotalSize = filterInstance[1].values.size + filterInstance[2].values.size;
+          var formID = res[i].form.id;
+          if(formID == "workoutBuilderForm") {
+            filtersTotalSize = res[i].filtersData[2].values.size + res[i].filtersData[3].values.size;
+          } else if(formID == "exerciseLibraryForm") {
+            filtersTotalSize = res[i].filtersData[1].values.size;
+          } else {
+            filtersTotalSize = res[i].filtersData[1].values.size + res[i].filtersData[2].values.size;
           }
-
-          if(res[0]) {
-            //Workout builder page
-            var filterInstance1 = res[0].filtersData;
-            var filtersTotalSize1 = 0;
-            if(filterInstance1.length == 2) {
-              filtersTotalSize1 = filterInstance1[1].values.size ;
-            } else if(filterInstance1.length > 2) {
-              filtersTotalSize1 = filterInstance1[2].values.size + filterInstance1[3].values.size;
-            }
-          }
-
-
-          return [filtersTotalSize, filtersTotalSize1];
+          filtersTotalSizes[formID] = filtersTotalSize;
         }
-
+        return filtersTotalSizes;
       });
 
     }
