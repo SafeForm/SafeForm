@@ -1177,7 +1177,7 @@ async function main() {
       workoutItem.querySelector("#exerciseInfo").remove();
 
       //Prefill rest values
-      workoutItem.querySelector("#exerciseRestMin").value = 3;
+      workoutItem.querySelector("#exerciseRestMin").value = 2;
       workoutItem.querySelector("#exerciseRestSec").value = 0;
 
       //Ensure reps input when adding from list is required
@@ -1411,6 +1411,36 @@ async function main() {
       
     }
 
+    function handleAddSet(eventTarget) {
+
+      const workoutItemExercise = eventTarget.closest(".exercise-list-item");
+
+        const exerciseInfoElements = workoutItemExercise.querySelectorAll("#exerciseInfo");
+
+        //Get selected options from cloned element
+        const measureInput = exerciseInfoElements[exerciseInfoElements.length - 1].querySelector("#measureInput").value;
+        const quantityUnit = exerciseInfoElements[exerciseInfoElements.length - 1].querySelector("#quantityUnit").value;
+
+        const lastExerciseInfo = exerciseInfoElements[exerciseInfoElements.length - 1].cloneNode(true);
+        lastExerciseInfo.querySelector("#measureInput").value = measureInput;
+        lastExerciseInfo.querySelector("#quantityUnit").value = quantityUnit;
+
+        lastExerciseInfo.style.paddingTop = "5px";
+      
+        const lastSetRepInput = exerciseInfoElements[exerciseInfoElements.length - 1];
+
+        //Set onclick for new remove set button
+        lastExerciseInfo.querySelector("#removeExercise").onclick = (event) => {
+          //Check that there is one left
+          if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length >= 2) {
+            event.target.closest("#exerciseInfo").remove();
+          }
+          //lastExerciseInfo.remove();
+        }
+
+        lastSetRepInput.after(lastExerciseInfo);
+    }
+
     function handleSupersetClick(event) {
       const supersetImage = event.target;
 
@@ -1475,8 +1505,7 @@ async function main() {
         if(supersetParent.querySelector("#removeFullExercise")) {
           supersetParent.querySelector("#removeFullExercise").style.display = "none";
         }
-        
-
+      
         
       } else {
 
@@ -1500,7 +1529,6 @@ async function main() {
           // Insert exercises back into the workout list
           exercisesToRestore.forEach(exercise => {
   
-            exercise.querySelector("#removeFullExercise").style.display = "block";
             workoutList.insertBefore(exercise, supersetParent.nextSibling);
             if(exercise.nextSibling != null) {
               exercise.querySelector(".supersetparent").style.display = "block";
@@ -1514,13 +1542,11 @@ async function main() {
           //If at start of list
           if(supersetParent.firstChild == supersetItem) {
 
-            supersetItem.querySelector("#removeFullExercise").style.display = "block";
             workoutList.insertBefore(supersetItem, supersetParent);
             supersetItem.querySelector("#guideCopy").style.border = '';
           } else if(supersetParent.lastChild == supersetItem.nextElementSibling) {
             //If at end of list
             supersetItem = supersetItem.nextElementSibling;
-            supersetItem.querySelector("#removeFullExercise").style.display = "block";
             supersetItem.querySelector("#guideCopy").style.border = '';
             insertAfter(supersetItem, supersetParent);
           }
@@ -2397,8 +2423,11 @@ async function main() {
     document.addEventListener('mouseover', function (event) {
 
       if(event.target.closest("#guidePlaceHolder")) {
-        if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise")) {
+        //Dont show remove button if in superset
+        if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise") && !event.target.closest(".exercise-list-item-superset")) {
           event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "block";
+        } else {
+          event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "none";
         }
         
       }
@@ -2460,9 +2489,9 @@ async function main() {
 
       if(event.target.closest("#guidePlaceHolder")) {
         
-        if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise")) {
+        if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise") && !event.target.closest(".exercise-list-item-superset")) {
           event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "none";
-        }
+        } 
       }
 
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') || event.target.closest(".add-event-button"))) {
@@ -3621,32 +3650,16 @@ async function main() {
 
       } else if(event.target.closest(".addset")) {
 
-        const workoutItemExercise = event.target.closest(".exercise-list-item");
-
-        const exerciseInfoElements = workoutItemExercise.querySelectorAll("#exerciseInfo");
-
-        //Get selected options from cloned element
-        const measureInput = exerciseInfoElements[exerciseInfoElements.length - 1].querySelector("#measureInput").value;
-        const quantityUnit = exerciseInfoElements[exerciseInfoElements.length - 1].querySelector("#quantityUnit").value;
-
-        const lastExerciseInfo = exerciseInfoElements[exerciseInfoElements.length - 1].cloneNode(true);
-        lastExerciseInfo.querySelector("#measureInput").value = measureInput;
-        lastExerciseInfo.querySelector("#quantityUnit").value = quantityUnit;
-
-        lastExerciseInfo.style.paddingTop = "5px";
-      
-        const lastSetRepInput = exerciseInfoElements[exerciseInfoElements.length - 1];
-
-        //Set onclick for new remove set button
-        lastExerciseInfo.querySelector("#removeExercise").onclick = (event) => {
-          //Check that there is one left
-          if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length >= 2) {
-            event.target.closest("#exerciseInfo").remove();
+        if(event.target.closest(".exercise-list-item-superset")) {
+          const exercisesInSuperset = event.target.closest(".exercise-list-item-superset").querySelectorAll(".exercise-list-item");
+          for(var i = 0; i < exercisesInSuperset.length; i++) {
+            handleAddSet(exercisesInSuperset[i].querySelector(".addset"));
           }
-          //lastExerciseInfo.remove();
+        } else {
+          handleAddSet(event.target);
         }
 
-        lastSetRepInput.after(lastExerciseInfo);
+        
 
       } else if(event.target.id == "removeFullExercise") {
         
@@ -7867,7 +7880,7 @@ async function main() {
           $(this).attr({
             "min": 0,
             "max": 9,
-            "value": 3
+            "value": 2
           });
           break;
         case "exerciseRestSeconds":
@@ -7882,7 +7895,7 @@ async function main() {
         case "restBetweenExerciseMinutes":
           $(this).attr({
             "min": 0,
-            "value": 3
+            "value": 2
           });
           break;
         default:
