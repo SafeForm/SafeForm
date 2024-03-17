@@ -544,7 +544,12 @@ async function main() {
   function addCustomWorkouts() {
 
     //List all custom exercises
-    const customGuides = document.getElementById("exerciseLibraryList").children;
+    var customGuides = document.getElementById("exerciseLibraryList");
+    if(customGuides) {
+      customGuides = customGuides.children;
+    } else {
+      return;
+    }
 
     for(var i = 0; i < customGuides.length; i++) {
       var exerciseUploadName = customGuides[i].querySelector("#exerciseLibraryName").innerText;
