@@ -2427,7 +2427,7 @@ async function main() {
     //Catching mouse over and out events for showing the thumbnail and svg person
     document.addEventListener('mouseover', function (event) {
 
-      if(event.target.closest("#guidePlaceHolder")) {
+      if(event.target.closest("#guidePlaceHolder") && !event.target.closest("#modalWrapper")) {
         //Dont show remove button if in superset
         if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise") && !event.target.closest(".exercise-list-item-superset")) {
           event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "block";
