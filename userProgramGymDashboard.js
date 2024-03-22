@@ -1810,7 +1810,7 @@ async function main() {
       // Your calendar options here
       initialView: 'dayGridFourWeek',
       contentHeight: "90%",
-      eventOverlap: false,
+      eventOverlap: true,
       duration: { weeks: currentNumberOfWeeks},
       views: {
         dayGridFourWeek: {
@@ -1998,7 +1998,7 @@ async function main() {
         
         var eventContentHTML = '<div class="fc-content">' +
             '<div class="fc-title">' + info.event.title + '</div>' +
-            '<div class="fc-details">' + targetArea + '<br>' + duration + '</div>' +
+            '<div class="fc-details">' + targetArea + '<br>' /*+ duration */ + '</div>' +
             '</div>';
     
         return {
@@ -2614,7 +2614,6 @@ async function main() {
 
     document.getElementById("saveProgram").addEventListener("click", function(event) {
       //List events from calendar
-      
       var events = calendar.getEvents();
       if(events.length == 0) {
         event.preventDefault();
@@ -6308,7 +6307,6 @@ async function main() {
       if(userTrainingPlan.length == 0) {
         const summaryEventData = program.querySelector("#summaryEventData");
         const eventDataElement = program.querySelector("#eventData");
-
         if(programType == "userProgram" || programType == "userProgramInitial") {
           if(summaryEventData && summaryEventData.innerText != "") {
             eventsData = JSON.parse(summaryEventData.innerText);
