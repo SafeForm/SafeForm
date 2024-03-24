@@ -13,6 +13,8 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
+  localStorage.setItem("freeProgramLink", window.location);
   //Update workout index
   var workoutList = document.querySelectorAll(".workoutprogramitem");
 
