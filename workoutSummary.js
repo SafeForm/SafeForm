@@ -599,7 +599,8 @@ function main() {
       const myProgramLink = document.getElementById("myProgram").href;
       window.location = myProgramLink;
     } else if(fromFreeProgram) {
-      window.history.back();
+
+      window.location = localStorage.getItem("freeProgramLink");
     } else if (localStorage.getItem("initialWorkoutPage") == "wow") {
       if (utm_campaign != null && utm_campaign != "utm_campaign") {
         window.location = `${window.location.origin}/workouts/workout-navigation?utm_campaign=${utm_campaign}`;
