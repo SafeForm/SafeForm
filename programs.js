@@ -34,6 +34,13 @@ function main() {
 
   }
 
+  document.addEventListener('click', function(event) {
+
+    if(event.target.id == "buyNowModal") {
+      document.getElementById("buyNowModal").style.display = "none";
+    }
+  });
+
   //Add week buttons to paginate through workout, based on number of workouts
   var numWeeks = document.getElementById("programWeeks").innerText;
   var weekButton = document.getElementById("week-1");
@@ -109,7 +116,7 @@ function main() {
           //Set current week number again
           sessionStorage.setItem("currentWeekNumber", event.target.innerText.split(" ")[1])
         } else {
-          document.getElementById("formModal").style.display = "flex";
+          document.getElementById("buyNowModal").style.display = "flex";
         }
 
       });
@@ -140,19 +147,27 @@ function main() {
   }
 
   function addWorkoutsToList(workoutList, workoutListWorkouts, workouts) {
-    // Clear the current workout list
-    workoutList.innerHTML = '';
-    for(var i = 0; i < workouts.length; i++) { 
+    
+    if(workoutListWorkouts.length > 0) {
 
-      //Find matching workout element
-      for(var j = 0; j < workoutListWorkouts.length; j++) {
-        if(workoutListWorkouts[j].querySelector("#workoutID").innerText == workouts[i].extendedProps.workoutID) {
-          workoutList.appendChild(workoutListWorkouts[j]);
-          break;
+      // Clear the current workout list
+      workoutList.innerHTML = '';
+      for(var i = 0; i < workouts.length; i++) { 
+
+        //Find matching workout element
+        for(var j = 0; j < workoutListWorkouts.length; j++) {
+          if(workoutListWorkouts[j].querySelector("#workoutID").innerText == workouts[i].extendedProps.workoutID) {
+            workoutList.appendChild(workoutListWorkouts[j]);
+            break;
+          }
         }
       }
     }
+    
   }
   
 
 }
+
+
+
