@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   //Add workout flag to guide links
   const exerciseLinks = document.querySelectorAll("#exerciseInfo");
   for(var i = 0; i < exerciseLinks.length; i++) {
@@ -28,6 +29,11 @@ function main() {
   if(urlParams.has("fromProgram")) {
     fromProgram = true;
   }
+  var fromFreeProgram = false;
+  if(urlParams.has("fromFreeProgram")) {
+    fromFreeProgram = true;
+  }
+
 
   //Add inputs for each exercise based on number of sets
   const inputList = document.querySelectorAll("#inputList .w-dyn-item");
@@ -45,7 +51,7 @@ function main() {
   currentWorkoutIndex = "";
   workoutInformation = "";
   var loadUnit = "kg";
-  
+
   if(fromProgram && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
     workoutName = document.querySelector(".workout-summary-header h1").innerText;
@@ -61,18 +67,19 @@ function main() {
     });
 
     if(isWorkoutNumberInt) {
-      
+
       //First try filter with workout ID
       workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutID == fullWorkoutID);
+
       if(workoutInformation.length == 0) {
         //If not then filter with workout name
         workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
       }
     } else {
-      
       workoutInformation = weekWorkouts.filter(item => item.workoutNumber.replace('workout ', '') == currentWorkoutIndex && item.workoutID == fullWorkoutID);
       if(workoutInformation.length == 0) {
         workoutInformation = weekWorkouts.filter(item => item.workoutNumber.replace('workout ', '') == currentWorkoutIndex && item.workoutName == workoutName);
+        
       }
 
     }
@@ -489,9 +496,9 @@ function main() {
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = flattenedArray[i].sets;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#restMinutes").innerText = 3;
+        exerciseList[i].querySelector("#restMinutes").innerText = flattenedArray[i].exercises[0].exerciseRestMinutes;
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#restSeconds").innerText = 0;
+        exerciseList[i].querySelector("#restSeconds").innerText = flattenedArray[i].exercises[0].exerciseRestSeconds;
         exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
        }
 
@@ -582,11 +589,17 @@ function main() {
     sessionStorage.setItem("onlyFinish", "false");
   }
 
+  if(fromFreeProgram) {
+    document.getElementById("startWorkout").style.display = "none"
+  }
+
   //Setting destination of back button
   document.getElementById('backFromWorkout').onclick = function() {
     if(fromProgram) {
       const myProgramLink = document.getElementById("myProgram").href;
       window.location = myProgramLink;
+    } else if(fromFreeProgram) {
+      window.history.back();
     } else if (localStorage.getItem("initialWorkoutPage") == "wow") {
       if (utm_campaign != null && utm_campaign != "utm_campaign") {
         window.location = `${window.location.origin}/workouts/workout-navigation?utm_campaign=${utm_campaign}`;
@@ -613,7 +626,6 @@ function main() {
     var guideID = exerciseList[i].querySelector("#workoutExerciseItemID").innerText;
 
     if(workoutInformation != "") {
-      
       for (const exercise of workoutInformation) {
         if(exercise.guideID == guideID) {
           if(!duplicateGuides.includes(guideID) || !duplicateExerciseNames.includes(exercise.exercise)) {
@@ -695,7 +707,7 @@ function main() {
         } else {
           exerciseList[i].querySelector("#setInput").innerText = 3;
           exerciseList[i].querySelector("#repInput").innerText = 12;
-          exerciseList[i].querySelector("#restMinutes").innerText = 3;
+          exerciseList[i].querySelector("#restMinutes").innerText = 2;
           exerciseList[i].querySelector("#restSeconds").innerText = 0;
         }
         
@@ -715,7 +727,7 @@ function main() {
       exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#setInput").innerText = 3;
       exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
-      exerciseList[i].querySelector("#restMinutes").innerText = 3;
+      exerciseList[i].querySelector("#restMinutes").innerText = 2;
       exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#restSeconds").innerText = 0;
       exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
