@@ -40,7 +40,18 @@ function main() {
 
     if(event.target.id == "buyNowModal") {
       document.getElementById("buyNowModal").style.display = "none";
+      document.querySelector(".freeprogrambody").style.overflow = "auto";
     }
+
+    if(event.target.id == "closeCreateUserModal") {
+      document.querySelector(".freeprogrambody").style.overflow = "auto";
+    }
+
+    if(event.target.closest("#home")) {
+      document.getElementById("buyNowModal").style.display = "flex";
+      document.querySelector(".freeprogrambody").style.overflow = "hidden";
+    }
+
   });
 
   //Add week buttons to paginate through workout, based on number of workouts
@@ -119,6 +130,7 @@ function main() {
           sessionStorage.setItem("currentWeekNumber", event.target.innerText.split(" ")[1])
         } else {
           document.getElementById("buyNowModal").style.display = "flex";
+          document.querySelector(".freeprogrambody").style.overflow = "hidden";
         }
 
       });
@@ -149,27 +161,73 @@ function main() {
   }
 
   function addWorkoutsToList(workoutList, workoutListWorkouts, workouts) {
-    
-    if(workoutListWorkouts.length > 0) {
 
+
+    if (workoutListWorkouts.length > 0) {
       // Clear the current workout list
       workoutList.innerHTML = '';
-      for(var i = 0; i < workouts.length; i++) { 
+      var nextDay = null;
+      var currentDay = null;
+      var isSameDay = true;
+      var count = 1;
+      var currentDiv = null; // Track the current div for same-day workouts
+      for (var i = 0; i < workouts.length; i++) {
+        currentDay = moment(workouts[i].start);
+        if (i < workouts.length - 1) {
+            nextDay = moment(workouts[i + 1].start);
+        }
 
-        //Find matching workout element
-        for(var j = 0; j < workoutListWorkouts.length; j++) {
-          if(workoutListWorkouts[j].querySelector("#workoutID").innerText == workouts[i].extendedProps.workoutID) {
-            workoutList.appendChild(workoutListWorkouts[j]);
+        // Check if the current workout and the next workout are on the same day
+        if (currentDay.isSame(nextDay) || isSameDay) {
+          isSameDay = true;
+          // If the current div is not set or different from the new div date, create a new div
+          if (!currentDiv || !currentDiv.dataset.date || currentDiv.dataset.date !== currentDay.format("YYYY-MM-DD")) {
+            currentDiv = document.createElement('div');
+            currentDiv.style.borderRadius = '8px';
+            currentDiv.style.marginBottom = '10px';
+            currentDiv.style.border = '2px solid #CBCBCB';
+            currentDiv.style.backgroundColor = "white";
+            currentDiv.style.display = "flex";
+            currentDiv.style.flexDirection = "column";
+            currentDiv.style.alignItems = "center";
+            currentDiv.style.width = "100%";
+            currentDiv.style.padding = "5px";
+
+            currentDiv.dataset.date = currentDay.format("YYYY-MM-DD"); // Set dataset to track date
+            const daytext = document.createElement('div');
+            daytext.innerText = `Day ${count}`;
+            daytext.style.padding = "5px";
+            daytext.style.color = "black";
+            currentDiv.appendChild(daytext);
+            workoutList.appendChild(currentDiv);
+            count += 1;
+          } 
+        } else {
+            isSameDay = false;
+            // Update currentDiv for next day's workouts
+            currentDiv = null;
+        }
+
+        // Find matching workout element
+        for (var j = 0; j < workoutListWorkouts.length; j++) {
+          if (workoutListWorkouts[j].querySelector("#workoutID").innerText == workouts[i].extendedProps.workoutID) {
+            if (isSameDay) {
+              if(currentDiv.querySelectorAll("#parentProgramDiv").length > 0) {
+                const breaker = document.createElement('div');
+                breaker.style.width = '95%';
+                breaker.style.height = '1px';
+                breaker.style.backgroundColor = '#CBCBCB';
+                breaker.style.margin = '10px';
+                currentDiv.appendChild(breaker);
+              }
+              currentDiv.appendChild(workoutListWorkouts[j]); // Append to the current div for same-day workouts
+            } else {
+              workoutList.appendChild(workoutListWorkouts[j]); // Append directly to the workout list
+            }
             break;
           }
         }
       }
     }
-    
   }
-  
-
 }
-
-
-
