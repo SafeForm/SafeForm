@@ -573,7 +573,12 @@ function main() {
     var pageLinks = document.querySelectorAll("a");
     for(var i = 0; i < pageLinks.length; i++) {
       if(pageLinks[i].id != "shareLink" && pageLinks[i].id != "closeMenu" && pageLinks[i].id != "clearFilters") {
-        pageLinks[i].href = pageLinks[i].href += `?utm_campaign=${utm_campaign}`;
+        if(pageLinks[i].id == "home" && utm_campaign.toLowerCase() == "alfie robertson - fitness") {
+          //pageLinks[i].href = `${window.location.origin.location}/alfiegetshard-exerciselibrary`;
+          pageLinks[i].href = "";
+        } else {
+          pageLinks[i].href = pageLinks[i].href += `?utm_campaign=${utm_campaign}`;
+        }
       } else if (pageLinks[i].id == "clearFilters") {
         pageLinks[i].href = pageLinks[i].href;
       }
@@ -742,7 +747,7 @@ function main() {
 
       const shareData = {
         title: 'BeneFit Workout',
-        text: 'Try out my latest workout called {{wf {&quot;path&quot;:&quot;short-name&quot;,&quot;type&quot;:&quot;PlainText&quot;\} }}!',
+        text: 'Try out my latest workout!',
         url: location.href
       }
       showShareNavigation(shareData);
