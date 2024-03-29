@@ -62,12 +62,12 @@ function main() {
   var parentDiv = document.getElementById("weekParentDiv");
   
   for (var i = 0; i < numWeeks; i++) {
-      var newButton = weekButton.cloneNode(true);
-      newButton.innerText = `Week ${i+1}`;
-      // Apply styling based on completion and current week status
-      newButton.id = `week-${i+1}`;
+    var newButton = weekButton.cloneNode(true);
+    newButton.innerText = `Week ${i+1}`;
+    // Apply styling based on completion and current week status
+    newButton.id = `week-${i+1}`;
 
-      parentDiv.appendChild(newButton);
+    parentDiv.appendChild(newButton);
   }
   //Remove original placeholder button
   weekButton.remove();
@@ -82,8 +82,9 @@ function main() {
 
   //iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
+    workouts = programs[i].events;
     if(new Date().setHours(0, 0, 0, 0) <= moment(programs[i].endWeek).toDate()) {
-      workouts = programs[i].events;
+      
       break;
     }
   }
@@ -98,15 +99,22 @@ function main() {
       return dateA - dateB;
     });
 
-
-    
-    
     const weeks = [];
     let currentWeek = [];
     var thisWeek = null;
 
     const currentDate = new Date(); // This gets the current date and time
-    const formattedDate = moment(currentDate).format('YYYY-MM-DD');
+
+    var formattedDate = moment(currentDate).format('YYYY-MM-DD');
+
+    var firstProgramDate = new Date(workouts[0].start);
+    var lastProgramDate = new Date(workouts[workouts.length - 1].start);
+
+    if (currentDate < firstProgramDate) {
+      formattedDate = firstProgramDate;
+    } else if (currentDate > lastProgramDate) {
+      formattedDate = lastProgramDate;
+    } 
 
     var weekCount = 1;
     
