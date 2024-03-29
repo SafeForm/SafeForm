@@ -14,7 +14,8 @@ if (document.readyState !== 'loading') {
 
 function main() {
   //Update workout index
-  const workoutList = document.querySelectorAll(".workoutprogramitem");
+  var workoutList = document.querySelectorAll(".workoutprogramitem");
+
   for(var i = 0; i < workoutList.length; i++) {
     workoutList[i].querySelector("#workoutIndex").innerText = i;
   }
@@ -78,10 +79,10 @@ function main() {
   sessionStorage.setItem("currentFullProgram", document.getElementById("programFullEventData").innerText);
 
   var workouts = null;
+
   //iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
-
-    if(new Date().setHours(0, 0, 0, 0) <=  moment(programs[i].endWeek).toDate()) {
+    if(new Date().setHours(0, 0, 0, 0) <= moment(programs[i].endWeek).toDate()) {
       workouts = programs[i].events;
       break;
     }
@@ -96,6 +97,9 @@ function main() {
       const dateB = moment(b['start']);
       return dateA - dateB;
     });
+
+
+    
     
     const weeks = [];
     let currentWeek = [];
@@ -145,7 +149,6 @@ function main() {
     // Add event listeners to the buttons
     buttons.forEach((button, index) => {
       button.addEventListener('click', (event) => {
-
         displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
         $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
         event.target.classList.remove("week-button");
@@ -171,11 +174,11 @@ function main() {
     document.getElementById("workout-empty-state").style.display = "flex";
   }
 
-  var weekButtonOffset = document.querySelector(".current-week").offsetLeft - 25;
-  //Get current week and scroll to it
-  document.getElementById("weekParentDiv").scrollTo({
-    left: weekButtonOffset
-  })
+  // var weekButtonOffset = document.querySelector(".current-week").offsetLeft - 25;
+  // //Get current week and scroll to it
+  // document.getElementById("weekParentDiv").scrollTo({
+  //   left: weekButtonOffset
+  // })
 
   // Function to check if the device is iOS
   function isIOS() {
@@ -278,25 +281,23 @@ function main() {
 
     var completedWorkouts = 0;
     // Iterate over the selected week's workouts
-    
-    selectedWeekWorkouts.forEach((workout, index) => {
 
+    selectedWeekWorkouts.forEach((workout, index) => {
+      
       // Get the workout element based on the workout ID
       var workoutElement = null;
       var foundIndex = "";
       var workoutIndex = 0;
+
       for(var i = 0; i < workoutListWorkouts.length; i++) {
 
-        //Only check this weeks workouts
-        if(i >= addedWorkout) {
-          const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
-          workoutIndex = workoutListWorkouts[i].querySelector("#workoutIndex").innerText;
-  
-          if(workoutListElement.innerText == workout.extendedProps.workoutID && i == workoutIndex) {
-            foundIndex = i;
-            workoutElement = workoutListElement;
-            break;
-          }
+        const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
+        workoutIndex = workoutListWorkouts[i].querySelector("#workoutIndex").innerText;
+
+        if(workoutListElement.innerText == workout.extendedProps.workoutID && i == workoutIndex) {
+          foundIndex = i;
+          workoutElement = workoutListElement;
+          break;
         }
 
       }
@@ -306,6 +307,7 @@ function main() {
         var newElement = workoutElement.closest('.workoutprogramitem').cloneNode(true);
 
         newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
+
         workoutList.appendChild(newElement);
         
         //Check if the workout is complete
