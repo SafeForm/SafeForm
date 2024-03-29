@@ -69,16 +69,16 @@ function main() {
     if(isWorkoutNumberInt) {
 
       //First try filter with workout ID
-      workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutID == fullWorkoutID);
+      workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
 
       if(workoutInformation.length == 0) {
         //If not then filter with workout name
-        workoutInformation = weekWorkouts.filter(item => item.workoutNumber == currentWorkoutIndex && item.workoutName == workoutName);
+        workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
       }
     } else {
-      workoutInformation = weekWorkouts.filter(item => item.workoutNumber.replace('workout ', '') == currentWorkoutIndex && item.workoutID == fullWorkoutID);
+      workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
       if(workoutInformation.length == 0) {
-        workoutInformation = weekWorkouts.filter(item => item.workoutNumber.replace('workout ', '') == currentWorkoutIndex && item.workoutName == workoutName);
+        workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
         
       }
 
