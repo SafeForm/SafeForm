@@ -9,16 +9,12 @@ const airtableID = urlParams.get('id');
 
 var disableForm = false;
 
-//If no parameter, lock form - because everything will break
-if(fcID == null || programID == null || airtableID == null) {
-  disableFormFunc();
-}
-
 //Set email text box if we have the email
 if(emailParam) {
   document.getElementById('email').value = emailParam;
+  //Lock the email input
+  document.getElementById('email').disabled = true;
 }
-
 
 //Listen for changes on password textbox and update cognito password text box
 const pwTextBox = document.getElementById('password');
