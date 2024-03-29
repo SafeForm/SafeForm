@@ -51,7 +51,7 @@ function main() {
   currentWorkoutIndex = "";
   workoutInformation = "";
   var loadUnit = "kg";
-
+  
   if(fromProgram && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
     workoutName = document.querySelector(".workout-summary-header h1").innerText;
@@ -70,19 +70,24 @@ function main() {
 
       //First try filter with workout ID
       workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
-
+      
       if(workoutInformation.length == 0) {
         //If not then filter with workout name
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
+      }else {
+        console.log("Used ID")
       }
     } else {
+      
       workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
       if(workoutInformation.length == 0) {
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
-        
+      } else {
+        console.log("Used ID")
       }
 
     }
+    console.log(workoutInformation)
 
     //Extract guideIDs from workoutInformation
     const uniqueGuideIDs = [...new Set(workoutInformation.map(item => item.guideID))];
@@ -402,9 +407,9 @@ function main() {
 
               if(memberJSONExerciseName.reps != undefined) {
                 if(memberJSONExerciseName.reps.length > j+1) {
-                  if (memberJSONExerciseName.reps[j+1].includes(exerciseInformation[j+1].quantityUnit.toLowerCase())) {
+                  if (exerciseInformation[j+1] && memberJSONExerciseName.reps[j+1].includes(exerciseInformation[j+1].quantityUnit.toLowerCase())) {
                     newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]}`;
-                  } else if(memberJSONExerciseName.reps[j+1] != "") {
+                  } else if(exerciseInformation[j+1] && memberJSONExerciseName.reps[j+1] != "") {
                     newRepsInput.placeholder = `${memberJSONExerciseName.reps[j+1]} ${exerciseInformation[j+1].quantityUnit}`;
                   }
                 } 
