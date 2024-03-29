@@ -115,7 +115,7 @@ function main() {
     } else if (currentDate > lastProgramDate) {
       formattedDate = lastProgramDate;
     } 
-
+    
     var weekCount = 1;
     
     for (const workout of workouts) {
@@ -182,11 +182,11 @@ function main() {
     document.getElementById("workout-empty-state").style.display = "flex";
   }
 
-  // var weekButtonOffset = document.querySelector(".current-week").offsetLeft - 25;
-  // //Get current week and scroll to it
-  // document.getElementById("weekParentDiv").scrollTo({
-  //   left: weekButtonOffset
-  // })
+  var weekButtonOffset = document.querySelector(".current-week").offsetLeft - 25;
+  //Get current week and scroll to it
+  document.getElementById("weekParentDiv").scrollTo({
+    left: weekButtonOffset
+  })
 
   // Function to check if the device is iOS
   function isIOS() {
