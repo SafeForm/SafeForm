@@ -271,12 +271,15 @@ function main() {
     if(lastFinishedWorkout) {
       lastFinishedWorkout = lastFinishedWorkout.split("+");
       var lastFinishedWorkoutIndex = null;
+      var lastCompletedWorkout = null;
       if(lastFinishedWorkout.length > 2) {
         lastFinishedWorkoutIndex = lastFinishedWorkout[2];
+        lastCompletedWorkout = lastFinishedWorkout[0];
+
       }
-  
     }
 
+    
 
     for (let i = 0; i < selectedWeekWorkouts.length; i++) {
       const workout = selectedWeekWorkouts[i];
@@ -317,9 +320,9 @@ function main() {
         newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
 
         workoutList.appendChild(newElement);
-        
+
         //Check if the workout is complete
-        if(workout.extendedProps.completedID != undefined || (lastFinishedWorkoutIndex && lastFinishedWorkoutIndex == (addedWorkout))) {
+        if(workout.extendedProps.completedID != undefined || (lastCompletedWorkout && (lastCompletedWorkout == workout.extendedProps.uniqueWorkoutID))) {
           newElement.querySelector(".workoutprogramdiv").style.borderColor = "#08D58B" //make border green if complete
           completedWorkouts += 1;
         } else if(workout === closestWorkout) {
