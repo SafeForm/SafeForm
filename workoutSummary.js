@@ -525,9 +525,20 @@ function main() {
         workoutObj["programName"] = sessionStorage.getItem("programName");
         workoutObj["programID"] = sessionStorage.getItem("programID");
         if(userProgram != null) {
+          var uniqueWorkoutIDToFind = workoutID.split("+");
+          if(uniqueWorkoutIDToFind && uniqueWorkoutIDToFind.length > 1) {
+            uniqueWorkoutIDToFind = uniqueWorkoutIDToFind[0];
+          }
+          var foundObject = {};
+          //Find corresponding unique workout ID
+          userProgram[0].events.forEach(event => {
+            if (event.extendedProps.uniqueWorkoutID === uniqueWorkoutIDToFind) {
+              foundObject = event;
+            }
+          });
+          //Set the completed ID
+          foundObject["extendedProps"]["completedID"] = workoutID;
 
-          userProgram[0].events[[workoutIndex]]["extendedProps"]["completedID"] = workoutID;
-          
           workoutObj["userProgram"] = JSON.stringify(userProgram);
 
         } 
