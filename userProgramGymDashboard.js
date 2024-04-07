@@ -1223,6 +1223,12 @@ async function main() {
             exerciseInfoDiv.querySelector("#loadAmountInput").required = false;
           }
 
+          if(exerciseInfo.quantityUnit.toLowerCase() == "amrap") {
+            //Hide reps input
+            exerciseInfoDiv.querySelector("#repsInput").style.display = "none";
+            exerciseInfoDiv.querySelector("#repsInput").required = false;
+          }
+
           //Add to exercise divs
           const workoutItemExercise = workoutItem;
           const exerciseInfoElements = workoutItemExercise.querySelectorAll("#exerciseInfo");
@@ -4115,6 +4121,14 @@ async function main() {
 
     //Listen for change events:
     document.addEventListener('change', function (event) {
+
+      if(event.target.id == "quantityUnit") {
+        if(event.target.value.toLowerCase() == "amrap" ) {
+          //Hide reps input
+          event.target.closest("#exerciseInfo").querySelector("#repsInput").style.display = "none";
+          event.target.closest("#exerciseInfo").querySelector("#repsInput").required = false;     
+        }
+      }
 
       if(event.target.id == "measureInput") {
 
