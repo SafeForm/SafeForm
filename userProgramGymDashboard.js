@@ -7307,6 +7307,25 @@ async function main() {
       var listOfGuideIDs = [];
       var count = 0;
 
+      // Create an array to store the reordered exercises
+      const reorderedExercises = [];
+
+      // Iterate through workoutJSON to maintain the order
+      workoutJSON.forEach(exercises => {
+        exercises.forEach(exercise => {
+          const guideID = exercise.guideID;
+          const matchingExercise = workout.exercises.find(item => item.exerciseGuideID === guideID);
+          if (matchingExercise) {
+              reorderedExercises.push(matchingExercise);
+          } else {
+            console.log("Couldnt find: ", guideID)
+          }
+        });
+      });
+
+      // Update workout.exercises with the reordered exercises
+      workout.exercises = reorderedExercises;
+
       //Copy guide template and replace all values with exercise from workout
       for(var i = 0; i < workout.exercises.length; i++) {
         var incrementIndex = false;
