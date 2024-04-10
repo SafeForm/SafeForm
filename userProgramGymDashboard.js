@@ -5226,7 +5226,7 @@ async function main() {
             }else if(filterInstances[i].form.id == "workoutFormModal") {
               filterInstances[i].resetFilters(filterKeys=["workoutmodalname"], null);
             } else if(filterInstances[i].form.id == "programFormModal") {
-              await programModalFilters.resetFilters(filterKeys=["programname-5"], null);
+              await filterInstances[i].resetFilters(filterKeys=["programname-5"], null);
             }
           }
 
