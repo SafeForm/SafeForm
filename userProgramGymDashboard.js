@@ -131,9 +131,6 @@ async function main() {
   //Calculate the days until the clients program ends or weight inputs aren't complete
   calculateProgramUrgencyDays();
 
-  //Update width of all thumbnail
-  updateWidthOfThumbnails();
-
   fetchDataFromWebhook()
   .then(result => {
     // Store the result in a variable
@@ -384,35 +381,6 @@ async function main() {
     
   }
 
-  async function updateThumbnailWidth(thumbnail, source) {
-
-    // Create a new image element
-    var img = new Image();
-
-    // Set the source (remote URL) for the image
-    img.src = source;
-
-    // Wait for the image to load
-    img.onload = function() {
-      // Get the dimensions of the image
-      var width = img.width;
-      var height = img.height;
-
-      console.log("Width: ", width);
-      console.log("Height: ", width);
-
-      // Check the condition after the image has loaded
-      if (height > width) {
-        thumbnail.style.borderRadius = 0;
-        thumbnail.style.width = "auto";
-      } else {
-        thumbnail.style.borderRadius = 8;
-        thumbnail.style.width = "100%";
-      }
-    };
-
-  }
-
   function fetchDataFromWebhook() {
     const webhookUrl = "https://hook.us1.make.com/r3lx6402qp8qlikrak2cwq7tw13is7ws";
   
@@ -431,22 +399,6 @@ async function main() {
         // Handle errors
         console.error('Fetch error:', error.message);
       });
-  }
-  
-
-  function updateWidthOfThumbnails() {
-    const exerciseLibraryThumbnails = document.querySelectorAll(".exerciseThumbnail");
-
-    for(var i = 0; i < exerciseLibraryThumbnails.length; i++) {
-      var imageWidth = exerciseLibraryThumbnails[i].width;
-      var imageHeight = exerciseLibraryThumbnails[i].height;
-      if(imageHeight > imageWidth) {
-        exerciseLibraryThumbnails[i].style.borderRadius = 0;
-      } else {
-        exerciseLibraryThumbnails[i].style.borderRadius = 8;
-        exerciseLibraryThumbnails[i].style.width = "100%";
-      }
-    }
   }
 
   function addPendingUsers() {
@@ -5070,8 +5022,6 @@ async function main() {
           var exerciseLibTempID = exerciseLibItems[i].querySelector("#exerciseLibraryTempID").innerText;
           if(exerciseLibTempID == thumbnailObj.tempID) {
 
-            updateThumbnailWidth(exerciseLibItems[i].querySelector(".exerciseThumbnail"), thumbnailObj.thumbnailURL);
-
             exerciseLibItems[i].querySelector(".exerciseThumbnail").src = thumbnailObj.thumbnailURL;
             break;
           }
@@ -5082,7 +5032,6 @@ async function main() {
         for(var i = 0; i < workoutGuideItems.length; i++) {
           var workoutItemTempID = workoutGuideItems[i].querySelector("#exerciseListTempID").innerText;
           if(workoutItemTempID == thumbnailObj.tempID) {
-            updateThumbnailWidth(workoutGuideItems[i].querySelector(".exerciseThumbnail"), thumbnailObj.thumbnailURL);
             workoutGuideItems[i].querySelector(".exerciseThumbnail").src = thumbnailObj.thumbnailURL;
             break;
           }
