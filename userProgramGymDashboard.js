@@ -538,42 +538,24 @@ async function main() {
         // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
         document.getElementById("exerciseSearch").value = "";
 
-        let workoutsSummary;
-        let workoutsBuilder;
-        let userSummary;
+        for(var i = 0; i < filterInstances.length; i++)  {
+          var formID = filterInstances[i].form.id;
+          if(formID == "workoutBuilderForm") {
+            if(addedItem) {
+              filterInstances[i].listInstance.renderItems(true);
+              filterInstances[i].listInstance.addItems([addedItem])
+            }
 
-        // Firstly check if there is only one list:
-        if (filterInstances.length == 1) {
-          workoutsSummary = filterInstances[0];
-        } else {
-          // Get muscle related filters
-          const [programModalFilters, workoutModalFilters, tempWorkoutsSummary, programSummary, tempWorkoutsBuilder, tempUserSummary] = filterInstances;
-          // Use tempWorkoutsSummary or assign it to workoutsSummary based on your requirement
-          workoutsSummary = tempWorkoutsSummary;
-          workoutsBuilder = tempWorkoutsBuilder;
-          userSummary = tempUserSummary;
-        }
+            !onlyCheckboxes ? await filterInstances[i].resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
 
-        if(addedItem && workoutsBuilder) {
-          workoutsBuilder.listInstance.addItems([addedItem])
-          workoutsBuilder.listInstance.renderItems(true);
-        }
-        
-        //workoutsBuilder.listInstance.addItems(document.querySelectorAll("#individualGuide"));
-        if(filterInstances.length > 5) { 
-          !onlyCheckboxes ? await workoutsBuilder.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
-          await workoutsBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
-          if(userSummary) {
-            await userSummary.resetFilters(filterKeys=["clientproduct"], null);
-          }
-        } else if(workoutsSummary) {
-          !onlyCheckboxes ? await workoutsSummary.resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
-          await workoutsSummary.resetFilters(filterKeys=["musclenamefilter"], null);
-        } else if(userSummary) {
-          await userSummary.resetFilters(filterKeys=["clientproduct"], null);
-        } else {
-          var workoutBuilder = filterInstances[0];
-          await workoutBuilder.resetFilters(filterKeys=["musclenamefilter"], null);
+            await filterInstances[i].resetFilters(filterKeys=["musclenamefilter"], null);
+
+          } else if(formID == "userSummaryForm") {
+            await filterInstances[i].resetFilters(filterKeys=["clientproduct"], null);
+            await filterInstances[i].resetFilters(filterKeys=["clientproduct"], null);
+          } else if(formID == "workoutSummaryFilters") {
+            !onlyCheckboxes ? await filterInstances[i].resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
+          } 
         }
 
         //Clear focus area filters:
@@ -5198,7 +5180,7 @@ async function main() {
     }
 
     async function resetGeneralFilters(clearButton=false) {
-
+      
       const checkboxes = document.getElementsByClassName('filter-checkbox');
       for (let i = 0; i < checkboxes.length; i++) { 
         if(checkboxes[i].classList.value.includes('w--redirected-checked')) {
@@ -5217,13 +5199,11 @@ async function main() {
         async (filterInstances) => {
           // The callback passes a `filterInstances` array with all the `CMSFilters` instances on the page.
           document.getElementById("exerciseSearch").value = "";
-          //Get muscle related filters
-          const [workoutModalFilters, programModalFilters, workoutsSummary, programSummary, workoutsBuilder, userSummary] = filterInstances;
 
           for(var i = 0; i < filterInstances.length; i++) {
             if(filterInstances[i].form.id == "workoutSummaryFilters") {
               await filterInstances[i].resetFilters(filterKeys=["workoutname-2"], null);
-            }else if(filterInstances[i].form.id == "workoutFormModal") {
+            } else if(filterInstances[i].form.id == "workoutFormModal") {
               filterInstances[i].resetFilters(filterKeys=["workoutmodalname"], null);
             } else if(filterInstances[i].form.id == "programFormModal") {
               await filterInstances[i].resetFilters(filterKeys=["programname-5"], null);
