@@ -5204,7 +5204,7 @@ async function main() {
             if(filterInstances[i].form.id == "workoutSummaryFilters") {
               await filterInstances[i].resetFilters(filterKeys=["workoutname-2"], null);
             } else if(filterInstances[i].form.id == "workoutFormModal") {
-              filterInstances[i].resetFilters(filterKeys=["workoutmodalname"], null);
+              //filterInstances[i].resetFilters(filterKeys=["workoutmodalname"], null);
             } else if(filterInstances[i].form.id == "programFormModal") {
               await filterInstances[i].resetFilters(filterKeys=["programname-5"], null);
             }
