@@ -14,6 +14,14 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+  //Make a sortable list:
+  var sortable = new Sortable(document.getElementById("programWorkoutList"), {
+    animation: 150,
+    swapThreshold: 0.2, // Adjust this value as needed
+  });
+
+  // document.getElementById("challengesPage").style.display = "flex";
+
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -89,6 +97,9 @@ async function main() {
   var updatedMedia = false;
   var currentCopiedWorkout = "";
   var globalWeightUnit = "";
+
+  sessionStorage.setItem("createChallenge", 'false');
+  sessionStorage.setItem("editChallenge", 'false');
     
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
@@ -221,7 +232,10 @@ async function main() {
     } else if(destinationButton == "userPage" ) {
       destinationDiv.querySelector(".users").style.display = "none";
       destinationDiv.querySelector(".users-clicked").style.display = "block";
-    } else {
+    } else if(destinationButton == "challengesPage" ) {
+      destinationDiv.querySelector(".challenges").style.display = "none";
+      destinationDiv.querySelector(".challenges-clicked").style.display = "block";
+    }else {
       destinationDiv.querySelector(".navicon").style.display = "none";
       destinationDiv.querySelector(".naviconclicked").style.display = "block";
     }
@@ -753,7 +767,7 @@ async function main() {
       clonedRow.querySelector("#exerciseSets").innerText = exerciseSets;
       clonedRow.querySelector("#exerciseMuscleImage").innerText = muscleHighlightImage;
       clonedRow.querySelector("#exerciseMuscles").innerText = exerciseMuscles;
-  
+      
       workoutSummaryElement.querySelector("#newCollectionList").appendChild(clonedRow);
     }
   
@@ -761,9 +775,11 @@ async function main() {
     var promises = [];
   
     for (var i = 0; i < workoutSummaryListItemsList.length; i++) {
+      
       var workoutSummaryElement = workoutSummaryListItemsList[i];
       var workoutIDs = workoutSummaryElement.querySelector("#workoutIDs").innerText;
-  
+
+      //console.log(workoutIDs)
       if (workoutIDs != "" && workoutIDs != null && workoutIDs != undefined) {
         workoutIDs = workoutIDs.split(/,\s*/);
   
@@ -776,13 +792,10 @@ async function main() {
               existingIDArr.push(existingIDs[j].href.split("/")[4]);
             }
           }
-  
           const differenceArr = workoutIDs.filter(item => !existingIDArr.includes(item));
-  
           for (var x = 0; x < differenceArr.length; x++) {
             if (differenceArr[x] != "") {
               var workoutSlug = differenceArr[x];
-  
               // Add the promise to the array for parallel execution
               promises.push(getWorkoutDetails(workoutSummaryElement, workoutSlug));
             }
@@ -790,7 +803,7 @@ async function main() {
         }
       }
     }
-  
+
     // Use Promise.all to wait for all promises to complete
     await Promise.all(promises);
   }  
@@ -1669,6 +1682,24 @@ async function main() {
           
         };
 
+        document.getElementById("challengesPage").onclick = function() {
+
+          dashboardBody.style.display = "none";
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          settingsBody.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          exerciseLibrary.style.display = "none";
+          exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+
+          //Reset filters on workout or program summary page
+          if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
+            checkAndClearProgram("challengesBody", "challengesPage");
+          } else {
+            checkAndClearWorkouts("challengesBody", "challengesPage");
+          }
+          
+        };
+
         document.getElementById("userPage").onclick = function() {
           dashboardBody.style.display = "none";
           dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
@@ -1749,14 +1780,15 @@ async function main() {
     var calendar = new FullCalendar.Calendar(calendarEl, {
       // Your calendar options here
       initialView: 'dayGridFourWeek',
-      contentHeight: "90%",
+      contentHeight: "100%",
       eventOverlap: true,
+      eventOrder: 'start',
       duration: { weeks: currentNumberOfWeeks},
       views: {
         dayGridFourWeek: {
           dayHeaderContent: function(info) {
             var dayOfWeek = info.date.getDay();
-            return dayOfWeek === 0 ? 7 : dayOfWeek; // Convert Sunday (0) to 7    
+            return dayOfWeek === 0 ? 7 : dayOfWeek; // Convert Sunday (0) to 7
 
           },
           type: 'dayGrid',
@@ -1775,18 +1807,57 @@ async function main() {
       dateClick: function(info) {
         // Do something when the user clicks on a date
         //Don't show workout modal if user is in paste state or delete / copy button is pressed
+        var startChallenge = document.getElementById("challengeStartDate").value;
+        var endChallenge = document.getElementById("challengeEndDate").value;
+
+        styleStartAndEndDates(startChallenge, endChallenge);
+
+        if((sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true")) {
+          if(!(startChallenge && endChallenge)) {
+          
+            return
+  
+          }
+        }
+
+
         if(!(isPasteState || isEventPasteState || addProgram) && (info.jsEvent.target.tagName != "IMG" || info.jsEvent.target.closest(".add-event-button"))) {
 
-          //Check if day already has date in it
-          var clickedDay = info.dayEl; // Get the DOM element of the clicked day
-          var hasEventHarness = clickedDay.querySelector('.fc-daygrid-event-harness') !== null;
-      
-          if (!hasEventHarness) {
+          var eventBackgroundColor = info.jsEvent.target.closest(".fc-daygrid-day-frame");
+          if(eventBackgroundColor) {
+            eventBackgroundColor = eventBackgroundColor.style.backgroundColor;
+          }
+
+          if(eventBackgroundColor != "rgb(203, 203, 203)") {
+
             selectedDate = info.dateStr;
-    
+
+            //Check if any events and click on them in the workout modal list
+            var allEvents = calendar.getEvents();
+            var dayEvents = allEvents.filter(function (event) {
+              return !event.extendedProps.weeklyTask && moment(event.start).isSame(moment(selectedDate), 'day'); // '[]' to include the start and end dates
+            });
+
+            for(var i = 0; i < dayEvents.length; i++) {
+
+              var listID = "";
+              var itemID = "";
+              var itemSelector = "";
+              if(dayEvents[i].extendedProps.workoutID) {
+                listID = "#workoutSummaryProgram";
+                itemID = dayEvents[i].extendedProps.workoutID;
+                itemSelector = "#workoutIDProgram";
+              } else if(dayEvents[i].extendedProps.taskID) {
+                listID = "#taskItem";
+                itemID = dayEvents[i].extendedProps.taskID;
+                itemSelector = "#taskItemID";
+              }
+
+              clickModalListItem(listID, itemID, itemSelector);
+            }
+
             //Show workouts modal
             showModal("workoutsList");
-
           }
         } else if (setFromPaste) {
 
@@ -1802,128 +1873,190 @@ async function main() {
       eventDidMount: function(info) {
 
         var eventEl = info.el;
+
         var eventElParent = eventEl.closest(".fc-daygrid-day-frame");
+        
+        if(info.event.extendedProps.weeklyTask || sessionStorage.getItem("weeklyTask") == "true") {
 
-        // Create a copy and delete button element
-        var deleteButtonEl = document.createElement('button');
-        var copyButtonEl = document.createElement('button');
+          eventEl.classList.add("weekly-task-event");
 
-        copyButtonEl.className = 'copy-event-button';
-        deleteButtonEl.className = 'delete-event-button';
-
-        var originalCellDay = "";
-        var originalCell = "";
-
-        // Create an image element for the delete button
-        var deleteImageEl = document.createElement('img');
-        deleteImageEl.src = 'https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/6461eb594bc9d89c2d285060_trashIcon.webp';
-
-        // Create an image element for the delete button
-        var copyImageEl = document.createElement('img');
-        copyImageEl.src = 'https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp';
-      
-        // Append the image element to the delete button
-        deleteButtonEl.appendChild(deleteImageEl);
-        copyButtonEl.appendChild(copyImageEl);
-
-        // Append the delete button to the event element
-        eventElParent.appendChild(deleteButtonEl);
-
-        eventElParent.appendChild(copyButtonEl);
-      
-        // Add a hover event listener to show/hide the delete button
-        eventElParent.addEventListener('mouseenter', function(event) {
-          copyButtonEl.style.display = 'block';
-          deleteButtonEl.style.display = 'block';
-          if(eventElParent.querySelector(".fc-event") != null) {
-            eventElParent.querySelector(".fc-event").style.cursor = "grab";
+          //Remove events from the first day and append to weekly column
+          var weeklyTaskCell = eventElParent.parentElement.previousSibling;
+          if(weeklyTaskCell) {
+            weeklyTaskCell = weeklyTaskCell.querySelector(".fc-daygrid-day-events");
+            if(weeklyTaskCell) {
+              weeklyTaskCell.appendChild(eventEl);
+            }
+            
           }
-          
-        });
-      
-        eventElParent.addEventListener('mouseleave', function(event) {
+            
+        }
 
-          //Get date of hovered date 
-          var hoveredEventDate = new Date(event.target.closest('.fc-daygrid-day-frame').parentElement.getAttribute("data-date"));
-          if(sessionStorage.getItem('copiedEvent')) {
-            var copiedEventDate = new Date(JSON.parse(sessionStorage.getItem('copiedEvent')).start);
-          }
-          
-          hoveredEventDate.setHours(hoveredEventDate.getHours() - 10);
+        //Check if it already has day controls
+        if(eventElParent.querySelectorAll(".delete-event-button").length == 0) {
+          // Create a copy and delete button element
+          var deleteButtonEl = document.createElement('button');
+          var copyButtonEl = document.createElement('button');
+          var addButtonEl = document.createElement('button');
 
-          if(isEventPasteState && (hoveredEventDate.getTime() == copiedEventDate.getTime())) {
+          copyButtonEl.className = 'copy-event-button';
+          deleteButtonEl.className = 'delete-event-button';
+          addButtonEl.className = 'add-event-button';
+
+          var originalCellDay = "";
+          var originalCell = "";
+
+          // Create an image element for the delete button
+          var deleteImageEl = document.createElement('img');
+          deleteImageEl.src = 'https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/6461eb594bc9d89c2d285060_trashIcon.webp';
+
+          // Create an image element for the delete button
+          var copyImageEl = document.createElement('img');
+          copyImageEl.src = 'https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp';
+
+          // Create an image element for the delete button
+          var addEventEl = document.createElement('img');
+          addEventEl.src = 'https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/650444503758530596912def_addWorkout.png';
+        
+          // Append the image element to the delete button
+          deleteButtonEl.appendChild(deleteImageEl);
+          copyButtonEl.appendChild(copyImageEl);
+          addButtonEl.appendChild(addEventEl);
+
+          // Append the delete button to the event element
+          eventElParent.appendChild(deleteButtonEl);
+
+          eventElParent.appendChild(copyButtonEl);
+          eventElParent.appendChild(addButtonEl);
+        
+          // Add a hover event listener to show/hide the delete button
+          eventElParent.addEventListener('mouseenter', function(event) {
             copyButtonEl.style.display = 'block';
             deleteButtonEl.style.display = 'block';
-          } else {
-            copyButtonEl.style.display = 'none';
-            deleteButtonEl.style.display = 'none';
-          }
-
-        });
-      
-        // Add a click event listener to remove the event
-        deleteImageEl.addEventListener('click', function(event) {
-
-          event.stopPropagation(); // Prevent event propagation to the parent elements
-
-          //Remove copy, delete buttons and event
-          event.target.parentElement.nextElementSibling.remove();
-          info.event.remove();
-          event.target.remove();
-
-          //Populate god mode:
-          populateGodMode();
-        });
-
-        // Add a click event listener to copy the event
-        copyImageEl.addEventListener('click', function(event) {
-
-          event.stopPropagation(); // Prevent event propagation to the parent elements
-
-          //Save the copy button
-          clickedEventCopyButton = event.target;
-
-          //Set image to pressed state
-          copyImageEl.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddeb5b0ba0c6aee88f383_copyPressedNew.webp";
-          // Get the event details
-          var eventDetails = {
-            allDay: info.event.allDay,
-            extendedProps: {
-              length: info.event.extendedProps.length,
-              targetArea: info.event.extendedProps.targetArea,
-              workoutID: info.event.extendedProps.workoutID,
-              uniqueWorkoutID: uuidv4()
-            },
-            start: info.event.start,
-            title: info.event.title
-          };
-
-          sessionStorage.setItem('copiedEvent', JSON.stringify(eventDetails));
-          isEventPasteState = true;
-        });
-        
-        // Add event listeners for event drag start and stop
-        calendar.on('eventDragStart', function(info) {
-          // Get the original date cell
-          originalCell = info.jsEvent.target;
-          originalCell = originalCell.closest('.fc-daygrid-day-frame');
-          originalCellDay = info.event._instance.range.start;
-        });
-
-        calendar.on('eventDrop', function(info) {
-          var stoppedEventDay = info.event._instance.range.start;
-          if(originalCell) {
-            // Find the corresponding delete button element in the original cell
-            var originalDeleteButtonEl = originalCell.querySelector(".delete-event-button");
-            var originalCopyButtonEl = originalCell.querySelector(".copy-event-button");
-            // Remove the delete button from the original cell
-            if ((originalDeleteButtonEl && originalCopyButtonEl) && stoppedEventDay != originalCellDay) {
-              originalDeleteButtonEl.remove();
-              originalCopyButtonEl.remove()
+            addButtonEl.style.display = 'block';
+            if(eventElParent.querySelector(".fc-event") != null) {
+              eventElParent.querySelector(".fc-event").style.cursor = "grab";
             }
-          }
+            
+          });
+        
+          eventElParent.addEventListener('mouseleave', function(event) {
 
-        });
+            //Get date of hovered date 
+            var hoveredEventDate = new Date(event.target.closest('.fc-daygrid-day-frame').parentElement.getAttribute("data-date"));
+            var copiedJSON = sessionStorage.getItem('copiedEvent');
+            if(copiedJSON && JSON.parse(copiedJSON).length && JSON.parse(copiedJSON).length > 0) {
+              var copiedEventDate = new Date(JSON.parse(copiedJSON)[0].start);
+            }
+            
+            hoveredEventDate.setHours(hoveredEventDate.getHours() - 10);
+
+            if(isEventPasteState && (hoveredEventDate.getTime() == copiedEventDate.getTime())) {
+              copyButtonEl.style.display = 'block';
+              deleteButtonEl.style.display = 'block';
+              addButtonEl.style.display = 'block';
+            } else {
+              copyButtonEl.style.display = 'none';
+              deleteButtonEl.style.display = 'none';
+              addButtonEl.style.display = 'none';
+            }
+
+          });
+          
+
+          // Add a click event listener to remove the event
+          deleteImageEl.addEventListener('click', function(event) {
+
+            event.stopPropagation(); // Prevent event propagation to the parent elements
+
+            var eventClickedDate = event.target.closest(".fc-day").getAttribute("data-date");
+
+            // List all events, then filter for events within the week
+            var allEvents = calendar.getEvents();
+            var dayEvents = allEvents.filter(function (event) {
+              return !event.extendedProps.weeklyTask && moment(event.start).isSame(moment(eventClickedDate), 'day'); // '[]' to include the start and end dates
+            });
+          
+            // Remove the week events from the calendar
+            dayEvents.forEach(function (event) {
+              event.remove();
+            });
+
+            //Remove copy and delete buttons
+            event.target.closest(".fc-daygrid-day-frame").querySelector(".copy-event-button").remove();
+            event.target.remove();
+
+
+            //Populate god mode:
+            populateGodMode();
+
+          });
+
+          // Add a click event listener to copy the events
+          copyImageEl.addEventListener('click', function(event) {
+
+            event.stopPropagation(); // Prevent event propagation to the parent elements
+
+            // Get the clicked date from the calendar
+            var eventClickedDate = event.target.closest(".fc-day").getAttribute("data-date");
+
+            // List all events for the clicked date
+            var allEvents = calendar.getEvents();
+            var dayEvents = allEvents.filter(function(event) {
+              return !event.extendedProps.weeklyTask && moment(event.start).isSame(moment(eventClickedDate), 'day');
+            });
+
+            // Create an array to store event details
+            var eventsArray = [];
+
+            //Set image to pressed state
+            copyImageEl.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddeb5b0ba0c6aee88f383_copyPressedNew.webp";
+
+            // Iterate through the events and store their details
+            dayEvents.forEach(function(event) {
+              var eventDetails = {
+                allDay: event.allDay,
+                extendedProps: {
+                  length: event.extendedProps.length,
+                  targetArea: event.extendedProps.targetArea,
+                  workoutID: event.extendedProps.workoutID,
+                  uniqueWorkoutID: uuidv4()
+                },
+                start: eventClickedDate,
+                title: event.title
+              };
+              eventsArray.push(eventDetails);
+            });
+
+            // Store the events array in sessionStorage
+            sessionStorage.setItem('copiedEvent', JSON.stringify(eventsArray));
+            isEventPasteState = true;
+
+          });
+          
+          // Add event listeners for event drag start and stop
+          calendar.on('eventDragStart', function(info) {
+            // Get the original date cell
+            originalCell = info.jsEvent.target;
+            originalCell = originalCell.closest('.fc-daygrid-day-frame');
+            originalCellDay = info.event._instance.range.start;
+          });
+
+          calendar.on('eventDrop', function(info) {
+            var stoppedEventDay = info.event._instance.range.start;
+            if(originalCell) {
+              // Find the corresponding delete button element in the original cell
+              var originalDeleteButtonEl = originalCell.querySelector(".delete-event-button");
+              var originalCopyButtonEl = originalCell.querySelector(".copy-event-button");
+              // Remove the delete button from the original cell
+              if ((originalDeleteButtonEl && originalCopyButtonEl) && stoppedEventDay != originalCellDay) {
+                originalDeleteButtonEl.remove();
+                originalCopyButtonEl.remove()
+              }
+            }
+
+          });
+        }
 
         //Populate god mode:
         populateGodMode();
@@ -1938,7 +2071,7 @@ async function main() {
         
         var eventContentHTML = '<div class="fc-content">' +
             '<div class="fc-title">' + info.event.title + '</div>' +
-            '<div class="fc-details">' + targetArea + '<br>' /*+ duration */ + '</div>' +
+            '<div class="fc-details">' + (targetArea ? targetArea + '<br>' : "") /*+ duration */ + '</div>' +
             '</div>';
     
         return {
@@ -1953,6 +2086,7 @@ async function main() {
             $(this).prepend("<div/>");
           } else {
             var rowIndex = $(this).index() + 1; // Get the index of the row and add 1 to make it 1-based
+
       
             // Get the day of the first day in the week
             var firstDay = $(this).find('[data-date]').first().attr('data-date');
@@ -1978,7 +2112,54 @@ async function main() {
             var weekRangeHtml = '<div class="week-range' + (isInWeekRange ? ' current-week-range' : '') + '">' + weekRange + '</div>';
             var weekInfoHtml = '<div class="week-info">' + '<div>' + rowIndex + '</div>' + copyButtonHtml + deleteButtonHtml + '</div>';
             var buttonsContainerHtml = '<div class="buttons-container">' + weekRangeHtml + weekInfoHtml + '</div>';
+
+            var eventCopy = $(this).find("[role=gridcell]")[0].cloneNode(true);
+            eventCopy.style.display = "none";
+
+            eventCopy.onclick = function(e) {
+
+              //Ensure it is on tasks
+              document.getElementById("showModalTasks").click();
+
+              selectedDate = e.target.closest(".fc-day").getAttribute("data-date");
+
+              //Check if any events and click on them in the workout modal list
+              var allEvents = calendar.getEvents();
+              var dayEvents = allEvents.filter(function (event) {
+                return event.extendedProps.weeklyTask && moment(event.start).isSame(moment(selectedDate), 'day'); // '[]' to include the start and end dates
+              });
+
+              for(var i = 0; i < dayEvents.length; i++) {
+
+                var listID = "";
+                var itemID = "";
+                var itemSelector = "";
+                if(dayEvents[i].extendedProps.workoutID) {
+                  listID = "#workoutSummaryProgram";
+                  itemID = dayEvents[i].extendedProps.workoutID;
+                  itemSelector = "#workoutIDProgram";
+                } else if(dayEvents[i].extendedProps.taskID) {
+                  listID = "#taskItem";
+                  itemID = dayEvents[i].extendedProps.taskID;
+                  itemSelector = "#taskItemID";
+                }
+
+                clickModalListItem(listID, itemID, itemSelector);
+              }
+
+              showModal("workoutsList");
+
+              sessionStorage.setItem("weeklyTask", "true");
+            };
+            
+            eventCopy.classList.add("weekly-task");
+
+            if(sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
+              $(this).prepend(eventCopy);
+            }
+
             $(this).prepend(buttonsContainerHtml);
+          
           }
       
           index++;
@@ -2008,6 +2189,37 @@ async function main() {
       })(programList[i]);
     }
 
+    //Get all challenge summaries and set onclicks
+    var challengeList = document.querySelectorAll("#challengeSummary");
+    for(let i = 0; i < challengeList.length; i++) {
+      (function(challenge) {
+        challenge.onclick = (event) => {
+          if(event.target.id != "deleteChallenge" && !event.target.id.includes("challengeOptions")) {
+
+            //Prefill challenge screen
+            prefillChallengeBuilder(challenge);
+
+            //Set edit challenge flag
+            sessionStorage.setItem("editChallenge", 'true');
+
+            hideOrShowGodModeSwitch();
+          }
+
+        }
+      })(challengeList[i]);
+    }
+
+    //Set onclicks for all tasks
+    var taskItems = document.querySelectorAll(".taskitem");
+    for(var i = 0; i < taskItems.length; i++) {
+      (function(task) {
+        task.onclick = () => {
+          prefillWorkoutTaskList(task, "task");
+        }
+      })(taskItems[i]);
+    }
+
+
     //Set onclicks for all workouts
     var programWorkouts = document.querySelectorAll("#workoutSummaryProgram");
     var mainWorkoutList = document.querySelectorAll(".workoutsummaryitem");
@@ -2019,55 +2231,65 @@ async function main() {
       (function(workout) {
         workout.onclick = () => {
 
-          //Remove if any workouts exist
-          clearWorkoutExerciseList(true);
-          //Get workout ID:
-          var programWorkoutID = workout.querySelector("#workoutIDProgram").innerText;
+          if(sessionStorage.getItem("createChallenge") != "true") {
+          
+            //Remove if any workouts exist
+            clearWorkoutExerciseList(true);
+            
+            //Get workout ID:
+            var programWorkoutID = workout.querySelector("#workoutIDProgram").innerText;
 
-          //List workout summary list and find matching workout id
-          for(var j = 0; j < mainWorkoutList.length; j++) {
+            //List workout summary list and find matching workout id
+            for(var j = 0; j < mainWorkoutList.length; j++) {
 
-            if(mainWorkoutList[j].querySelector("#workoutID").innerText == programWorkoutID) {
-              //Populate select workout side bar
-              var selectedWorkout = getWorkoutExerciseInformation(mainWorkoutList[j], true)
+              if(mainWorkoutList[j].querySelector("#workoutID").innerText == programWorkoutID) {
+                //Populate select workout side bar
+                var selectedWorkout = getWorkoutExerciseInformation(mainWorkoutList[j], true)
 
-              document.getElementById("selectedWorkoutName").innerText = selectedWorkout.workoutName;
-              document.getElementById("selectedWorkoutDescription").innerText = selectedWorkout.workoutSummaryDescription;
-              document.getElementById("selectedWorkoutDuration").innerText = selectedWorkout.workoutDuration;
-              document.getElementById("selectedWorkoutFocusArea").innerText = selectedWorkout.workoutFocusArea;
+                document.getElementById("selectedWorkoutName").innerText = selectedWorkout.workoutName;
+                document.getElementById("selectedWorkoutDescription").innerText = selectedWorkout.workoutSummaryDescription;
+                document.getElementById("selectedWorkoutDuration").innerText = selectedWorkout.workoutDuration;
+                document.getElementById("selectedWorkoutFocusArea").innerText = selectedWorkout.workoutFocusArea;
 
-              //Now populate exercises
-              prefillWorkoutBuilder(selectedWorkout, true)
+                //Now populate exercises
+                prefillWorkoutBuilder(selectedWorkout, true)
 
-              //Hide placeholder
-              document.getElementById("selectWorkoutPlaceholder").style.display = "none";
+                //Hide placeholder
+                document.getElementById("selectWorkoutPlaceholder").style.display = "none";
 
-              //Show workoutProgramSummary
-              var workoutProgramSummary = document.getElementById("workoutProgramSummary");
-              workoutProgramSummary.style.display = "flex";
-              workoutProgramSummary.style.flexDirection = "column";
-              workoutProgramSummary.style.justifyContent = "center";
-              workoutProgramSummary.style.alignItems = "center";
-  
-            }
-          }
-
-          //Create event and add to calendar
-          desiredDate = new Date(selectedDate);
+                //Show workoutProgramSummary
+                var workoutProgramSummary = document.getElementById("workoutProgramSummary");
+                workoutProgramSummary.style.display = "flex";
+                workoutProgramSummary.style.flexDirection = "column";
+                workoutProgramSummary.style.justifyContent = "center";
+                workoutProgramSummary.style.alignItems = "center";
     
-          // Create a new event object with the desired date
-          newEvent = {
-            title: selectedWorkout.workoutName,
-            details: selectedWorkout.workoutFocusArea,
-            extendedProps: {
-              targetArea: selectedWorkout.workoutFocusArea,
-              length: selectedWorkout.workoutDuration,
-              workoutID: selectedWorkout.workoutSummaryID,
-              uniqueWorkoutID: uuidv4()
-            },
-            start: desiredDate,
-            allDay: true
-          };
+              }
+            }
+
+            //Create event and add to calendar
+            desiredDate = new Date(selectedDate);
+      
+            // Create a new event object with the desired date
+            newEvent = {
+              title: selectedWorkout.workoutName,
+              details: selectedWorkout.workoutFocusArea,
+              extendedProps: {
+                targetArea: selectedWorkout.workoutFocusArea,
+                length: selectedWorkout.workoutDuration,
+                workoutID: selectedWorkout.workoutSummaryID,
+                uniqueWorkoutID: uuidv4()
+              },
+              start: desiredDate,
+              allDay: true
+            };
+
+          } else {
+
+            prefillWorkoutTaskList(workout, "workout");
+          }
+ 
+
 
         }
       })(programWorkouts[i]);
@@ -2132,33 +2354,87 @@ async function main() {
 
     //Set onclick for program workout select
     document.getElementById("selectProgramWorkout").onclick = () => {
-      clearWorkoutExerciseList(true);
 
-      // Add the new event to the calendar
-      calendar.addEvent(newEvent);
+      if(sessionStorage.getItem("createChallenge") == "true") {
 
-      //Check if no programs have been added - and just workout is added, create program to ensure the data is saved
-      if (Object.keys(userTrainingPlan).length === 0) {
-        const startOfWeek = moment(newEvent.start).startOf('week').format('YYYY-MM-DD');
-        const endOfWeek = moment(newEvent.start).endOf('week').format('YYYY-MM-DD');
-        //add program to global userProgram list
-        var programObj = {};
-        programObj["programName"] = document.getElementById("trainingPlanName").innerText;
-        programObj["programID"] = "none";
-        programObj["events"] = [newEvent];
-        programObj["startWeek"] = startOfWeek;
-        programObj["endWeek"] = endOfWeek;
+        desiredDate = selectedDate;
 
-        userTrainingPlan.push(programObj);
+        if(sessionStorage.getItem("weeklyTask") == "false") {
+          //Clear existing events
+          // List all events, then filter for events within the week
+          var allEvents = calendar.getEvents();
+          var dayEvents = allEvents.filter(function (event) {
+            return !event.extendedProps.weeklyTask && moment(event.start).isSame(moment(selectedDate), 'day'); // '[]' to include the start and end dates
+          });
+        
+          // Remove the week events from the calendar
+          dayEvents.forEach(function (event) {
+            event.remove();
+          });
 
-        //Sort the programs by start week
-        userTrainingPlan.sort(function(a, b) {
-          var dateA = moment(a.startWeek, "YYYY-MM-DD");
-          var dateB = moment(b.startWeek, "YYYY-MM-DD");
-          return dateA - dateB;
-        });
+          
+        } else {
+          var allEvents = calendar.getEvents();
+          var dayEvents = allEvents.filter(function (event) {
+            return event.extendedProps.weeklyTask && moment(event.start).isSame(moment(selectedDate), 'day'); // '[]' to include the start and end dates
+          });
+        
+          // Remove the week events from the calendar
+          dayEvents.forEach(function (event) {
+            event.remove();
+          });
 
+          const weeklyElement = document.querySelector(`td[data-date="${desiredDate}"].weekly-task`);
+          const eventElements = weeklyElement.querySelectorAll(".fc-event");
+          for(var i = 0; i < eventElements.length; i++) {
+            eventElements[i].remove();
+          }
+        }
+
+        const workoutTaskList = document.getElementById("programWorkoutList").children;
+
+        for(var i = 1; i < workoutTaskList.length; i++) {
+          
+          var eventElement = workoutTaskList[i].firstChild;
+          // Create a new event object with the desired date
+          if(eventElement.id == "workoutItem") {
+            newEvent = {
+              title: eventElement.querySelector('#workoutSummaryNameProgram').innerText,
+              details: eventElement.querySelector('#workoutDurationProgram').innerText,
+              extendedProps: {
+                targetArea: eventElement.querySelector('#workoutFocusAreaProgram').innerText,
+                length: eventElement.querySelector('#workoutDurationProgram').innerText,
+                workoutID: eventElement.querySelector('#itemID').innerText,
+                uniqueWorkoutID: uuidv4()
+              },
+              start: desiredDate,
+              allDay: true
+            };
+          } else if(eventElement.id == "taskItem") {
+            newEvent = {
+              title: eventElement.querySelector('#taskName').innerText,
+              extendedProps: {
+                taskID: eventElement.querySelector('#itemID').innerText,
+                uniqueTaskID: uuidv4()
+              },
+              start: desiredDate,
+              allDay: true
+            };    
+          }
+          if(sessionStorage.getItem("weeklyTask") == "true") {
+            newEvent.extendedProps["weeklyTask"] = "true";
+          }
+
+          addEventToCalendar();
+        
+        }
+
+      } else {
+        addEventToCalendar();
       }
+
+      sessionStorage.setItem("weeklyTask", "false")
+      clearWorkoutExerciseList(true);
 
       // Hide modal
       document.getElementById("modalWrapper").style.display = "none";
@@ -2387,6 +2663,16 @@ async function main() {
         const hoveredRow = event.target.closest('[role="row"]');
         const hoveredDay = event.target.closest('.fc-daygrid-day-frame');
 
+        //Hide date
+        if(hoveredDay) {
+          if(hoveredDay.style.backgroundColor != "rgb(203, 203, 203)") {
+            if(hoveredDay.querySelector('.fc-col-header-cell-cushion')) {
+              hoveredDay.querySelector('.fc-col-header-cell-cushion').style.display = "none";
+            }
+            
+          }
+        }
+
         if(isPasteState || isEventPasteState || addProgram) {
           if(isPasteState || addProgram) {
             toggleRowPasteStateCSS(hoveredRow, true);
@@ -2442,6 +2728,14 @@ async function main() {
       if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') || event.target.closest(".add-event-button"))) {
         var hoveredRow = event.target.closest('[role="row"]');
         const hoveredDay = event.target.closest('.fc-daygrid-day-frame');
+
+        //Show date
+        if(hoveredDay) {
+          if(hoveredDay.querySelector('.fc-col-header-cell-cushion')) {
+            hoveredDay.querySelector('.fc-col-header-cell-cushion').style.display = "";
+          }
+          
+        }
 
         toggleRowPasteStateCSS(hoveredRow, false);
         toggleBorderCSS(hoveredDay, false);
@@ -2618,6 +2912,75 @@ async function main() {
       sendProgramToMake(program);
 
     }
+
+    document.getElementById("saveChallenge").addEventListener("click", function(event) {
+      //List events from calendar
+      var events = calendar.getEvents();
+      events = events.filter(function (event) {
+        return !event.extendedProps.weeklyTask;
+      });
+
+      if(events.length == 0) {
+        event.preventDefault();
+        alert("Please add some workouts/tasks to the challenge before you submit it!");
+      } else {
+        document.getElementById("saveChallenge").click();
+      }
+    });
+
+    document.getElementById("challengeForm").onsubmit = function() {
+      var challenge = {};
+      var challengeWorkoutsArr = [];
+      var challengeTasksArr = [];
+
+      //List events from calendar
+      var events = calendar.getEvents();
+
+      challenge["challengeName"] = document.getElementById("challengeInputName").value;
+      challenge["challengeDescription"] = document.getElementById("challengeDescription").value;
+      challenge["startDate"] = document.getElementById("challengeStartDate").value;
+      challenge["endDate"] = document.getElementById("challengeEndDate").value;
+
+      // Loop through the events and remove events with empty workoutID
+      for (var i = events.length - 1; i >= 0; i--) {
+        var event = events[i];
+        if (event.extendedProps.workoutID === "") {
+          event.remove();
+        } else {
+          //Check if workout
+          if(event.extendedProps.workoutID) {
+            challengeWorkoutsArr.push(event.extendedProps.workoutID);
+          } else if (event.extendedProps.taskID) {
+            //Check if tasks
+            challengeTasksArr.push(event.extendedProps.taskID);
+          }
+        }
+      }
+
+      // Calculate number of weeks between start of first event and end of last event
+      var numWeeks = Math.ceil((new Date(challenge["endDate"]).getTime() - new Date(challenge["startDate"]).getTime()) / (1000 * 60 * 60 * 24 * 7));
+      challenge["numberOfWeeks"] = numWeeks;
+      challengeWorkoutsArr = challengeWorkoutsArr.reverse();
+      challengeTasksArr = challengeTasksArr.reverse();
+
+      challenge["eventData"] = JSON.stringify(events);
+
+      challenge["workoutIDs"] = challengeWorkoutsArr;
+      challenge["taskIDs"] = challengeTasksArr;
+
+      challenge["gymName"] = document.getElementById("gymFullName").innerText;
+      challenge["gymID"] = document.getElementById("gymID").innerText;
+
+      if(sessionStorage.getItem('editChallenge') == "true") {
+        challenge["programID"] = document.getElementById("challengeSummaryID").value;
+      } 
+
+      challenge["extendedJSON"] = JSON.stringify(createExtendedProgram(JSON.parse(challenge.eventData)));
+
+      sendChallengeToMake(challenge);
+
+      
+    };
 
     document.getElementById("submitWorkoutBuilderForm").onclick = function(event) {
 
@@ -2801,7 +3164,7 @@ async function main() {
               copiedEvents = JSON.parse(sessionStorage.getItem('copiedEvents'));
             }
 
-            if (copiedEvents) {
+            if (copiedEvents && copiedEvents.length > 0) {
 
               var numProgramWeeks = document.getElementById("selectedProgramWeeks").innerText;
 
@@ -2921,11 +3284,14 @@ async function main() {
 
                   //Update unique workout ID
                   event.extendedProps.uniqueWorkoutID = uuidv4();
-  
+
                   if(!duplicateEventExists && !addProgram) {
                     // Add event to calendar
                     calendar.addEvent(event);
                   } else if(addProgram) {
+                    calendar.addEvent(event);
+
+                  } else if(sessionStorage.getItem("createChallenge") || sessionStorage.getItem("editChallenge")) {
                     calendar.addEvent(event);
                   }
 
@@ -2975,47 +3341,23 @@ async function main() {
           var hasExistingEvent = dayCell.querySelector(".copy-event-button");
 
           if ((copiedEvent && clickedDate && hasExistingEvent == null)) {
-            // Create a new event object with the copied event details
-            //Modify unique workout ID
-            copiedEvent.extendedProps.uniqueWorkoutID = uuidv4();
-            var newEvent = {
-              title: copiedEvent.title,
-              start: clickedDate,
-              end: clickedDate, // Set the end date as the same as start for all-day events
-              allDay: copiedEvent.allDay,
-              extendedProps: copiedEvent.extendedProps
-            };
+            // Create a new event objects with the copied event details
+            copiedEvent.forEach(function(event) {
+              event.extendedProps.uniqueWorkoutID = uuidv4();             //Modify unique workout ID
+              var newEvent = {
+                title: event.title,
+                start: clickedDate,
+                end: clickedDate, // Set the end date as the same as start for all-day events
+                allDay: event.allDay,
+                extendedProps: event.extendedProps
+              };
+  
+              // Add the new event to the calendar
+              calendar.addEvent(newEvent);
+              
+            });
 
-            // Add the new event to the calendar
-            calendar.addEvent(newEvent);
             setFromPaste = true;
-
-            //Check if no programs have been added - and just workout is added, create program to ensure the data is saved
-            if (Object.keys(userTrainingPlan).length === 0) {
-              console.log("No programs but workout added")
-              /*
-              //add program to global userProgram list
-              var programObj = {};
-              programObj["programName"] = document.getElementById("selectedProgramName").innerText;
-              programObj["programID"] = userProgramWorkoutID;
-              programObj["events"] = sortedCopiedEvents;
-              programObj["startWeek"] = moment(new Date(sortedCopiedEvents[0].start)).format("YYYY-MM-DD");;
-              var endOfProgram = new Date (getEndOfWeek(sortedCopiedEvents[0].start));
-              programObj["endWeek"] = moment(new Date (endOfProgram.setDate(endOfProgram.getDate() + (numProgramWeeks-1)*7))).format("YYYY-MM-DD");;
-
-              userTrainingPlan.push(programObj);
-
-              //Sort the programs by start week
-              userTrainingPlan.sort(function(a, b) {
-                var dateA = moment(a.startWeek, "YYYY-MM-DD");
-                var dateB = moment(b.startWeek, "YYYY-MM-DD");
-                return dateA - dateB;
-              });
-            */
-            }
-
-            //getProgramBreakers();
-
 
           }
  
@@ -3032,12 +3374,144 @@ async function main() {
 
     });
 
+    //Click listener
     //Listen for click events:
     document.addEventListener('click', function (event) {
 
       if(event.target.id == "clearClientFilters") {
         resetFilters();
       }
+
+      if(event.target.id == "showModalWorkouts") {
+        document.getElementById("workoutModalForm").style.display = "flex";
+        document.getElementById("taskModalForm").style.display = "none";
+
+        if(!event.target.classList.contains("workouttaskbtnclicked")) {
+
+          event.target.classList.add("workouttaskbtnclicked");
+          event.target.classList.remove("workouttaskbtn");
+
+          document.getElementById("showModalTasks").classList.add("workouttaskbtn");
+          document.getElementById("showModalTasks").classList.remove("workouttaskbtnclicked");
+
+        } 
+      }
+
+      if(event.target.id == "showModalTasks") {
+        document.getElementById("taskModalForm").style.display = "flex";
+        document.getElementById("workoutModalForm").style.display = "none";
+
+        if(!event.target.classList.contains("workouttaskbtnclicked")) {
+          event.target.classList.add("workouttaskbtnclicked");
+          event.target.classList.remove("workouttaskbtn");
+
+          document.getElementById("showModalWorkouts").classList.add("workouttaskbtn");
+          document.getElementById("showModalWorkouts").classList.remove("workouttaskbtnclicked");
+
+        }
+      }
+
+      if(event.target.closest("#createTask")) {
+        document.getElementById("createTask").style.display = "none";
+        document.getElementById("cancelTask").style.display = "flex";
+
+        const taskItem = document.getElementById("addTaskTemplate").cloneNode(true);
+        taskItem.style.display = "grid";
+        let taskList = document.getElementById("taskListModal");
+
+        //Empty state
+        if(taskList == null) {
+          taskList = document.querySelector(".taskwrapperlist");
+          taskList.querySelector(".w-dyn-empty").style.display = "none";
+        } 
+
+        // Get the first child of taskList
+        const firstChild = taskList.firstChild;
+
+
+        //Ensure new input field is added
+        var newID = uuidv4();
+        taskItem.querySelector(".placeholder").setAttribute('for', newID);
+        taskItem.querySelector("#attachmentInput").id = newID;
+        taskItem.querySelectorAll("input")[1].style.display = "none";
+        
+        // Insert taskItem before the firstChild
+        taskList.insertBefore(taskItem, firstChild);
+
+      }
+
+      //Create task button in the list
+      if(event.target.closest(".taskwrapperlist #createTaskItem")) {
+        //Check task has a name
+
+        var taskList = document.querySelector(".taskwrapperlist");
+        const newTask = taskList.querySelector("#addTaskTemplate");
+
+        if(newTask.querySelector(".tasknameinput").value != "") {
+
+          createTaskObject(newTask);
+
+          //Style to match others
+          newTask.classList.add("taskitem", "task-select-grid");
+          newTask.querySelector(".tasknameinputparent").classList.add("div-block-465");
+          newTask.querySelector("#taskEmptyName").className = '';
+          //newTask.querySelector("#taskEmptyCreatedDate").className = '';
+          newTask.querySelector("#taskEmptyName").classList.add("modal-list-header");
+          newTask.querySelector("#taskEmptyCreatedDate").classList.add("modal-list-header-copy");
+          
+          newTask.id = "addTaskTemplate";
+          // Hide text box and show #taskEmptyName
+          newTask.querySelector('#taskEmptyName').innerText = newTask.querySelector('#newTask').value;
+          newTask.querySelector('#newTask').style.display = 'none';
+          newTask.querySelector('#taskEmptyName').style.display = 'block';
+          newTask.querySelector('#taskEmptyName').classList.add("modal-list-header");
+
+          newTask.querySelector('label').style.display = 'none';
+
+          // Hide #createTaskItem button with text of current date in format of DD/MM/YYYY
+          var currentDate = new Date();
+          var formattedDate = currentDate.getDate() + '/' + (currentDate.getMonth() + 1) + '/' + currentDate.getFullYear();
+          newTask.querySelector('#createTaskItem').style.display = 'none';
+          newTask.querySelector('#taskEmptyCreatedDate').style.display = 'block';
+          newTask.querySelector('#taskEmptyCreatedDate').innerText = formattedDate;
+
+          desiredDate = new Date(selectedDate);
+
+          //Show create button again and hide cancel
+          document.getElementById("cancelTask").style.display = "none";
+          document.getElementById("createTask").style.display = "flex";
+
+          newTask.querySelector('#taskEmptyName').id = "taskName";
+          newTask.querySelector('#taskEmptyItemID').id = "taskItemID";
+          
+          newTask.onclick = (event) => {
+            if(event.target.querySelector("#taskItemID").innerText == "Task Item ID") {
+              alert("Please wait until file upload is complete");
+            } else {
+              prefillWorkoutTaskList(event.target, "task");
+            }
+            
+          }
+
+        } else {
+          alert("Please fill in a name for the task");
+        }
+
+      }
+
+      if (event.target.closest("#cancelTask")) {
+        document.getElementById("cancelTask").style.display = "none";
+        document.getElementById("createTask").style.display = "flex";
+      
+        const taskList = document.querySelector(".taskwrapperlist");
+        
+        // Remove the first child element from taskList
+        const taskInput = taskList.querySelector("#addTaskTemplate")
+        if (taskInput) {
+          taskInput.remove();
+        }
+      }
+
 
       if(event.target.id == "machine-parent") {
         document.getElementById("pin-checkbox").click();
@@ -3128,14 +3602,13 @@ async function main() {
         // List all events, then filter for events within the week
         var allEvents = calendar.getEvents();
         var weekEvents = allEvents.filter(function (event) {
-          return moment(event.start).isBetween(weekStart, weekEnd, null, '[]'); // '[]' to include the start and end dates
+          return !event.extendedProps.weeklyTask && moment(event.start).isBetween(weekStart, weekEnd, null, '[]'); // '[]' to include the start and end dates
         });
         
         // Store the week events in session storage
         sessionStorage.setItem('copiedEvents', JSON.stringify(weekEvents));
         
       } else if (event.target.classList.contains('delete-events-button')) {
-
 
         // Get the week row
         var weekRow = event.target.closest('[role="row"]');
@@ -3417,6 +3890,8 @@ async function main() {
         if(document.querySelector(".qr-code img") != null) {
           document.querySelector(".qr-code img").remove();
         }
+
+        sessionStorage.setItem("weeklyTask", "false");
         
         document.getElementById("linkCopiedText").style.display = "none";
         if(event.target.id == "modalWrapper") {
@@ -3795,6 +4270,49 @@ async function main() {
         //Go to workout builder
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
+      } else if (event.target.closest("#createChallenge")) {
+        //Remove all events first
+        calendar.removeAllEvents();
+
+        document.getElementById("calendarTitle").innerText = "Day";
+
+        //Set number of weeks to 2
+        updateCalendarWeeks(2, "challenge");
+
+        addDatePickers();
+
+        //Set program flag to create
+        sessionStorage.setItem("createChallenge", 'true');
+
+        document.getElementById("programBuilder").style.display = "block";
+
+        document.getElementById("workout-task-select").style.display = "flex";
+
+        //Show form inputs for program builder
+        var programBuilderInfo = document.getElementById("challengeBuilderInfo");
+        programBuilderInfo.style.display = "flex";
+        programBuilderInfo.style.flexDirection = "row";
+        programBuilderInfo.style.alignContent = "flex-end";
+        programBuilderInfo.style.justifyContent = "space-between";
+        
+        document.getElementById("challengeBuilderInfo").style.display = "flex";
+        
+        refreshCalendarLayout();
+
+        if(document.getElementById("weeklyTasksCheckbox").checked) {
+          document.getElementById("weeklyTasksCheckbox").click();
+        }
+        
+        //Hide assign program:
+        document.querySelector(".programinfodiv").style.display = "none";
+        document.getElementById("challengesBody").style.display = "none";
+        //Hide add week
+        document.querySelector("#addWeekButton").style.display = "none";
+
+        document.getElementById("saveChallenge").innerText = "Create";
+        document.getElementById("saveChallenge").value = "Create";
+        
+      
       } else if (event.target.id == "createProgram" || event.target.id == "createProgramImage" || event.target.id == "createProgramText") {
         //Remove all events first
         calendar.removeAllEvents();
@@ -4064,6 +4582,20 @@ async function main() {
         }
       }
 
+      if(event.target.id == "weeklyTasksCheckbox") {
+        var display = "none";
+        if(event.target.checked) {
+          display = ""
+        } 
+
+        var weeklyTaskElements = document.querySelectorAll(".weekly-task");
+
+        for(var i = 0; i < weeklyTaskElements.length; i++) {
+          weeklyTaskElements[i].style.display = display;
+        }
+        
+      }
+
       if(event.target.id == "measureInput") {
 
         if(event.target.value.toLowerCase() == "rpe" || event.target.value.toLowerCase() == "rir") {
@@ -4289,6 +4821,14 @@ async function main() {
         }
       }
 
+      if(event.target.closest("#challengesPage")) {
+        if(!event.target.closest("#challengesPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#challengesPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#challengesPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
       if(event.target.closest("#workoutsPage")) {
         if(!event.target.closest("#workoutsPage").classList.contains("clickednavbutton")) {
           event.target.closest("#workoutsPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
@@ -4354,6 +4894,14 @@ async function main() {
         }
       }
 
+      if(event.target.closest("#challengesPage")) {
+        if(!event.target.closest("#challengesPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#challengesPage").style.backgroundColor = "";
+        } else {
+          event.target.closest("#challengesPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
       if(event.target.closest("#userPage")) {
         if(!event.target.closest("#userPage").classList.contains("clickednavbutton")) {
           event.target.closest("#userPage").style.backgroundColor = "";
@@ -4377,6 +4925,50 @@ async function main() {
       }
 
     }, false);
+
+    function styleStartAndEndDates(startChallengeValue, endChallengeValue) {
+
+      var dateParent = document.getElementById("dateParent");
+
+      if(startChallengeValue == endChallengeValue) {
+        dateParent.style.borderColor = "#EE1D29";
+        document.getElementById("requiredDatesText").style.display = "block";
+        
+      } else {
+        dateParent.style.borderColor = "#cacaca";
+        document.getElementById("requiredDatesText").style.display = "none";
+      }
+    }
+
+    function addEventToCalendar() {
+
+      // Add the new event to the calendar
+      calendar.addEvent(newEvent);
+
+      //Check if no programs have been added - and just workout is added, create program to ensure the data is saved
+      if (Object.keys(userTrainingPlan).length === 0) {
+        const startOfWeek = moment(newEvent.start).startOf('week').format('YYYY-MM-DD');
+        const endOfWeek = moment(newEvent.start).endOf('week').format('YYYY-MM-DD');
+        //add program to global userProgram list
+        var programObj = {};
+        programObj["programName"] = document.getElementById("trainingPlanName").innerText;
+        programObj["programID"] = "none";
+        programObj["events"] = [newEvent];
+        programObj["startWeek"] = startOfWeek;
+        programObj["endWeek"] = endOfWeek;
+
+        userTrainingPlan.push(programObj);
+
+        //Sort the programs by start week
+        userTrainingPlan.sort(function(a, b) {
+          var dateA = moment(a.startWeek, "YYYY-MM-DD");
+          var dateB = moment(b.startWeek, "YYYY-MM-DD");
+          return dateA - dateB;
+        });
+
+      }
+
+    }
 
     function checkInvalidVideoLink() {
 
@@ -4409,6 +5001,18 @@ async function main() {
       } else {
           return 'Invalid video link. Supported platforms: YouTube, Vimeo.';
       }
+    }
+
+    function clickModalListItem(listID, itemID, listItemSelector) {
+
+      var listItems = document.querySelectorAll(listID);
+      for(var i = 0; i < listItems.length; i++) {
+        if(listItems[i].querySelector(listItemSelector).innerText == itemID) {
+          listItems[i].click();
+          break;
+        }
+      }
+
     }
 
     function submitExerciseUploadForm() {
@@ -5047,7 +5651,11 @@ async function main() {
           if(toggleState) {
             rowChildren[i].querySelector(".fc-daygrid-day-frame").style.backgroundColor = "rgba(12, 8, 213, 0.15)";
           } else {
-            rowChildren[i].querySelector(".fc-daygrid-day-frame").style.backgroundColor = "#F0F0F0";
+            var cellBackgroundColor = rowChildren[i].querySelector(".fc-daygrid-day-frame").style.backgroundColor;
+            if(cellBackgroundColor != "rgb(203, 203, 203)") {
+              rowChildren[i].querySelector(".fc-daygrid-day-frame").style.backgroundColor = "#F0F0F0";
+            }
+            
           }
         }
       }
@@ -5069,18 +5677,23 @@ async function main() {
     function toggleDayPasteStateCSS(day, toggleState) {
      
       if(day) {
-        //Iterae through each day in the row and apply css
+        //Iterate through each day in the row and apply css
         if(toggleState) {
           day.style.backgroundColor = "rgba(12, 8, 213, 0.15)";
         } else {
-          day.style.backgroundColor = "#F0F0F0";
+          if(day.style.backgroundColor != "rgb(203, 203, 203)") {
+            day.style.backgroundColor = "#F0F0F0";
+          }
         }
       }
     }
 
     function toggleBorderCSS(hoveredDay, toggleState) {
 
+      
       if(hoveredDay) {
+        var dayBackgroundColor = hoveredDay.closest(".fc-daygrid-day-frame").style.backgroundColor;
+
         var eventElParent = hoveredDay.closest(".fc-daygrid-day-frame");
 
         //Add plus button if it doesnt exist
@@ -5102,15 +5715,19 @@ async function main() {
           eventElParent.appendChild(addButtonEl);
         
         }
-        if (toggleState) {
+
+        if (toggleState && dayBackgroundColor != "rgb(203, 203, 203)") {
           // Add the grey border with the specified width and color
           hoveredDay.style.border = '1px solid #6D6D6F';
-
           hoveredDay.querySelector('.add-event-button').style.display = "block";
         } else {
           // Remove the border when toggleState is false
           hoveredDay.style.border = 'none';
-          hoveredDay.querySelector('.add-event-button').style.display = "none";
+          //Check if it has an exercise:
+          if(!hoveredDay.querySelector(".fc-event")) {
+            hoveredDay.querySelector('.add-event-button').style.display = "none";
+          }
+          
         }
       }
 
@@ -5267,6 +5884,51 @@ async function main() {
       });
 
     }
+
+    async function createTaskObject(task) {
+
+      const formData = new FormData();
+      formData.append('name', task.querySelector("#newTask").value);
+    
+      var taskAttachment = task.querySelectorAll("input")[1];
+    
+      if (taskAttachment.files && taskAttachment.files.length > 0) {
+        var file = taskAttachment.files[0]; // Get the first file
+        formData.append('taskFile', file);
+      }
+
+      formData.append('gymID', document.getElementById("gymID").innerText);
+      submitTaskToMake(task, formData);
+    }
+
+    async function submitTaskToMake(taskElement, task) {
+      fetch("https://hook.us1.make.com/9rqng7uxekaivq5oczbo32fswndx6ey8", {
+        method: "POST",
+        body: task
+      }).then((res) => {
+        if (res.ok) {
+          return res.text();
+        }
+        throw new Error('Something went wrong');
+      })
+      .then((data) => {
+
+        //Set itemID text
+        taskElement.querySelector("#taskItemID").innerText = data;
+
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Could not create task, please try again");
+
+        //Clear first element
+
+        //Reset cancel button
+      });
+
+    }
+
+
     //Send workout object to make 
     async function sendWorkoutToMake(workout) {
       const editWorkout = sessionStorage.getItem('editWorkout');
@@ -5628,7 +6290,6 @@ async function main() {
         }
         userProgram["workoutList"] = userProgramWorkouts;
       } else {
-        console.log("Empty program")
         userProgram["endDate"] = moment(new Date).format("YYYY-MM-DD");
       }
       
@@ -6001,6 +6662,56 @@ async function main() {
 
         // Construct the new URL with the parameter
         const newURL = `${baseURLWithoutParams}?showPage=programSummary`;
+
+        // Update the current URL to the new URL
+        window.location.href = newURL;
+      });
+    }
+
+    function sendChallengeToMake(challenge) {
+      if(sessionStorage.getItem("editChallenge") == "true") {
+        sendChallengeRequestToMake("https://hook.us1.make.com/gjg639uf16sessrm3cfwptl83f6itdmi", challenge);
+
+      } else if(sessionStorage.getItem("createChallenge") == "true") {
+        sendChallengeRequestToMake("https://hook.us1.make.com/prlvfssjs63ycqe6xffed6ssqk3pl9s2", challenge);
+
+      }
+    }
+
+    function sendChallengeRequestToMake(destination, challenge) {
+      fetch(destination, {
+        method: "POST",
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(challenge)
+      }).then((res) => {
+        if (res.ok) {
+          return res.text();
+        }
+        throw new Error('Something went wrong');
+      })
+      .then((data) => {
+
+        alert("Challenge Saved Successfully!");
+        //Reset program builder flags
+        sessionStorage.setItem("editChallange", "false");
+        sessionStorage.setItem("createChallange", "false");
+        // Get the current URL without parameters
+        const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+        // Construct the new URL with the parameter
+        const newURL = `${baseURLWithoutParams}?showPage=challengeSummary`;
+
+        // Update the current URL to the new URL
+        window.location.href = newURL;
+      })
+      .catch((error) => {
+        console.log(error);
+        alert("Could not create challenge, please try again");
+        // Get the current URL without parameters
+        const baseURLWithoutParams = window.location.origin + window.location.pathname;
+
+        // Construct the new URL with the parameter
+        const newURL = `${baseURLWithoutParams}?showPage=challengeSummary`;
 
         // Update the current URL to the new URL
         window.location.href = newURL;
@@ -6397,6 +7108,82 @@ async function main() {
 
     }
 
+    function prefillChallengeBuilder(challenge) {
+
+      // Convert the Start Date strings to Date objects
+      var eventsData = "";
+      //Check if user training plan is empty
+      const baseData = challenge.querySelector("#challengeSummaryEventData");
+      const extendedData = challenge.querySelector("#challengeSummaryExtendedData");
+      const weeks = challenge.querySelector("#challengeSummaryWeeks").innerText;
+      eventsData = JSON.parse(baseData.innerText);
+
+      if(eventsData != "" && eventsData.length > 0) {
+        const events = [];
+        
+        // Extract and convert the "start" values into Date objects
+        const dates = eventsData.map(obj => obj.start);
+        
+        // Sort the dates in ascending order
+        dates.sort((a, b) => a - b);
+        //Set calendar initial date
+        calendar.gotoDate( dates[0] );
+
+        addDatePickers();
+
+        //Prefill name
+        document.getElementById("challengeInputName").value = challenge.querySelector("#challengeSummaryName").innerText;
+        //Prefill description
+        document.getElementById("challengeDescription").value = challenge.querySelector("#challengeSummaryDescription").innerText;
+        //Prefill start and end date
+        document.getElementById("challengeStartDate").value = challenge.querySelector("#challengeSummaryStartDate").innerText;
+        document.getElementById("challengeEndDate").value = challenge.querySelector("#challengeSummaryEndDate").innerText;
+
+        //Prefill challenge ID
+        document.getElementById("challengeSummaryID").value = challenge.querySelector("#challengeSummaryItemID").innerText;
+
+        document.getElementById("calendarTitle").innerText = "Day";
+
+        //Set number of weeks to number of weeks
+        updateCalendarWeeks(weeks, "challenge");
+
+        showOrHideWeekRange("block");
+
+        //Populate calendar with events
+        updateCalendar(eventsData, "challenges");
+
+        //Set challenge flag to edit
+        sessionStorage.setItem("editChallenge", 'true');
+
+        document.getElementById("programBuilder").style.display = "block";
+
+        document.getElementById("workout-task-select").style.display = "flex";
+
+        //Show form inputs for program builder
+        var programBuilderInfo = document.getElementById("challengeBuilderInfo");
+        programBuilderInfo.style.display = "flex";
+        programBuilderInfo.style.flexDirection = "row";
+        programBuilderInfo.style.alignContent = "flex-end";
+        programBuilderInfo.style.justifyContent = "space-between";
+        
+        document.getElementById("challengeBuilderInfo").style.display = "flex";
+        
+        //Hide assign program:
+        document.querySelector(".programinfodiv").style.display = "none";
+        document.getElementById("challengesBody").style.display = "none";
+        //Hide add week
+        document.querySelector("#addWeekButton").style.display = "none";
+
+        //Change text:
+        document.getElementById("saveChallenge").innerText = "Update";
+        document.getElementById("saveChallenge").value = "Update";
+  
+        refreshCalendarLayout();
+  
+      }
+
+    }
+
     // Function to group data by week
     function groupDataByWeek(data) {
       const groupedData = {};
@@ -6675,7 +7462,6 @@ async function main() {
 
                   table.updateData(workouts).then(function(){
                     //Update all buttons
-                    console.log(workouts);
                     var copyButtons = document.querySelectorAll(".copy-week-button")
                     copyButtons.forEach(copyButton => {
                       copyButton.src = "https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp";
@@ -6683,7 +7469,6 @@ async function main() {
                   })
                   .catch(function(error){
                     //handle error updating data
-                    console.log(workouts);
                     console.log(error)
                   });
 
@@ -6961,10 +7746,12 @@ async function main() {
     function createExtendedProgram(programJSON) {
 
       for(const workout of programJSON) {
-        const workoutID = workout.extendedProps.workoutID;
-        const workoutElem = getWorkoutElement(workoutID);
-        const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
-        workout.workoutJSON = JSON.parse(workoutJSON);
+        if(workout.extendedProps.workoutID) {
+          const workoutID = workout.extendedProps.workoutID;
+          const workoutElem = getWorkoutElement(workoutID);
+          const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
+          workout.workoutJSON = JSON.parse(workoutJSON);
+        }
       }
 
       return programJSON;
@@ -7137,21 +7924,10 @@ async function main() {
           workoutIndexCount += 1;
         }
       });
-      
-      /*
-      // Get the current workout element
-      var currentWorkout = document.querySelector('.current-workout');
-  
-      // Check if the current workout element is not already the first element
-      if (currentWorkout && currentWorkout !== workoutList.firstChild) {
-        // Move the current workout element to the beginning of the list
-        workoutList.insertBefore(currentWorkout, workoutList.firstChild);
-      }
-      */
   
     }
 
-    function updateCalendar(events=null) {
+    function updateCalendar(events=null, source="default") {
       
       //Remove all current events:
       calendar.removeAllEvents();
@@ -7159,6 +7935,11 @@ async function main() {
       //Add events:
       for(let i = 0; i < events.length; i++) {
         calendar.addEvent(events[i]);
+        if(source == "challenges") {
+          if(events[i].extendedProps.weeklyTask) {
+            document.getElementById("weeklyTasksCheckbox").click();
+          }
+        }
       }
       if(sessionStorage.getItem("createUserProgram") == "true" ) {
         getProgramBreakers();
@@ -7174,17 +7955,89 @@ async function main() {
       }
     }
 
-    function updateCalendarWeeks(overrideWeeks=0, programType="builder") {
+    function addDatePickers() {
+      // Get a reference to the existing text input
+     const startDate = document.getElementById('challengeStartDate');
+     const endDate = document.getElementById('challengeEndDate');
 
+     const startDateElement = convertToDatePicker(startDate, "Start Date");
+     const endDateElement = convertToDatePicker(endDate, "End Date");
+ 
+     // Add event listeners to the date picker elements
+     startDateElement.addEventListener('input', handleDateInputChange);
+     endDateElement.addEventListener('input', handleDateInputChange);
+ 
+   }
+ 
+   function convertToDatePicker(textField, placeholder) {
+     // Create a new date input element
+     const datePicker = document.createElement('input');
+     datePicker.type = 'date';
+     
+     datePicker.className = textField.className; // Copy the existing classes to maintain styling
+     //datePicker.name = textField.name;
+     //datePicker.dataset.name = textField.dataset.name;
+     datePicker.placeholder = placeholder; // Date input's default placeholder format
+     datePicker.required = textField.required;
+     datePicker.id = textField.id;
+     datePicker.setAttribute("data-date-format", "DD MMM");
+ 
+     // Replace the existing text input with the new date input
+     textField.parentNode.replaceChild(datePicker, textField);
+ 
+     return datePicker;
+   }
+ 
+   // Function to handle input changes
+   function handleDateInputChange() {
+
+    
+     // Get references to the date picker elements
+     const startDateElement = document.getElementById('challengeStartDate');
+     const endDateElement = document.getElementById('challengeEndDate');
+
+     styleStartAndEndDates(startDateElement.value, endDateElement.value);
+ 
+    // Check if both date picker elements have values
+    if (startDateElement.value && endDateElement.value) {
+
+      //startDateElement.value = formatDateInput(new Date(startDateElement.value))
+      //endDateElement.value = formatDateInput(new Date(endDateElement.value));
+         // Parse the date values
+         const startDate = new Date(startDateElement.value);
+         const endDate = new Date(endDateElement.value);
+ 
+         // Check if end date is after start date
+         if (endDate < startDate) {
+             alert("End date must be after start date!");
+             // Clear the end date input field
+             endDateElement.value = "";
+             return; // Exit the function without further processing
+         }
+ 
+         //Calculate the number of weeks
+         const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000; // Number of milliseconds in a week
+         const numberOfWeeks = Math.ceil((endDate - startDate) / millisecondsPerWeek);
+
+         calendar.gotoDate( startDate );
+ 
+         //Update calendar with number of weeks and style cells
+         updateCalendarWeeks(numberOfWeeks+1, "challenge");
+     }
+   }
+
+    function updateCalendarWeeks(overrideWeeks=0, programType="builder") {
       if(overrideWeeks != 0 && overrideWeeks > 4) {
 
         currentNumberOfWeeks = overrideWeeks;
       
-      } else if(overrideWeeks != 0 && overrideWeeks <= 4) {
+      } else if(programType != "challenge" && overrideWeeks != 0 && overrideWeeks <= 4) {
         currentNumberOfWeeks = 4;
-      } else {
+      } else if(programType != "challenge") {
         //Increment current number of weeks
         currentNumberOfWeeks += 1;
+      } else {
+        currentNumberOfWeeks = overrideWeeks;
       }
 
       calendar.setOption('duration', { weeks: currentNumberOfWeeks });
@@ -7195,19 +8048,56 @@ async function main() {
 
       var eventCells = document.querySelectorAll(".fc-daygrid-day-frame");
       for(let i = 0; i < eventCells.length; i++) {
-        eventCells[i].style.height = "110px";
+        if(programType != "challenge") {
+          eventCells[i].style.height = "110px";
+        } else {
+
+          eventCells[i].style.height = "260px";
+          eventCells[i].style.overflow = "scroll";
+          eventCells[i].style.marginBottom = "10px";
+
+          //Check if date cell is before start date
+          var cellDate = new Date(eventCells[i].parentElement.getAttribute("data-date"));
+          var formattedDate = formatDate(cellDate); // Format the date to 'DD MMM' format
+
+          var challengeStartDate = document.getElementById("challengeStartDate").value;
+          var challengeEndDate = document.getElementById("challengeEndDate").value;
+
+          // Create a new element to display the formatted date
+          var dateElement = document.createElement('div');
+          if(eventCells[i].parentElement.classList.contains("weekly-task")) {
+            dateElement.textContent = "Weekly Task";
+          } else {
+            dateElement.textContent = formattedDate;
+          }
+          
+          dateElement.classList.add('fc-col-header-cell-cushion'); // You can style this class as per your need
+
+          // Prepend the date element to the event cell
+          eventCells[i].prepend(dateElement);
+
+          if(challengeStartDate && challengeEndDate) {
+            if(cellDate < new Date(challengeStartDate) || cellDate > new Date(challengeEndDate)) {
+              if(!eventCells[i].parentElement.classList.contains("weekly-task")) {
+                eventCells[i].style.backgroundColor = "#CBCBCB";
+              }
+              
+            }
+          }
+        }
+
         eventCells[i].style.minHeight = "110px";
+
       }
 
       if(overrideWeeks == 0) {
         document.querySelector('.fc-scrollgrid-sync-table').scrollIntoView(false) //{behavior: "smooth", block: "end", inline: "nearest"});
         document.querySelector('.fc-scrollgrid-sync-table').scrollBy(0, 150); // Adjust the second parameter (50) to control the extra scroll amount
-
       }
       
       calendar.render();
 
-      if(programType == "builder") {
+      if(programType == "builder" || programType == "challenge") {
         showOrHideWeekRange("none");
       } else {
         showOrHideWeekRange("block");
@@ -7216,6 +8106,90 @@ async function main() {
         getProgramBreakers();
       }
       updatingCalendar = false;
+
+    }
+
+    // Function to format date to 'DD MMM' format
+    function formatDate(date) {
+      var options = { day: 'numeric', month: 'short' };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    function prefillWorkoutTaskList(element, type="task") {
+
+      const workoutTaskList = document.getElementById("programWorkoutList");
+
+      document.getElementById("workoutProgramSummary").style.display = "flex";
+      document.getElementById("selectWorkoutPlaceholder").style.display = "none";
+      document.getElementById("selectedWorkoutDescription").style.display = "none";
+      document.querySelector(".workoutmodalinfo").style.display = "none";
+
+      // Split the original string by "-"
+      var parts = selectedDate.split("-");
+
+      if(parts.length > 2) {
+        // Rearrange the parts to form the new string in the format "DD-MM-YYYY"
+        var newDate = parts[2] + "-" + parts[1] + "-" + parts[0];
+        document.getElementById("selectedWorkoutName").innerText = newDate;
+      } else {
+        document.getElementById("selectedWorkoutName").innerText = selectedDate;
+      }
+
+      //Clone guide element
+      var listElement = document.getElementById("individualGuide").cloneNode(true);
+      listElement.style.marginBottom = "10px"; 
+      listElement.style.width = "100%";
+
+      const removeItem = document.getElementById("removeFullExercise").cloneNode(true);
+      removeItem.id = "removeItem";
+      // Event listener for mouseover
+      listElement.addEventListener("mouseover", function() {
+        removeItem.style.display = "block";
+      });
+
+      // Event listener for mouseout
+      listElement.addEventListener("mouseout", function() {
+        removeItem.style.display = "none";
+      });
+
+      // Event listener for onclick
+      removeItem.addEventListener("click", function() {
+        listElement.parentElement.remove();
+      });
+      listElement.querySelector(".exerciseheaderdiv").appendChild(removeItem);
+      listElement.querySelector(".exerciseheaderdiv").style.justifyContent = "space-between";
+
+      var listItem = document.createElement("li");
+      listItem.appendChild(listElement);
+      listItem.style.width = "90%";
+
+      listElement.style.backgroundColor = "white";
+      
+      if(type == "workout") {
+
+        listElement.querySelector("#guideName").innerText = element.querySelector("#workoutSummaryNameProgram").innerText;
+        listElement.querySelector("#guideName").id = "workoutSummaryNameProgram"
+        listElement.querySelector("#exerciseInfoRight").style.display = "";
+        listElement.id = "workoutItem";
+        
+        listElement.querySelector("#exerciseListTempID").innerText = element.querySelector("#workoutDurationProgram").innerText;
+        listElement.querySelector("#exerciseListTempID").id = "workoutDurationProgram";
+
+        listElement.querySelector("#exerciseDifficulty").innerText = element.querySelector("#workoutFocusAreaProgram").innerText;
+        listElement.querySelector("#exerciseDifficulty").id = "workoutFocusAreaProgram";
+
+        listElement.querySelector("#itemID").innerText = element.querySelector("#workoutIDProgram").innerText;
+
+      } else if(type == "task") {
+        listElement.querySelector("#guideName").innerText = element.querySelector("#taskName").innerText;
+        listElement.querySelector("#guideName").id = "taskName";
+        listElement.querySelector("#itemID").innerText = element.querySelector("#taskItemID").innerText;
+
+        listElement.querySelector("#exerciseInfoRight").style.display = "none";
+        listElement.id = "taskItem";
+      }
+
+      workoutTaskList.appendChild(listItem);
 
     }
 
@@ -7320,46 +8294,46 @@ async function main() {
 
     function createGuideCopy(workout, i) {
   
-        var copyOfGuide = document.querySelector("#individualGuide:not([addedToList]").cloneNode(true);
+      var copyOfGuide = document.querySelector("#individualGuide:not([addedToList]").cloneNode(true);
 
-        copyOfGuide.setAttribute("addedToList", 'true');
+      copyOfGuide.setAttribute("addedToList", 'true');
 
-        copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
+      copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
 
-        var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
-        //Check if there are multiple thumbails, randomly select one if so
-        if(thumbnailSplit.length > 1) {
-          var randomNumber = Math.random();
-          if(randomNumber < 0.5) {
-            copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[1];
-          } else {
-            copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[0];
-          }
+      var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
+      //Check if there are multiple thumbails, randomly select one if so
+      if(thumbnailSplit.length > 1) {
+        var randomNumber = Math.random();
+        if(randomNumber < 0.5) {
+          copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[1];
         } else {
-          copyOfGuide.querySelector(".exerciseThumbnail").src = workout.exercises[i].exerciseThumbnailURL
+          copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[0];
         }
-        copyOfGuide.querySelector("#exerciseMuscleImage").src = workout.exercises[i].exerciseMuscleImage;
-  
-        //Change ID of exercise name
-        copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+      } else {
+        copyOfGuide.querySelector(".exerciseThumbnail").src = workout.exercises[i].exerciseThumbnailURL
+      }
+      copyOfGuide.querySelector("#exerciseMuscleImage").src = workout.exercises[i].exerciseMuscleImage;
 
-        //Ensure proper guide ID is set
-        copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
+      //Change ID of exercise name
+      copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
 
-        //Remove info button
-        copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
+      //Ensure proper guide ID is set
+      copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
 
-        //Update link
-        var workoutSlugs = workout.workoutIDs.split(', ');
-        copyOfGuide.querySelector("#guideLinkInfo").href = window.location.origin + '/guides/' + workoutSlugs[i];
+      //Remove info button
+      copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
 
-        //Update scientific muscle 
-        copyOfGuide.querySelector("#scientificPrimaryMuscle").innerText = workout.exercises[i].exerciseMuscles;
+      //Update link
+      var workoutSlugs = workout.workoutIDs.split(', ');
+      copyOfGuide.querySelector("#guideLinkInfo").href = window.location.origin + '/guides/' + workoutSlugs[i];
 
-        //Copy thumbnail and svg person into a separate div
-        var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-        var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-        return [copyOfGuide, exerciseThumbnail, svgPersonDiv];
+      //Update scientific muscle 
+      copyOfGuide.querySelector("#scientificPrimaryMuscle").innerText = workout.exercises[i].exerciseMuscles;
+
+      //Copy thumbnail and svg person into a separate div
+      var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+      var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+      return [copyOfGuide, exerciseThumbnail, svgPersonDiv];
     }
 
     //Given a row of a workout, extract all data points within each
@@ -7390,9 +8364,9 @@ async function main() {
   
       var exercises = [];
       const workoutListElements = selectedWorkout.querySelector("#newCollectionList").children;
+      
       for(var i = 0; i < workoutListElements.length; i++) {
         const workoutDetails = workoutListElements[i];
-
         var exercise = {};
         // Exercise name
         exercise["exerciseShortName"] = workoutDetails.querySelector("#exerciseShortName").innerText;
@@ -7534,6 +8508,7 @@ async function main() {
         document.getElementById("saveTrainingPlan").style.display = "none";
         document.getElementById("programBuilder").style.display = "none";
         document.getElementById("programPage").style.display = "none";
+        document.getElementById("challengesBody").style.display = "none";
 
         document.getElementById("workoutRadio").click();
         //Click workout radio button
@@ -7691,6 +8666,7 @@ async function main() {
         document.getElementById("workoutSummaryPage").style.display = "none";
         document.getElementById("usersBody").style.display = "none";
         document.getElementById("userDetailsPage").style.display = "none";
+        document.getElementById("challengesBody").style.display = "none";
         document.getElementById(destinationScreen).style.display = "block";
 
         if(secondaryDestination != null) {
@@ -7756,6 +8732,7 @@ async function main() {
     }
   
     function clearWorkoutExerciseList(programWorkout=false) {
+
       var workoutList = "";
       if(!programWorkout) {
         workoutList = document.getElementById("workoutList").children;
