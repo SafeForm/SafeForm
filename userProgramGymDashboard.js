@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
@@ -6306,6 +6307,8 @@ async function main() {
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
       } 
+
+      userProgram["thumbnailURL"] = document.getElementById("defaultThumbnail").innerText;
 
       sendUserProgramToMake(userProgram, "create");
 
