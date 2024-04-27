@@ -37,7 +37,7 @@ function main() {
         if (responseData.trim().toLowerCase() != 'accepted') {
           //sessionStorage.setItem("memberPage", responseData)
           localStorage.removeItem("memberstack");
-          window.location.href = window.location.origin + `/user-programs/${responseData}`;
+          window.location.href = window.location.origin + `/users/${responseData}`;
 
         } else {
           console.log("Empty member page");
