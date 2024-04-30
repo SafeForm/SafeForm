@@ -649,7 +649,9 @@ function main() {
 
   //Setting destination of back button
   document.getElementById('backFromWorkout').onclick = function() {
-    if(fromProgram) {
+    if(fromChallenge) {
+      window.location = sessionStorage.getItem("challengePage");
+    } else if(fromProgram) {
       const myProgramLink = document.getElementById("myProgram").href;
       window.location = myProgramLink;
     } else if(fromFreeProgram) {
