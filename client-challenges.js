@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+
   //Save url
   sessionStorage.setItem("challengePage", window.location);
 
@@ -530,22 +531,29 @@ function main() {
 function updateWeeklyTaskText(completedWeeklyTasks, numberOfWeeklyTasks) {
   document.getElementById("weeklyTaskText").innerText = `Weekly Tasks ${completedWeeklyTasks}/${numberOfWeeklyTasks}`;
 
-  if(completedWeeklyTasks == numberOfWeeklyTasks) {
+  if(numberOfWeeklyTasks == 0) {
+    document.querySelector(".div-block-573").style.display = "none";
+  } else if(numberOfWeeklyTasks != 0 && completedWeeklyTasks == numberOfWeeklyTasks) {
     document.querySelector(".weekly-tasks").style.borderColor = "#08D58B";
+    document.querySelector("#weeklyTaskText").style.color = "#08D58B";
   } else {
     document.querySelector(".weekly-tasks").style.borderColor = "#cbcbcb";
+    document.querySelector("#weeklyTaskText").style.color = "";
   }
 }
 
 
 function styleCompleteTask(taskElement) {
   taskElement.style.borderColor = "#08D58B";
+  
+  taskElement.querySelector(".text-block-317").style.color = "#08D58B";
   taskElement.querySelector("#completeExercise").style.display = "none";
   taskElement.querySelector("#completedExercise").style.display = "block";
 }
 
 function styleCompletedTask(taskElement) {
   taskElement.style.borderColor = "#cbcbcb";
+  taskElement.querySelector(".text-block-317").style.color = "";
   taskElement.querySelector("#completedExercise").style.display = "none";
   taskElement.querySelector("#completeExercise").style.display = "block";
 }
