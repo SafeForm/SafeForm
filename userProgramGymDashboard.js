@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
@@ -779,7 +780,6 @@ async function main() {
       var workoutSummaryElement = workoutSummaryListItemsList[i];
       var workoutIDs = workoutSummaryElement.querySelector("#workoutIDs").innerText;
 
-      //console.log(workoutIDs)
       if (workoutIDs != "" && workoutIDs != null && workoutIDs != undefined) {
         workoutIDs = workoutIDs.split(/,\s*/);
   
@@ -2023,14 +2023,17 @@ async function main() {
 
             // Iterate through the events and store their details
             dayEvents.forEach(function(event) {
+              if(event.extendedProps.uniqueWorkoutID) {
+                //Update unique workout ID
+                event.extendedProps.uniqueWorkoutID = uuidv4();
+                
+              } else {
+                //Update unique task ID
+                event.extendedProps.uniqueTaskID = uuidv4();
+              }
               var eventDetails = {
                 allDay: event.allDay,
-                extendedProps: {
-                  length: event.extendedProps.length,
-                  targetArea: event.extendedProps.targetArea,
-                  workoutID: event.extendedProps.workoutID,
-                  uniqueWorkoutID: uuidv4()
-                },
+                extendedProps: event.extendedProps,
                 start: eventClickedDate,
                 title: event.title
               };
@@ -2240,7 +2243,7 @@ async function main() {
       (function(workout) {
         workout.onclick = () => {
 
-          if(sessionStorage.getItem("createChallenge") != "true") {
+          if(sessionStorage.getItem("createChallenge") != "true" && sessionStorage.getItem("editChallenge") != "true") {
           
             //Remove if any workouts exist
             clearWorkoutExerciseList(true);
@@ -3291,8 +3294,13 @@ async function main() {
                     });
                   }
 
-                  //Update unique workout ID
-                  event.extendedProps.uniqueWorkoutID = uuidv4();
+                  if(event.extendedProps.uniqueTaskID) {
+                    //Update unique task ID
+                    event.extendedProps.uniqueTaskID = uuidv4();
+                  } else {
+                    //Update unique workout ID
+                    event.extendedProps.uniqueWorkoutID = uuidv4();
+                  }
 
                   if(!duplicateEventExists && !addProgram) {
                     // Add event to calendar
@@ -3352,7 +3360,16 @@ async function main() {
           if ((copiedEvent && clickedDate && hasExistingEvent == null)) {
             // Create a new event objects with the copied event details
             copiedEvent.forEach(function(event) {
-              event.extendedProps.uniqueWorkoutID = uuidv4();             //Modify unique workout ID
+
+              if(event.extendedProps.length) {
+                //Update unique workout ID
+                event.extendedProps.uniqueWorkoutID = uuidv4();
+                
+              } else {
+                //Update unique task ID
+                event.extendedProps.uniqueTaskID = uuidv4();
+              }
+
               var newEvent = {
                 title: event.title,
                 start: clickedDate,
