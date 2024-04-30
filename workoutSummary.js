@@ -33,6 +33,10 @@ function main() {
   if(urlParams.has("fromFreeProgram")) {
     fromFreeProgram = true;
   }
+  var fromChallenge = false;
+  if(urlParams.has("fromChallenge")) {
+    fromChallenge = true;
+  }
 
 
   //Add inputs for each exercise based on number of sets
@@ -51,13 +55,15 @@ function main() {
   currentWorkoutIndex = "";
   workoutInformation = "";
   var loadUnit = "kg";
-  
-  if(fromProgram && currentProgram != undefined && currentProgram != null) {
+
+  if((fromChallenge || fromProgram) && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
     workoutName = document.querySelector(".workout-summary-header h1").innerText;
     fullWorkoutID = document.getElementById("workoutItemID").innerText; 
     weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
-
+    if(weekWorkouts.length == 0) {
+      weekWorkouts = currentProgram
+    }
     currentWorkoutIndex = sessionStorage.getItem("workoutIndex");
     var isWorkoutNumberInt = false;
     weekWorkouts.forEach(function(weekWorkout) {
@@ -65,6 +71,7 @@ function main() {
         isWorkoutNumberInt = true;
       }
     });
+    
 
     if(isWorkoutNumberInt) {
 
@@ -74,42 +81,21 @@ function main() {
       if(workoutInformation.length == 0) {
         //If not then filter with workout name
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
-      }else {
-        console.log("Used ID")
       }
     } else {
+
+      if(fromChallenge) {
+        workoutInformation = weekWorkouts.filter(item => item.extendedProps.workoutID == fullWorkoutID);
+      } else {
+        workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
+      }
       
-      workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
+
       if(workoutInformation.length == 0) {
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
-      } else {
-        console.log("Used ID")
       }
 
     }
-    console.log(workoutInformation)
-
-    //Extract guideIDs from workoutInformation
-    const uniqueGuideIDs = [...new Set(workoutInformation.map(item => item.guideID))];
-
-    //Compare to listOfExercises > workoutExerciseItemID and remove if not in there
-    const listOfExercises = document.querySelectorAll("#listOfExercises .w-dyn-item");
-
-    listOfExercises.forEach(item => {
-      const workoutExerciseItemID = item.querySelector("#workoutExerciseItemID").innerText;
-      if (uniqueGuideIDs.length > 0 && !uniqueGuideIDs.includes(workoutExerciseItemID)) {
-        //item.parentNode.removeChild(item);
-      }
-    });
-    
-    //Repeat same process for input list
-    inputList.forEach(item => {
-      const inputExerciseItemID = item.querySelector("#exerciseItemID").innerText;
-
-      if (uniqueGuideIDs.length > 0 && !uniqueGuideIDs.includes(inputExerciseItemID)) {
-        //item.parentNode.removeChild(item);
-      }
-    });
 
   } 
 
@@ -119,7 +105,7 @@ function main() {
       document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
     }
 
-    if(fromProgram && member.loggedIn && currentProgram) {
+    if((fromChallenge || fromProgram) && member.loggedIn && currentProgram) {
 
       //Get load measurement unit
       if(member.weightunit) {
@@ -136,8 +122,12 @@ function main() {
         var exerciseID = inputList[i].querySelector("#exerciseItemID").innerText;
 
         for (const exercise of workoutInformation) {
-          if(exercise.exercise.includes(exerciseName)) {
+
+          if(exercise.exercise && exercise.exercise.includes(exerciseName)) {
             inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
+            break;
+          } else if(exercise.title && exercise.title.includes(exerciseName)) {
+            inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.title;
             break;
           }
         }
@@ -148,7 +138,34 @@ function main() {
       for(var i = 0; i < inputList.length; i++) {
         var inputGuideID = inputList[i].querySelector("#exerciseItemID").innerText;
 
-        const exerciseInformation = workoutInformation.filter(item => item.guideID && item.guideID.includes(inputGuideID));
+        var exerciseInformation = [];
+        if(fromChallenge) {
+          const flattenedArray = [].concat(...workoutInformation[0].workoutJSON);
+          exerciseInformation = flattenedArray.filter(item => item.guideID && item.guideID.includes(inputGuideID));
+
+          const newArray = [];
+
+          // Iterate over exercises array and construct new objects
+          exerciseInformation[0].exercises.forEach((exercise, index) => {
+            newArray.push({
+              "exercise": exerciseInformation[0].exerciseName,
+              "reps": exercise.reps,
+              "load": exercise.measure,
+              "loadAmount": exercise.loadAmount,
+              "exerciseRestMinutes": exercise.exerciseRestMinutes,
+              "exerciseRestSeconds": exercise.exerciseRestSeconds,
+              "quantityUnit": exercise.quantityUnit,
+              "notes": exerciseInformation[0].exerciseNotes,
+              "setNumber": index,
+              "guideID": exerciseInformation[0].guideID,
+              "uniqueWorkoutID": "048192f9-96a1-4afe-bb37-4f9afe443a8f"
+            });
+          });
+
+          exerciseInformation = newArray
+        } else {
+          exerciseInformation = workoutInformation.filter(item => item.guideID && item.guideID.includes(inputGuideID));
+        }
 
         //Get number of sets for that exercise
         var numberOfSets = exerciseInformation.length;
@@ -495,6 +512,7 @@ function main() {
 
       //Fill workout list with values from workout json
        //Iterate through existing exercise list and change names
+       
        for(var i = 0; i < exerciseList.length; i++) {
         exerciseList[i].querySelector("#repInput").innerText = flattenedArray[i].exercises[0].reps;
         exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + flattenedArray[i].exercises[0].quantityUnit;
@@ -514,36 +532,51 @@ function main() {
       if(member.loggedIn) {
         //Get user metadata
         memberJSON = await member.getMetaData();
-
-        //Get program JSON and modify it to include the new workout id
-        const userProgram = JSON.parse(sessionStorage.getItem("currentProgram"));
-        const workoutIndex = sessionStorage.getItem("workoutIndex");
         const workoutID = sessionStorage.getItem("currentWorkout");
-        var workoutObj = {};
-        workoutObj["memberJSON"] = JSON.stringify(memberJSON);
-        workoutObj["member"] = member;
-        workoutObj["programName"] = sessionStorage.getItem("programName");
-        workoutObj["programID"] = sessionStorage.getItem("programID");
-        if(userProgram != null) {
-          var uniqueWorkoutIDToFind = workoutID.split("+");
-          if(uniqueWorkoutIDToFind && uniqueWorkoutIDToFind.length > 1) {
-            uniqueWorkoutIDToFind = uniqueWorkoutIDToFind[0];
+
+        if(fromChallenge) {
+
+          var memberProgress = {
+            [workoutID]: "true"
           }
-          var foundObject = {};
-          //Find corresponding unique workout ID
-          userProgram[0].events.forEach(event => {
-            if (event.extendedProps.uniqueWorkoutID === uniqueWorkoutIDToFind) {
-              foundObject = event;
+
+          await member.updateMetaData(memberProgress);
+
+          //Navigate back to challenge page
+          window.location = sessionStorage.getItem("challengePage");
+
+        } else {
+
+          //Get program JSON and modify it to include the new workout id
+          const userProgram = JSON.parse(sessionStorage.getItem("currentProgram"));
+          const workoutIndex = sessionStorage.getItem("workoutIndex");
+          
+          var workoutObj = {};
+          workoutObj["memberJSON"] = JSON.stringify(memberJSON);
+          workoutObj["member"] = member;
+          workoutObj["programName"] = sessionStorage.getItem("programName");
+          workoutObj["programID"] = sessionStorage.getItem("programID");
+          if(userProgram != null) {
+            var uniqueWorkoutIDToFind = workoutID.split("+");
+            if(uniqueWorkoutIDToFind && uniqueWorkoutIDToFind.length > 1) {
+              uniqueWorkoutIDToFind = uniqueWorkoutIDToFind[0];
             }
-          });
-          //Set the completed ID
-          foundObject["extendedProps"]["completedID"] = workoutID;
+            var foundObject = {};
+            //Find corresponding unique workout ID
+            userProgram[0].events.forEach(event => {
+              if (event.extendedProps.uniqueWorkoutID === uniqueWorkoutIDToFind) {
+                foundObject = event;
+              }
+            });
+            //Set the completed ID
+            foundObject["extendedProps"]["completedID"] = workoutID;
 
-          workoutObj["userProgram"] = JSON.stringify(userProgram);
+            workoutObj["userProgram"] = JSON.stringify(userProgram);
 
-        } 
+          } 
+          sendWorkoutDetailsToMake(workoutObj);
+        }
 
-        sendWorkoutDetailsToMake(workoutObj);
 
         localStorage.setItem("completedWorkout", workoutID)
 
@@ -660,7 +693,32 @@ function main() {
         }
       }
 
-      const exerciseInformation = workoutInformation.filter(item => item.guideID == guideID);
+      var exerciseInformation = workoutInformation.filter(item => item.guideID == guideID);
+      if(fromChallenge) {
+        const flattenedArray = [].concat(...workoutInformation[0].workoutJSON);
+        exerciseInformation = flattenedArray.filter(item => item.guideID == guideID);
+
+        const newArray = [];
+
+        // Iterate over exercises array and construct new objects
+        exerciseInformation[0].exercises.forEach((exercise, index) => {
+          newArray.push({
+            "exercise": exerciseInformation[0].exerciseName,
+            "reps": exercise.reps,
+            "load": exercise.measure,
+            "loadAmount": exercise.loadAmount,
+            "exerciseRestMinutes": exercise.exerciseRestMinutes,
+            "exerciseRestSeconds": exercise.exerciseRestSeconds,
+            "quantityUnit": exercise.quantityUnit,
+            "notes": exerciseInformation[0].exerciseNotes,
+            "setNumber": index,
+            "guideID": exerciseInformation[0].guideID,
+            "uniqueWorkoutID": "048192f9-96a1-4afe-bb37-4f9afe443a8f"
+          });
+        });
+
+        exerciseInformation = newArray
+      } 
 
       //Check if it is an empty filler exercise from god mode:
       if(exerciseInformation.length > 0 && exerciseInformation[0].exercise != "") {
