@@ -378,11 +378,9 @@ function main() {
             if (!currentDiv || !currentDiv.dataset.date || currentDiv.dataset.date !== currentDay.format("YYYY-MM-DD")) {
 
               currentDiv = document.createElement('div');
-              //currentDiv.style.borderRadius = '8px';
               currentDiv.style.marginBottom = '10px';
               currentDiv.style.borderBottom = '1px solid #CBCBCB';
 
-              currentDiv.style.backgroundColor = "white";
               currentDiv.style.display = "flex";
               currentDiv.style.flexDirection = "column";
               currentDiv.style.alignItems = "flex-start";
