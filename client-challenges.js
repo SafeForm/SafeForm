@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+  showInstructions();
 
   //Save url
   sessionStorage.setItem("challengePage", window.location);
@@ -378,6 +379,7 @@ function main() {
             if (!currentDiv || !currentDiv.dataset.date || currentDiv.dataset.date !== currentDay.format("YYYY-MM-DD")) {
 
               currentDiv = document.createElement('div');
+
               currentDiv.style.marginBottom = '10px';
               currentDiv.style.borderBottom = '1px solid #CBCBCB';
 
@@ -524,6 +526,50 @@ function main() {
 
   });
 
+}
+
+  // Function to check if the device is iOS
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  // Function to check if the device is Android
+  function isAndroid() {
+    return /Android/.test(navigator.userAgent);
+  }
+
+// Function to show the appropriate instructions element
+function showInstructions() {
+  const instructionsModal = document.getElementById('instructionsModal');
+  const iosInstructions = document.querySelector('.ios-instructions');
+  const androidInstructions = document.querySelector('.android-instructions');
+
+  // Check if the 'hasViewedProgram' flag exists in localStorage
+  const hasViewedProgram = localStorage.getItem('hasViewedProgram');
+  if (hasViewedProgram === null || hasViewedProgram === 'false') {
+    // Show the instructions modal
+    instructionsModal.style.display = 'flex';
+    instructionsModal.style.alignContent = 'center';
+    instructionsModal.style.justifyContent = 'center';
+
+    if (isIOS()) {
+      // Show iOS instructions, hide Android instructions
+      iosInstructions.style.display = 'flex';
+      androidInstructions.style.display = 'none';
+    } else if (isAndroid()) {
+      // Show Android instructions, hide iOS instructions
+      iosInstructions.style.display = 'none';
+      androidInstructions.style.display = 'flex';
+    } else {
+      // If the device is neither iOS nor Android, you can handle it as you wish
+      // For example, show a default instruction or hide both elements.
+      iosInstructions.style.display = 'flex';
+      androidInstructions.style.display = 'none';
+    }
+
+    // Set the 'hasViewedProgram' flag to true in localStorage
+    localStorage.setItem('hasViewedProgram', 'true');
+  }
 }
 
 function updateWeeklyTaskText(completedWeeklyTasks, numberOfWeeklyTasks) {
