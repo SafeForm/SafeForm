@@ -34,6 +34,11 @@ function main() {
 
     var metadata = await member.getMetaData()
 
+    const gymName = member["current-gym"];
+    if(gymName.toLowerCase() == "sam druce - fitness") {
+      localStorage.setItem("fromGym", gymName);
+    }
+
     const weeks = [];
 
     //Get member metadata
