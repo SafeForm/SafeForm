@@ -35,7 +35,7 @@ function main() {
     var metadata = await member.getMetaData()
 
     const gymName = member["current-gym"];
-    if(gymName.toLowerCase() == "sam druce - fitness") {
+    if(gymName && gymName != "" && gymName.toLowerCase() == "sam druce - fitness") {
       localStorage.setItem("fromGym", gymName);
     }
 
