@@ -115,17 +115,22 @@ function main() {
       if(!loadUnit && localStorage.getItem("weightUnit")) {
         loadUnit = localStorage.getItem("weightUnit");
       } 
-
+      var duplicateExercises = [];
       //Iterate through existing exercise list and change names
       for(var i = 0; i < inputList.length; i++) {
         var exerciseName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
         var exerciseID = inputList[i].querySelector("#exerciseItemID").innerText;
-
+        
         for (const exercise of workoutInformation) {
 
-          if(exercise.exercise && exercise.exercise.includes(exerciseName)) {
-            inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
-            break;
+          if(exercise.guideID && exercise.guideID == exerciseID) {
+
+            if(!duplicateExercises.includes(exercise.exercise)) {
+              inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.exercise;
+              duplicateExercises.push(exercise.exercise)
+              break;
+            }
+
           } else if(exercise.title && exercise.title.includes(exerciseName)) {
             inputList[i].querySelector("#exerciseShortNameInput").innerText = exercise.title;
             break;
@@ -137,6 +142,7 @@ function main() {
 
       for(var i = 0; i < inputList.length; i++) {
         var inputGuideID = inputList[i].querySelector("#exerciseItemID").innerText;
+        var exerciseFullName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
 
         var exerciseInformation = [];
         if(fromChallenge) {
@@ -164,7 +170,7 @@ function main() {
 
           exerciseInformation = newArray
         } else {
-          exerciseInformation = workoutInformation.filter(item => item.guideID && item.guideID.includes(inputGuideID));
+          exerciseInformation = workoutInformation.filter(item => item.guideID && item.guideID.includes(inputGuideID) && item.exercise == exerciseFullName);
         }
 
         //Get number of sets for that exercise
@@ -246,14 +252,17 @@ function main() {
               inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load.toLowerCase()}`;
               document.querySelectorAll("#load")[i].innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load.toLowerCase()}`;
             } else {
-              if(loadUnit.toLowerCase() == "kg") {
+  
+              if(exerciseInformation[0].load.toLowerCase() == "kg") {
                 //We need to convert from lbs to kg
                 inputList[i].querySelector("#weight").placeholder = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
                 document.querySelectorAll("#load")[i].innerText = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
-              } else {
-                
+              } else if(exerciseInformation[0].load.toLowerCase() == "lbs") {
                 inputList[i].querySelector("#weight").placeholder = `${kgToLbs(exerciseInformation[0].loadAmount)} ${loadUnit}`;
                 document.querySelectorAll("#load")[i].innerText = `${kgToLbs(exerciseInformation[0].loadAmount)} ${loadUnit}`;
+              } else {
+                inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].load} ${exerciseInformation[0].loadAmount}`;
+                document.querySelectorAll("#load")[i].innerText = `${exerciseInformation[0].load} ${exerciseInformation[0].loadAmount}`;
               }
             }
           }
@@ -348,11 +357,14 @@ function main() {
                 if(exerciseInformation[j+1].load.toLowerCase() == loadUnit.toLowerCase()) {
                   newWeightInput.placeholder = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
                 } else {
-                  if(loadUnit.toLowerCase() == "kg") {
+                  if(exerciseInformation[0].load.toLowerCase() == "kg") {
                     //We need to convert from lbs to kg
                     newWeightInput.placeholder = `${lbsToKg(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
-                  } else {
+                  } else if(exerciseInformation[0].load.toLowerCase() == "lbs") {
                     newWeightInput.placeholder = `${kgToLbs(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
+                  } else {
+                    newWeightInput.placeholder = `${exerciseInformation[j+1].load} ${exerciseInformation[j+1].loadAmount}`;
+                    newWeightInput.innerText = `${exerciseInformation[j+1].load} ${exerciseInformation[j+1].loadAmount}`;
                   }
 
                 }
@@ -681,12 +693,14 @@ function main() {
     //Set reps input
     var shortName = exerciseList[i].querySelector("#exerciseShortName").innerText;
     var guideID = exerciseList[i].querySelector("#workoutExerciseItemID").innerText;
+    var fullExerciseName = "";
 
     if(workoutInformation != "") {
       for (const exercise of workoutInformation) {
         if(exercise.guideID == guideID) {
           if(!duplicateGuides.includes(guideID) || !duplicateExerciseNames.includes(exercise.exercise)) {
             exerciseList[i].querySelector("#exerciseShortName").innerText = exercise.exercise;
+            fullExerciseName = exercise.exercise;
             duplicateGuides.push(guideID);
             duplicateExerciseNames.push(exercise.exercise)
             break;
@@ -694,14 +708,20 @@ function main() {
 
         }
       }
+      var exerciseInformation = [];
+      if(fullExerciseName != "") {
+        exerciseInformation = workoutInformation.filter(item => item.guideID == guideID && item.exercise == fullExerciseName);
+      } else {
+        exerciseInformation = workoutInformation.filter(item => item.guideID == guideID );
+      }
 
-      var exerciseInformation = workoutInformation.filter(item => item.guideID == guideID);
+
+       
       if(fromChallenge) {
         const flattenedArray = [].concat(...workoutInformation[0].workoutJSON);
         exerciseInformation = flattenedArray.filter(item => item.guideID == guideID);
 
         const newArray = [];
-
         // Iterate over exercises array and construct new objects
         exerciseInformation[0].exercises.forEach((exercise, index) => {
           newArray.push({
@@ -733,7 +753,6 @@ function main() {
           exerciseList[i].querySelector("#load").innerText = "Bodyweight";
         } else if(checkSameLoadAmount(exerciseInformation) ) {
           //Another if to check if the amounts are the same - 'amount unit.. 12 Kg' 
-          
           if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase() ) {
             exerciseList[i].querySelector("#load").innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
           } else {
