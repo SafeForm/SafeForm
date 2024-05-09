@@ -14,7 +14,6 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
-
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
@@ -128,6 +127,8 @@ async function main() {
     }
   }
 
+  setUpCMSLoad();
+
   await addWorkoutDetails();
 
   addCustomWorkouts();
@@ -137,6 +138,8 @@ async function main() {
 
   //Add pending users
   addPendingUsers();
+
+  addStatusToUsers();
 
   await loadAndUpdateAllSummaries();
 
@@ -265,6 +268,24 @@ async function main() {
     }
   }
 
+  function addStatusToUsers() {
+    //Set onclicks for user summary list
+    var userSummaryList = document.querySelectorAll("#userSummary");
+    for(let i = 0; i < userSummaryList.length; i++) {
+      (function(userSummary) {
+        var userStatus = userSummary.querySelector("#status").innerHTML;
+        if(userStatus.toLowerCase() == "active") {
+          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26a948539fdb22c969_Active.webp";
+        } else if(userStatus.toLowerCase() == "pending") {
+          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
+        } else if(userStatus.toLowerCase() == "deactivated") {
+          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d265b3f926a01a4b832_Deactivated.webp";
+        }
+          
+      })(userSummaryList[i]);
+    }
+  }
+
   function calculateProgramUrgencyDays() {
 
     //Adding urgency to client list
@@ -272,27 +293,30 @@ async function main() {
 
     for(var i = 0; i < clientList.length; i++) {
 
-      //Get program date difference
-      var customProgramDate = clientList[i].querySelector("#customProgram").innerText;
+      if(clientList[i].querySelector("#customWorkouts").innerText == "x days") {
+        //Get program date difference
+        var customProgramDate = clientList[i].querySelector("#customProgram").innerText;
 
-      // Parse the date using Moment.js
-      var programDate = moment(customProgramDate, "YYYY-MM-DD");
+        // Parse the date using Moment.js
+        var programDate = moment(customProgramDate, "YYYY-MM-DD");
+
+        // Get today's date
+        var today = moment();
+
+        // Calculate the difference in days
+        var daysDifference = programDate.diff(today, 'days');
+
+        if(!customProgramDate) {
+          daysDifference = 0;
+        }
+
+        updateUrgencyDayText(clientList[i].querySelector("#customProgram"), daysDifference);
+
+        if(clientList[i].querySelector("#status").innerText.toLowerCase() == "active") {
+          styleProgramUrgencyDay(clientList[i].querySelector("#customProgram"), daysDifference);
+        }
+      }
       
-      // Get today's date
-      var today = moment();
-
-      // Calculate the difference in days
-      var daysDifference = programDate.diff(today, 'days');
-
-      if(!customProgramDate) {
-        daysDifference = 0;
-      }
-
-      updateUrgencyDayText(clientList[i].querySelector("#customProgram"), daysDifference);
-
-      if(clientList[i].querySelector("#status").innerText.toLowerCase() == "active") {
-        styleProgramUrgencyDay(clientList[i].querySelector("#customProgram"), daysDifference);
-      }
       
     }
   }
@@ -686,6 +710,33 @@ async function main() {
 
   }
 
+  function setUpCMSLoad() {
+    window.fsAttributes = window.fsAttributes || [];
+    window.fsAttributes.push([
+      'cmsload',
+      (listInstances) => { 
+        //Iterate through each list
+        for(var i = 0; i < listInstances.length; i++) {
+          if(listInstances[i].list.id == "workoutSummaryList") {
+            listInstances[i].on('renderitems', async (renderedItems) => {
+              //addWorkoutDetails();
+              //addMoreThanFiveWorkouts();
+            });
+          } else if (listInstances[i].list.id == "clientList") {
+
+            listInstances[i].on('renderitems', async (renderedItems) => {
+              loadAndUpdateAllSummaries();
+              //Calculate the days until the clients program ends or weight inputs aren't complete
+              calculateProgramUrgencyDays();
+              addStatusToUsers();
+            });
+
+          }
+        }
+      },
+    ]);
+  }
+
   async function addWorkoutDetails() {
 
     // Select all elements with class 'userSummary'
@@ -851,8 +902,12 @@ async function main() {
     
     // Iterate over each user summary and initiate the loading process
     $.each(userSummaries, function (index, userSummary) {
-      var loadRequest = loadAndUpdateSummary(userSummary);
-      loadRequests.push(loadRequest);
+
+      if(userSummary.querySelector("#summaryEventData").innerText == "") {
+        var loadRequest = loadAndUpdateSummary(userSummary);
+        loadRequests.push(loadRequest);
+      }
+
     });
   
     // Use $.when to wait for all load requests to complete
@@ -2233,80 +2288,10 @@ async function main() {
 
 
     //Set onclicks for all workouts
-    var programWorkouts = document.querySelectorAll("#workoutSummaryProgram");
     var mainWorkoutList = document.querySelectorAll(".workoutsummaryitem");
 
     var desiredDate = "";
     var newEvent = "";
-
-    for(var i = 0; i < programWorkouts.length; i++) {
-      (function(workout) {
-        workout.onclick = () => {
-
-          if(sessionStorage.getItem("createChallenge") != "true" && sessionStorage.getItem("editChallenge") != "true") {
-          
-            //Remove if any workouts exist
-            clearWorkoutExerciseList(true);
-            
-            //Get workout ID:
-            var programWorkoutID = workout.querySelector("#workoutIDProgram").innerText;
-
-            //List workout summary list and find matching workout id
-            for(var j = 0; j < mainWorkoutList.length; j++) {
-
-              if(mainWorkoutList[j].querySelector("#workoutID").innerText == programWorkoutID) {
-                //Populate select workout side bar
-                var selectedWorkout = getWorkoutExerciseInformation(mainWorkoutList[j], true)
-
-                document.getElementById("selectedWorkoutName").innerText = selectedWorkout.workoutName;
-                document.getElementById("selectedWorkoutDescription").innerText = selectedWorkout.workoutSummaryDescription;
-                document.getElementById("selectedWorkoutDuration").innerText = selectedWorkout.workoutDuration;
-                document.getElementById("selectedWorkoutFocusArea").innerText = selectedWorkout.workoutFocusArea;
-
-                //Now populate exercises
-                prefillWorkoutBuilder(selectedWorkout, true)
-
-                //Hide placeholder
-                document.getElementById("selectWorkoutPlaceholder").style.display = "none";
-
-                //Show workoutProgramSummary
-                var workoutProgramSummary = document.getElementById("workoutProgramSummary");
-                workoutProgramSummary.style.display = "flex";
-                workoutProgramSummary.style.flexDirection = "column";
-                workoutProgramSummary.style.justifyContent = "center";
-                workoutProgramSummary.style.alignItems = "center";
-    
-              }
-            }
-
-            //Create event and add to calendar
-            desiredDate = new Date(selectedDate);
-      
-            // Create a new event object with the desired date
-            newEvent = {
-              title: selectedWorkout.workoutName,
-              details: selectedWorkout.workoutFocusArea,
-              extendedProps: {
-                targetArea: selectedWorkout.workoutFocusArea,
-                length: selectedWorkout.workoutDuration,
-                workoutID: selectedWorkout.workoutSummaryID,
-                uniqueWorkoutID: uuidv4()
-              },
-              start: desiredDate,
-              allDay: true
-            };
-
-          } else {
-
-            prefillWorkoutTaskList(workout, "workout");
-          }
- 
-
-
-        }
-      })(programWorkouts[i]);
-
-    }
 
     //Set onclicks for programs in modal
     var programListModal = document.querySelectorAll("#programModalSummary");
@@ -2520,130 +2505,6 @@ async function main() {
         resetFilters(true);
       }
     }
-
-    //Set onclicks for user summary list
-    var userSummaryList = document.querySelectorAll("#userSummary");
-    for(let i = 0; i < userSummaryList.length; i++) {
-      (function(userSummary) {
-        userSummary.onclick = (event) => {
-
-          if(!event.target.id.includes("userOptions") && event.target.id != "copyInviteLinkDropdown") {
-              //Fill user name
-            document.getElementById("userFullName").innerText = userSummary.querySelector("#userSummaryName").innerText;
-            var userNameArr = userSummary.querySelector("#userSummaryName").innerText.split(" ");
-            if(userNameArr.length > 0) {
-              document.getElementById("user-firstName").value = userNameArr[0];
-              document.getElementById("user-lastName").value = userNameArr[1];
-            }
-
-            prefillingProgram = true;
-
-            //Fill account type
-            document.getElementById("accountType").innerText = userSummary.querySelector("#summaryAccountType").innerText;
-
-            //Fill program ends
-            document.getElementById("programEnds").innerText = userSummary.querySelector("#summaryProgramEnds").innerText;
-            //Fill experience
-            document.getElementById("experienceLevel").innerText = userSummary.querySelector("#summaryExperience").innerText;
-            document.getElementById("user-experience").value = userSummary.querySelector("#summaryExperience").innerText;
-
-            //Fill goals
-            document.getElementById("userGoals").innerText = userSummary.querySelector("#summaryGoal").innerText;
-            document.getElementById("user-goals").value = userSummary.querySelector("#summaryGoal").innerText;
-          
-            //Fill user created
-            document.getElementById("userCreated").innerText = userSummary.querySelector("#summaryUserCreated").innerText;
-            //Fill user email
-            document.getElementById("userEmail").innerText = userSummary.querySelector("#summaryUserEmail").innerText;
-            document.getElementById("user-email").value = userSummary.querySelector("#summaryUserEmail").innerText;
-
-            //Fill user DOB
-            document.getElementById("user-dob").value = userSummary.querySelector("#dob").innerText;
-
-            //Fill user gender
-            document.getElementById("user-gender").value = userSummary.querySelector("#gender").innerText;
-
-            //Fill user height
-            document.getElementById("user-height").value = userSummary.querySelector("#height").innerText;
-
-            //Fill user weight
-            document.getElementById("user-weight").value = userSummary.querySelector("#weight").innerText;
-
-            //Fill mobile phone
-            document.getElementById("userPhone").innerText = userSummary.querySelector("#summaryUserPhone").innerText;
-            //Fill user notes
-            document.getElementById("userNotes").value = userSummary.querySelector("#summaryUserNotes").innerText;
-            //Fill limitations/injuries
-            document.getElementById("userLimitations").value = userSummary.querySelector("#summaryUserLimitations").innerText;
-            document.getElementById("user-injury").value = userSummary.querySelector("#summaryUserLimitations").innerText;
-
-            //Fill user ID
-            document.getElementById("userID").innerText = userSummary.querySelector("#summaryItemId").innerText;
-            //Fill user program ID
-            document.getElementById("userProgramID").innerText = userSummary.querySelector("#summaryProgramId").innerText;
-            //Fill program name
-            document.getElementById("userProgramProgramName").innerText = userSummary.querySelector("#summaryProgramName").innerText;
-            //Fill user memberstack ID
-            document.getElementById("userMemberstackID").innerText = userSummary.querySelector("#summaryUserMemberstackID").innerText;
-
-            var userType = userSummary.querySelector("#type").innerText;
-            if(userType.toLowerCase() == "online") {
-              document.getElementById("user-online").click();
-            } else if(userType.toLowerCase() == "hybrid") {
-              document.getElementById("user-hybrid").click();
-            } else if(userType.toLowerCase() == "in person") {
-              document.getElementById("user-inperson").click();
-            }
-            
-            //Fill calendar
-            prefillProgramBuilder(userSummary, "userProgramInitial");
-            //TODO: Fill program name
-
-            //Clear tables if any exist:
-            if(document.querySelector(".week-tables") != null) {
-              const tables = document.querySelectorAll('.week-table');
-              tableArr = [];
-              for(const table of tables) {
-                table.remove();
-              }
-            }
-
-            prefillProgramTable(userSummary, "create");
-
-            currentUserProgram = userSummary;
-
-            //Hide user summary list
-            document.getElementById("userSummaryPage").style.display = "none";
-
-            // Show user details
-            document.getElementById("userDetailsPage").style.display = "block";
-
-            //Show user program
-            document.getElementById("trainingRadio").click();
-
-            hideOrShowGodModeSwitch();
-
-            prefillingProgram = false;
-
-        } else {
-          //Reset text on button
-          event.target.closest(".dropdown-3").querySelector("#copyInviteLinkDropdown").innerText = "Copy invite link";
-        }
-
-        }
-        var userStatus = userSummary.querySelector("#status").innerHTML;
-        if(userStatus.toLowerCase() == "active") {
-          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26a948539fdb22c969_Active.webp";
-        } else if(userStatus.toLowerCase() == "pending") {
-          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
-        } else if(userStatus.toLowerCase() == "deactivated") {
-          userSummary.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d265b3f926a01a4b832_Deactivated.webp";
-        }
-          
-      })(userSummaryList[i]);
-    }
-
-
 
     // JavaScript function to prevent form submission on Enter key press
     document.addEventListener('keydown', function(event) {
@@ -3406,6 +3267,175 @@ async function main() {
 
       if(event.target.id == "clearClientFilters") {
         resetFilters();
+      }
+
+      if(event.target.closest("#userSummary")) {
+        var userSummary = event.target.closest("#userSummary");
+        if(!event.target.id.includes("userOptions") && event.target.id != "copyInviteLinkDropdown") {
+          //Fill user name
+          document.getElementById("userFullName").innerText = userSummary.querySelector("#userSummaryName").innerText;
+          var userNameArr = userSummary.querySelector("#userSummaryName").innerText.split(" ");
+          if(userNameArr.length > 0) {
+            document.getElementById("user-firstName").value = userNameArr[0];
+            document.getElementById("user-lastName").value = userNameArr[1];
+          }
+
+          prefillingProgram = true;
+
+          //Fill account type
+          document.getElementById("accountType").innerText = userSummary.querySelector("#summaryAccountType").innerText;
+
+          //Fill program ends
+          document.getElementById("programEnds").innerText = userSummary.querySelector("#summaryProgramEnds").innerText;
+          //Fill experience
+          document.getElementById("experienceLevel").innerText = userSummary.querySelector("#summaryExperience").innerText;
+          document.getElementById("user-experience").value = userSummary.querySelector("#summaryExperience").innerText;
+
+          //Fill goals
+          document.getElementById("userGoals").innerText = userSummary.querySelector("#summaryGoal").innerText;
+          document.getElementById("user-goals").value = userSummary.querySelector("#summaryGoal").innerText;
+        
+          //Fill user created
+          document.getElementById("userCreated").innerText = userSummary.querySelector("#summaryUserCreated").innerText;
+          //Fill user email
+          document.getElementById("userEmail").innerText = userSummary.querySelector("#summaryUserEmail").innerText;
+          document.getElementById("user-email").value = userSummary.querySelector("#summaryUserEmail").innerText;
+
+          //Fill user DOB
+          document.getElementById("user-dob").value = userSummary.querySelector("#dob").innerText;
+
+          //Fill user gender
+          document.getElementById("user-gender").value = userSummary.querySelector("#gender").innerText;
+
+          //Fill user height
+          document.getElementById("user-height").value = userSummary.querySelector("#height").innerText;
+
+          //Fill user weight
+          document.getElementById("user-weight").value = userSummary.querySelector("#weight").innerText;
+
+          //Fill mobile phone
+          document.getElementById("userPhone").innerText = userSummary.querySelector("#summaryUserPhone").innerText;
+          //Fill user notes
+          document.getElementById("userNotes").value = userSummary.querySelector("#summaryUserNotes").innerText;
+          //Fill limitations/injuries
+          document.getElementById("userLimitations").value = userSummary.querySelector("#summaryUserLimitations").innerText;
+          document.getElementById("user-injury").value = userSummary.querySelector("#summaryUserLimitations").innerText;
+
+          //Fill user ID
+          document.getElementById("userID").innerText = userSummary.querySelector("#summaryItemId").innerText;
+          //Fill user program ID
+          document.getElementById("userProgramID").innerText = userSummary.querySelector("#summaryProgramId").innerText;
+          //Fill program name
+          document.getElementById("userProgramProgramName").innerText = userSummary.querySelector("#summaryProgramName").innerText;
+          //Fill user memberstack ID
+          document.getElementById("userMemberstackID").innerText = userSummary.querySelector("#summaryUserMemberstackID").innerText;
+
+          var userType = userSummary.querySelector("#type").innerText;
+          if(userType.toLowerCase() == "online") {
+            document.getElementById("user-online").click();
+          } else if(userType.toLowerCase() == "hybrid") {
+            document.getElementById("user-hybrid").click();
+          } else if(userType.toLowerCase() == "in person") {
+            document.getElementById("user-inperson").click();
+          }
+          
+          //Fill calendar
+          prefillProgramBuilder(userSummary, "userProgramInitial");
+          //TODO: Fill program name
+
+          //Clear tables if any exist:
+          if(document.querySelector(".week-tables") != null) {
+            const tables = document.querySelectorAll('.week-table');
+            tableArr = [];
+            for(const table of tables) {
+              table.remove();
+            }
+          }
+
+          prefillProgramTable(userSummary, "create");
+
+          currentUserProgram = userSummary;
+
+          //Hide user summary list
+          document.getElementById("userSummaryPage").style.display = "none";
+
+          // Show user details
+          document.getElementById("userDetailsPage").style.display = "block";
+
+          //Show user program
+          document.getElementById("trainingRadio").click();
+
+          hideOrShowGodModeSwitch();
+
+          prefillingProgram = false;
+
+      } else {
+        //Reset text on button
+        event.target.closest(".dropdown-3").querySelector("#copyInviteLinkDropdown").innerText = "Copy invite link";
+      }
+      }
+
+      if(event.target.closest("#workoutSummaryProgram")) {
+
+        var workout = event.target.closest("#workoutSummaryProgram");
+
+        if(sessionStorage.getItem("createChallenge") != "true" && sessionStorage.getItem("editChallenge") != "true") {
+          
+          //Remove if any workouts exist
+          clearWorkoutExerciseList(true);
+          
+          //Get workout ID:
+          var programWorkoutID = workout.querySelector("#workoutIDProgram").innerText;
+
+          //List workout summary list and find matching workout id
+          for(var j = 0; j < mainWorkoutList.length; j++) {
+
+            if(mainWorkoutList[j].querySelector("#workoutID").innerText == programWorkoutID) {
+              //Populate select workout side bar
+              var selectedWorkout = getWorkoutExerciseInformation(mainWorkoutList[j], true)
+
+              document.getElementById("selectedWorkoutName").innerText = selectedWorkout.workoutName;
+              document.getElementById("selectedWorkoutDescription").innerText = selectedWorkout.workoutSummaryDescription;
+              document.getElementById("selectedWorkoutDuration").innerText = selectedWorkout.workoutDuration;
+              document.getElementById("selectedWorkoutFocusArea").innerText = selectedWorkout.workoutFocusArea;
+
+              //Now populate exercises
+              prefillWorkoutBuilder(selectedWorkout, true)
+
+              //Hide placeholder
+              document.getElementById("selectWorkoutPlaceholder").style.display = "none";
+
+              //Show workoutProgramSummary
+              var workoutProgramSummary = document.getElementById("workoutProgramSummary");
+              workoutProgramSummary.style.display = "flex";
+              workoutProgramSummary.style.flexDirection = "column";
+              workoutProgramSummary.style.justifyContent = "center";
+              workoutProgramSummary.style.alignItems = "center";
+  
+            }
+          }
+
+          //Create event and add to calendar
+          desiredDate = new Date(selectedDate);
+    
+          // Create a new event object with the desired date
+          newEvent = {
+            title: selectedWorkout.workoutName,
+            details: selectedWorkout.workoutFocusArea,
+            extendedProps: {
+              targetArea: selectedWorkout.workoutFocusArea,
+              length: selectedWorkout.workoutDuration,
+              workoutID: selectedWorkout.workoutSummaryID,
+              uniqueWorkoutID: uuidv4()
+            },
+            start: desiredDate,
+            allDay: true
+          };
+
+        } else {
+
+          prefillWorkoutTaskList(workout, "workout");
+        }
       }
 
       if(event.target.id == "showModalWorkouts") {
