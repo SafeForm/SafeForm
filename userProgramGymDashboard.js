@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
-
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
@@ -126,6 +125,8 @@ async function main() {
       workoutSummaryElement.querySelector("#newCollectionList").appendChild(clonedItem)
     }
   }
+
+  clearOldUsers();
 
   setUpCMSLoad();
 
@@ -438,6 +439,19 @@ async function main() {
         // Handle errors
         console.error('Fetch error:', error.message);
       });
+  }
+
+  function clearOldUsers() {
+
+    var clearedUsers = ["Ken Tan", "Sehila Cruz", "Gus Rowe", "Akbar Anoyatov", "Bret Kadel", "Ryan Patten", "Brad Baker", "Daniel Garcia"];
+    for(var i = 1; i <= 20; i++) {
+      if(localStorage.getItem(`newClientName-${i}`) != undefined) {
+        var clientName = localStorage.getItem(`newClientName-${i}`);
+        if(clearedUsers.includes(clientName)) {
+          localStorage.removeItem(`newClientName-${i}`);
+        }
+      }
+    }
   }
 
   function addPendingUsers() {
