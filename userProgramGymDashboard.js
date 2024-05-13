@@ -3264,6 +3264,47 @@ async function main() {
         resetFilters();
       }
 
+      if(event.target.closest(".exerciseguideitem")) {
+        
+        if(!event.target.id.includes("exerciseOptions") && event.target.id != "deleteExercise") {
+          //Prefill modal
+          prefillExerciseLibraryForm(event.target.closest(".exerciseguideitem"));
+  
+          //Show Modal
+          var createExerciseModal = document.getElementById("createExerciseModal");
+          //Set flex styling:
+          createExerciseModal.style.display = "flex";
+          createExerciseModal.style.flexDirection = "column";
+          createExerciseModal.style.justifyContent = "center";
+          createExerciseModal.style.alignItems = "center";
+        }
+      }
+
+      if(event.target.closest("#individualGuide")) {
+        //Make sure when info button is clicked the exercise isnt added to the list
+        if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
+          var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
+          
+          //Remove info button
+          copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
+    
+          //Copy thumbnail and svg person into a separate div
+          var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+          var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+
+          //Change ID of exercise name
+          copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+    
+          //Ensure copy border colour is SF blue
+          copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+
+          addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+
+          createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, event.target.closest("#individualGuide"));
+
+        }
+      }
+
       if(event.target.closest("#userSummary")) {
         var userSummary = event.target.closest("#userSummary");
         if(!event.target.id.includes("userOptions") && event.target.id != "copyInviteLinkDropdown") {
