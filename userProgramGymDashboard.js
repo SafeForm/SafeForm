@@ -126,13 +126,7 @@ async function main() {
     }
   }
 
-  clearOldUsers();
-
-  setUpCMSLoad();
-
   await addWorkoutDetails();
-
-  addCustomWorkouts();
 
   //Check if any workouts have more than 5 (CMS limit) exercises and add them if not
   addMoreThanFiveWorkouts();
@@ -439,19 +433,6 @@ async function main() {
         // Handle errors
         console.error('Fetch error:', error.message);
       });
-  }
-
-  function clearOldUsers() {
-
-    var clearedUsers = ["Ken Tan", "Sehila Cruz", "Gus Rowe", "Akbar Anoyatov", "Bret Kadel", "Ryan Patten", "Brad Baker", "Daniel Garcia"];
-    for(var i = 1; i <= 20; i++) {
-      if(localStorage.getItem(`newClientName-${i}`) != undefined) {
-        var clientName = localStorage.getItem(`newClientName-${i}`);
-        if(clearedUsers.includes(clientName)) {
-          localStorage.removeItem(`newClientName-${i}`);
-        }
-      }
-    }
   }
 
   function addPendingUsers() {
