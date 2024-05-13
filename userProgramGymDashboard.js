@@ -1041,7 +1041,7 @@ async function main() {
 
       selectedPrimaryMuscles.forEach(function(primaryMuscle) {
         for(var j = 0; j < selectedPrimaryMuscleOptions.length; j++) {
-          if(primaryMuscle == selectedPrimaryMuscleOptions[j].innerText) {
+          if(primaryMuscle.trim() == selectedPrimaryMuscleOptions[j].innerText) {
             primaryMuscles.add(primaryMuscle);
             selectedPrimaryMuscleOptions[j].classList.add("primarytextselected");
             selectedPrimaryMuscleOptions[j].classList.remove("primarymuscletext");
