@@ -126,7 +126,7 @@ async function main() {
     }
   }
 
-  await addWorkoutDetails();
+  addWorkoutDetails();
 
   //Check if any workouts have more than 5 (CMS limit) exercises and add them if not
   addMoreThanFiveWorkouts();
@@ -136,7 +136,7 @@ async function main() {
 
   addStatusToUsers();
 
-  await loadAndUpdateAllSummaries();
+  loadAndUpdateAllSummaries();
 
   //Calculate the days until the clients program ends or weight inputs aren't complete
   calculateProgramUrgencyDays();
@@ -467,6 +467,7 @@ async function main() {
             clientRow.querySelector("#customWorkouts").innerText = "";
             clientRow.querySelector("#customWorkouts").style.backgroundColor = "";
             clientRow.querySelector("#customProgram").innerText = "";
+            clientRow.querySelector("#summaryUserSlug").innerText = "";
             clientRow.querySelector("#customProgram").style.backgroundColor = "";
             clientRow.querySelector("#status").innerText = "Pending";
             clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
@@ -787,45 +788,77 @@ async function main() {
   async function addMoreThanFiveWorkouts() {
     // Request and get extra workout summary details for workouts that have more than 5 exercises
     var workoutSummaryListItemsList = document.querySelectorAll("#workoutSummaryList .workoutsummaryitem");
+    
+    // Cache to store the workout details to avoid duplicate requests
+    var workoutCache = {};
   
     // Function to perform the asynchronous $.get request for a single workout
-    async function getWorkoutDetails(workoutSummaryElement, workoutSlug) {
+    async function getWorkoutDetails(workoutSlug) {
+      // Check if the result is already in the cache
+      if (workoutCache[workoutSlug]) {
+        return workoutCache[workoutSlug];
+      }
+  
       var url = window.location.origin + '/guides/' + workoutSlug;
       const data = await $.get(url);
       var $page = $(data);
-  
+    
       // Extract information from the retrieved page
-      var workoutName = $page.find('#guideName').text();
-      var exerciseFullName = $page.find('#fullGuideName').text();
-      var exerciseGuideID = $page.find('#guideID').text();
-      var exerciseItemID = $page.find('#guideID').text();
-      var exerciseThumbnailURL = $page.find('#guideThumbnailURL').text();
-      var exerciseMuscles = $page.find('#exerciseMuscles').text();
-      var exerciseSets = "";
-      var muscleHighlightImage = $page.find('#muscleHighlightImage').attr('src');
+      var workoutDetails = {
+        workoutName: $page.find('#guideName').text(),
+        exerciseFullName: $page.find('#fullGuideName').text(),
+        exerciseGuideID: $page.find('#guideID').text(),
+        exerciseItemID: $page.find('#guideID').text(),
+        exerciseThumbnailURL: $page.find('#guideThumbnailURL').text(),
+        exerciseMuscles: $page.find('#exerciseMuscles').text(),
+        exerciseSets: "",
+        muscleHighlightImage: $page.find('#muscleHighlightImage').attr('src')
+      };
   
-      // Now clone current row, replace values, append to end of cms nested list
-      var clonedRow = workoutSummaryElement.querySelector(".w-dyn-item").cloneNode(true);
-      clonedRow.querySelector("#exerciseShortName").innerText = workoutName;
-      clonedRow.querySelector("#exerciseFullName").innerText = exerciseFullName;
-      clonedRow.querySelector("#exerciseGuideID").innerText = exerciseGuideID;
-      clonedRow.querySelector("#exerciseItemID").innerText = exerciseItemID;
-      clonedRow.querySelector("#exerciseThumbnailURL").innerText = exerciseThumbnailURL;
-      clonedRow.querySelector("#exerciseSets").innerText = exerciseSets;
-      clonedRow.querySelector("#exerciseMuscleImage").innerText = muscleHighlightImage;
-      clonedRow.querySelector("#exerciseMuscles").innerText = exerciseMuscles;
+      // Store the result in the cache
+      workoutCache[workoutSlug] = workoutDetails;
       
-      workoutSummaryElement.querySelector("#newCollectionList").appendChild(clonedRow);
+      return workoutDetails;
     }
   
-    // Create an array of promises for parallel execution
-    var promises = [];
-  
+    // Step 1: Collect all unique slugs
+    var uniqueSlugs = new Set();
+    
     for (var i = 0; i < workoutSummaryListItemsList.length; i++) {
-      
       var workoutSummaryElement = workoutSummaryListItemsList[i];
       var workoutIDs = workoutSummaryElement.querySelector("#workoutIDs").innerText;
-
+  
+      if (workoutIDs != "" && workoutIDs != null && workoutIDs != undefined) {
+        workoutIDs = workoutIDs.split(/,\s*/);
+  
+        if (workoutIDs.length > 5) {
+          var existingIDs = workoutSummaryElement.querySelectorAll("#newCollectionList #exerciseLink");
+          var existingIDArr = [];
+  
+          for (var j = 0; j < existingIDs.length; j++) {
+            if (existingIDs[j].href.split("/").length > 4) {
+              existingIDArr.push(existingIDs[j].href.split("/")[4]);
+            }
+          }
+          const differenceArr = workoutIDs.filter(item => !existingIDArr.includes(item));
+          differenceArr.forEach(slug => {
+            if (slug) {
+              uniqueSlugs.add(slug);
+            }
+          });
+        }
+      }
+    }
+  
+    // Step 2: Make requests for all unique slugs
+    var fetchPromises = Array.from(uniqueSlugs).map(slug => getWorkoutDetails(slug));
+    await Promise.all(fetchPromises);
+  
+    // Step 3: Use the cache to populate the workout details
+    for (var i = 0; i < workoutSummaryListItemsList.length; i++) {
+      var workoutSummaryElement = workoutSummaryListItemsList[i];
+      var workoutIDs = workoutSummaryElement.querySelector("#workoutIDs").innerText;
+  
       if (workoutIDs != "" && workoutIDs != null && workoutIDs != undefined) {
         workoutIDs = workoutIDs.split(/,\s*/);
   
@@ -842,19 +875,33 @@ async function main() {
           for (var x = 0; x < differenceArr.length; x++) {
             if (differenceArr[x] != "") {
               var workoutSlug = differenceArr[x];
-              // Add the promise to the array for parallel execution
-              promises.push(getWorkoutDetails(workoutSummaryElement, workoutSlug));
+              // Get the cached workout details
+              const workoutDetails = workoutCache[workoutSlug];
+              if (workoutDetails) {
+                // Now clone current row, replace values, append to end of cms nested list
+                var clonedRow = workoutSummaryElement.querySelector(".w-dyn-item").cloneNode(true);
+                clonedRow.querySelector("#exerciseShortName").innerText = workoutDetails.workoutName;
+                clonedRow.querySelector("#exerciseFullName").innerText = workoutDetails.exerciseFullName;
+                clonedRow.querySelector("#exerciseGuideID").innerText = workoutDetails.exerciseGuideID;
+                clonedRow.querySelector("#exerciseItemID").innerText = workoutDetails.exerciseItemID;
+                clonedRow.querySelector("#exerciseThumbnailURL").innerText = workoutDetails.exerciseThumbnailURL;
+                clonedRow.querySelector("#exerciseSets").innerText = workoutDetails.exerciseSets;
+                clonedRow.querySelector("#exerciseMuscleImage").innerText = workoutDetails.muscleHighlightImage;
+                clonedRow.querySelector("#exerciseMuscles").innerText = workoutDetails.exerciseMuscles;
+  
+                workoutSummaryElement.querySelector("#newCollectionList").appendChild(clonedRow);
+              }
             }
           }
         }
       }
     }
+  }
+  
+  
+   
 
-    // Use Promise.all to wait for all promises to complete
-    await Promise.all(promises);
-  }  
-
-  function loadAndUpdateAllSummaries() {
+  async function loadAndUpdateAllSummaries() {
     // Select all elements with class 'userSummary'
     var userSummaries = document.querySelectorAll('#userSummary');
   
@@ -867,12 +914,13 @@ async function main() {
       var summaryUserName = $(userSummary).find('#userSummaryName').text();
 
       var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
-
+      
       if (summaryUserSlug) {
-
+        console.log("Getting ", summaryUserSlug)
         // Use $.get to fetch the content of #fullEventData from the specified URL
         var getRequest = $.get(programURL, function (data, status) {
           if (status === 'success') {
+            console.log("Received response")
             // Find #fullEventData in the fetched content and update the field
             var fullEventData = $(data).find('#programFullEventData').html();
             var summaryEventData = $(data).find('#programEventData').html();
@@ -904,7 +952,8 @@ async function main() {
       }
 
     });
-  
+    console.log("Loading promises")
+    console.log(loadRequests)
     // Use $.when to wait for all load requests to complete
     $.when.apply($, loadRequests).then(function () {
       // Any additional code to run after all requests have completed
