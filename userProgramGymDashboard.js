@@ -3791,25 +3791,19 @@ async function main() {
       } else if (event.target.nodeName == "path") {
 
         var muscleFilter = sessionStorage.getItem("muscleFilter");
-        
+
         //Ensure muscle filter exists
         if(muscleFilter && muscleFilter != "") {
           muscleFilter = muscleFilter.replaceAll(" ", "-");
-          document.querySelector(`.${muscleFilter}-filter`).click();
-          //Click ab/adductors if quads are selected
-          if(muscleFilter == "quadriceps") {
-            document.querySelector(".adductors-filter").click();
-            document.querySelector(".abductors-filter").click();
-          }
+
           // hide SVG man:
           svgPerson.style.display = 'none';
           guideList.style.display = 'block';
           clickExerciseText.style.display = 'block';
           backButton.style.display = 'block';
 
-          //Populate search box
-          if(muscleMapping[muscleFilter] !== undefined)
-            document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
+          document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
+          document.getElementById("exerciseSearch").dispatchEvent(new Event('input', { bubbles: true }));
         }
         //Reset storage filter for next click
         sessionStorage.setItem("muscleFilter", "");
