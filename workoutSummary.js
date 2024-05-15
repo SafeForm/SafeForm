@@ -55,6 +55,12 @@ function main() {
   currentWorkoutIndex = "";
   workoutInformation = "";
   var loadUnit = "kg";
+  var uniqueWorkoutID = sessionStorage.getItem("currentWorkout").split("+");
+  if(uniqueWorkoutID.length > 1) {
+    uniqueWorkoutID = uniqueWorkoutID[0]
+  } else {
+    uniqueWorkoutID = null;
+  }
 
   if((fromChallenge || fromProgram) && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
@@ -76,8 +82,12 @@ function main() {
     if(isWorkoutNumberInt) {
 
       //First try filter with workout ID
-      workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
-      
+      if(uniqueWorkoutID) {
+        workoutInformation = weekWorkouts.filter(item => item.uniqueWorkoutID == uniqueWorkoutID);
+      } else {
+        workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
+      }
+
       if(workoutInformation.length == 0) {
         //If not then filter with workout name
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
@@ -87,11 +97,17 @@ function main() {
       if(fromChallenge) {
         workoutInformation = weekWorkouts.filter(item => item.extendedProps.workoutID == fullWorkoutID);
       } else {
-        workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
+
+        if(uniqueWorkoutID) {
+          workoutInformation = weekWorkouts.filter(item => item.uniqueWorkoutID == uniqueWorkoutID);
+        } else {
+          workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
+        }
+
       }
       
-
       if(workoutInformation.length == 0) {
+        
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
       }
 
@@ -790,7 +806,7 @@ function main() {
           exerciseList[i].querySelector("#repInput").innerText = `${minLoad}-${maxLoad}`;
           exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + `${exerciseInformation[0].quantityUnit}`;
         }
-        
+
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
