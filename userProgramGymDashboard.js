@@ -19,7 +19,15 @@ async function main() {
     swapThreshold: 0.2, // Adjust this value as needed
   });
 
-  // document.getElementById("challengesPage").style.display = "flex";
+  sortable.option("onStart", function(evt) {
+    evt.item.style.cursor = "grabbing";
+    console.log("Setting grabbing")
+  });
+
+  sortable.option("onEnd", function(evt) {
+    console.log("Ended")
+    //document.body.style.cursor = "auto";
+  });
 
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
@@ -916,11 +924,9 @@ async function main() {
       var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
       
       if (summaryUserSlug) {
-        console.log("Getting ", summaryUserSlug)
         // Use $.get to fetch the content of #fullEventData from the specified URL
         var getRequest = $.get(programURL, function (data, status) {
           if (status === 'success') {
-            console.log("Received response")
             // Find #fullEventData in the fetched content and update the field
             var fullEventData = $(data).find('#programFullEventData').html();
             var summaryEventData = $(data).find('#programEventData').html();
@@ -952,8 +958,7 @@ async function main() {
       }
 
     });
-    console.log("Loading promises")
-    console.log(loadRequests)
+
     // Use $.when to wait for all load requests to complete
     $.when.apply($, loadRequests).then(function () {
       // Any additional code to run after all requests have completed
@@ -1018,41 +1023,6 @@ async function main() {
 
     }
   }
-
-  //Add workout
-  //Setting onclick events for adding guides to workout
-  var guideExercises = document.querySelectorAll("#individualGuide");
-
-    for (let i = 0; i < guideExercises.length; i++) {
-      
-      guideExercises[i].onclick = (event) => {
-        //Make sure when info button is clicked the exercise isnt added to the list
-        if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
-          var copyOfGuide = '';
-          copyOfGuide = guideExercises[i].cloneNode(true);
-          
-          //Remove info button
-          copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
-    
-          //Copy thumbnail and svg person into a separate div
-          var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-          var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-
-          //Change ID of exercise name
-          copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
-    
-          //Ensure copy border colour is SF blue
-          copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
-
-          addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
-
-          createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideExercises[i]);
-
-        }
-
-      }
-
-    }
 
     function prefillExerciseLibraryForm(exerciseItem) {
 
@@ -1711,7 +1681,7 @@ async function main() {
           styleNavButtons("workoutsPage");
         } else if(showPage == "programSummary") {
 
-          document.getElementById("usersBody").style.display = "none";
+          document.getElementById("workoutSummaryPage").style.display = "none";
           document.getElementById("workoutSummaryPage").style.display = "block";
           styleNavButtons("workoutsPage");
           document.getElementById("programRadio").click();
@@ -1735,6 +1705,12 @@ async function main() {
             parentProgramSummary.click();
           }
           styleNavButtons("userPage");
+
+        } else if(showPage == "challengeSummary") {
+
+          document.getElementById("workoutSummaryPage").style.display = "none";
+          document.getElementById("challengesBody").style.display = "block";
+          styleNavButtons("challengesPage");
 
         } else {
           styleNavButtons("userPage");
@@ -1764,6 +1740,8 @@ async function main() {
         // If they confirm remove items from list and clear filters and hide exercise list
         if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
           checkAndClearProgram("workoutSummaryPage", "workoutsPage");
+        } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+          checkAndClearChallenge("workoutSummaryPage", "workoutsPage");
         } else {
           checkAndClearWorkouts("workoutSummaryPage", "workoutsPage");
         }
@@ -1784,6 +1762,8 @@ async function main() {
           //Reset filters on workout or program summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram") == "true" || sessionStorage.getItem("createUserProgram") == "true" ) {
             checkAndClearProgram("customExercisePage", "equipmentPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("customExercisePage", "equipmentPage");
           } else {
             checkAndClearWorkouts("customExercisePage", "equipmentPage");
           }
@@ -1802,6 +1782,8 @@ async function main() {
           //Reset filters on workout or program summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
             checkAndClearProgram("challengesBody", "challengesPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("challengesBody", "challengesPage");
           } else {
             checkAndClearWorkouts("challengesBody", "challengesPage");
           }
@@ -1819,6 +1801,8 @@ async function main() {
           //Reset filters on workout or program summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
             checkAndClearProgram("usersBody", "userPage", "userSummaryPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("usersBody", "userPage", "userSummaryPage");
           } else {
             checkAndClearWorkouts("usersBody", "userPage", "userSummaryPage");
           }
@@ -1834,6 +1818,8 @@ async function main() {
           //Reset filters on workout summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram") == "true" || sessionStorage.getItem("createUserProgram") == "true") {
             checkAndClearProgram("dashboardBody", "dashbaordPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("dashboardBody", "dashbaordPage");
           } else {
             checkAndClearWorkouts("dashboardBody", "dashbaordPage");
           }
@@ -1848,6 +1834,8 @@ async function main() {
           //Reset filters on workout summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
             checkAndClearProgram("settingsBody", "settingsPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("settingsBody", "settingsPage");
           } else {
             checkAndClearWorkouts("settingsBody", "settingsPage");
           }
@@ -1921,13 +1909,21 @@ async function main() {
         styleStartAndEndDates(startChallenge, endChallenge);
 
         if((sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true")) {
+          document.getElementById("workoutTaskPlaceholderText").innerHTML = "<strong>Start by selecting a workout or task</strong>";
+          document.getElementById("workoutTaskPlaceholderText").innerHTML = "<strong>Start by selecting a workout or task</strong>";
+          document.getElementById("selectProgramWorkout").innerText = "Create Day";
+          document.getElementById("selectWorkoutHeader").style.display = "none";
+          
           if(!(startChallenge && endChallenge)) {
           
             return
   
           }
+        } else {
+          document.getElementById("workoutTaskPlaceholderText").innerHTML = "<strong>Start by selecting a workout</strong>";
+          document.getElementById("selectProgramWorkout").innerText = "Select Workout";
+          document.getElementById("selectWorkoutHeader").style.display = "";
         }
-
 
         if(!(isPasteState || isEventPasteState || addProgram) && (info.jsEvent.target.tagName != "IMG" || info.jsEvent.target.closest(".add-event-button"))) {
 
@@ -1951,6 +1947,7 @@ async function main() {
               var listID = "";
               var itemID = "";
               var itemSelector = "";
+
               if(dayEvents[i].extendedProps.workoutID) {
                 listID = "#workoutSummaryProgram";
                 itemID = dayEvents[i].extendedProps.workoutID;
@@ -1962,13 +1959,14 @@ async function main() {
               }
 
               clickModalListItem(listID, itemID, itemSelector);
+              document.getElementById("selectProgramWorkout").innerText = "Update Day";
+
             }
 
             //Show workouts modal
             showModal("workoutsList");
           }
         } else if (setFromPaste) {
-
           isPasteState = false;
           isEventPasteState = false;
           setFromPaste = false;
@@ -2094,7 +2092,6 @@ async function main() {
             event.target.closest(".fc-daygrid-day-frame").querySelector(".copy-event-button").remove();
             event.target.remove();
 
-
             //Populate god mode:
             populateGodMode();
 
@@ -2104,6 +2101,9 @@ async function main() {
           copyImageEl.addEventListener('click', function(event) {
 
             event.stopPropagation(); // Prevent event propagation to the parent elements
+
+            //Save the copy button
+            clickedEventCopyButton = event.target;
 
             // Get the clicked date from the calendar
             var eventClickedDate = event.target.closest(".fc-day").getAttribute("data-date");
@@ -2155,6 +2155,18 @@ async function main() {
 
           calendar.on('eventDrop', function(info) {
             var stoppedEventDay = info.event._instance.range.start;
+
+            //Get destination day background colour
+            var destinationDayElement = stoppedEventDay.toISOString().slice(0, 10); // Get the destination day in YYYY-MM-DD format
+            var destinationDayFrame = document.querySelector(`.fc-daygrid-day[data-date="${destinationDayElement}"] .fc-daygrid-day-frame`);
+            var destinationDayBackgroundColor = destinationDayFrame.style.backgroundColor;
+
+            //Check if greyed out day 
+            if(destinationDayBackgroundColor == "rgb(203, 203, 203)" ) {
+              info.revert(); // Revert the drop
+              return
+            }
+
             if(originalCell) {
               // Find the corresponding delete button element in the original cell
               var originalDeleteButtonEl = originalCell.querySelector(".delete-event-button");
@@ -2223,7 +2235,8 @@ async function main() {
             var weekRangeHtml = '<div class="week-range' + (isInWeekRange ? ' current-week-range' : '') + '">' + weekRange + '</div>';
             var weekInfoHtml = '<div class="week-info">' + '<div>' + rowIndex + '</div>' + copyButtonHtml + deleteButtonHtml + '</div>';
             var buttonsContainerHtml = '<div class="buttons-container">' + weekRangeHtml + weekInfoHtml + '</div>';
-
+            
+            //Create weekly task
             var eventCopy = $(this).find("[role=gridcell]")[0].cloneNode(true);
             eventCopy.style.display = "none";
 
@@ -2264,7 +2277,7 @@ async function main() {
             };
             
             eventCopy.classList.add("weekly-task");
-
+            
             if(sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
               $(this).prepend(eventCopy);
             }
@@ -2306,12 +2319,11 @@ async function main() {
       (function(challenge) {
         challenge.onclick = (event) => {
           if(event.target.id != "deleteChallenge" && !event.target.id.includes("challengeOptions")) {
+            //Set edit challenge flag
+            sessionStorage.setItem("editChallenge", 'true');
 
             //Prefill challenge screen
             prefillChallengeBuilder(challenge);
-
-            //Set edit challenge flag
-            sessionStorage.setItem("editChallenge", 'true');
 
             hideOrShowGodModeSwitch();
           }
@@ -2396,7 +2408,7 @@ async function main() {
     //Set onclick for program workout select
     document.getElementById("selectProgramWorkout").onclick = () => {
 
-      if(sessionStorage.getItem("createChallenge") == "true") {
+      if(sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
 
         desiredDate = selectedDate;
 
@@ -2510,24 +2522,7 @@ async function main() {
       document.getElementById("addWeekButton").click();
 
     }
-    
 
-    /*
-      - First check if workout summary list has children
-      - Iterate through workout summaries and show the 'workout of the week' icon if set
-    */
-    const workoutSummaryList = document.querySelectorAll(".workoutsummaryitem");
-
-    for(let i = 0; i < workoutSummaryList.length; i++) {
-    
-      const isWorkoutOfTheWeek = workoutSummaryList[i].querySelector("#isWorkoutOfTheWeek").innerText;
-      if(isWorkoutOfTheWeek == "true") {
-        //workoutSummaryList[i].querySelector("#workoutOfTheWeekIcon").style.display = "block";
-        break;
-      }
-    }
-
-    
     const svgPerson = document.getElementById("ajaxContent");
     const guideList = document.getElementById("guideListParent");
     const clickExerciseText = document.getElementById("clickExerciseText");
@@ -3258,11 +3253,11 @@ async function main() {
           }
 
         } else {
+
           var copiedEvent = JSON.parse(sessionStorage.getItem('copiedEvent'));
           var clickedDate = new Date(dayCell.parentElement.getAttribute("data-date"));
-          var hasExistingEvent = dayCell.querySelector(".copy-event-button");
 
-          if ((copiedEvent && clickedDate && hasExistingEvent == null)) {
+          if (copiedEvent && clickedDate) {
             // Create a new event objects with the copied event details
             copiedEvent.forEach(function(event) {
 
@@ -3311,6 +3306,10 @@ async function main() {
 
       if(event.target.id == "clearClientFilters") {
         resetFilters();
+      }
+
+      if(event.target.id == "challengeStartDate" || event.target.id == "challengeEndDate") {
+        event.target.showPicker();
       }
 
       if(event.target.closest(".exerciseguideitem")) {
@@ -3719,6 +3718,7 @@ async function main() {
         clickedEventCopyButton.parentElement.style.display = "none";
         clickedEventCopyButton.parentElement.previousSibling.style.display = "none";
         clickedEventCopyButton = "";
+        
       }
 
       if (event.target.classList.contains('copy-events-button')) {
@@ -3745,7 +3745,7 @@ async function main() {
         var weekEvents = allEvents.filter(function (event) {
           return !event.extendedProps.weeklyTask && moment(event.start).isBetween(weekStart, weekEnd, null, '[]'); // '[]' to include the start and end dates
         });
-        
+
         // Store the week events in session storage
         sessionStorage.setItem('copiedEvents', JSON.stringify(weekEvents));
         
@@ -4075,7 +4075,7 @@ async function main() {
         document.getElementById("confirmCloseBuilder").style.display = "none";
 
         //Check if workouts or program is active
-        if(sessionStorage.getItem("createUserProgram")) {
+        if(sessionStorage.getItem("createUserProgram") == "true") {
           //Attempt to submit user program
           document.getElementById("saveTrainingPlan").click();
 
@@ -4084,6 +4084,9 @@ async function main() {
           //Attempt to submit base program 
           document.getElementById("saveProgram").click();
 
+        } else if(sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+          //Attempt to challenge
+          document.getElementById("saveChallenge").click();
         } else {
           //Attempt to submit workout 
           document.getElementById("saveWorkout").click();
@@ -6823,7 +6826,6 @@ async function main() {
 
       } else if(sessionStorage.getItem("createChallenge") == "true") {
         sendChallengeRequestToMake("https://hook.us1.make.com/prlvfssjs63ycqe6xffed6ssqk3pl9s2", challenge);
-
       }
     }
 
@@ -7106,6 +7108,9 @@ async function main() {
       // Convert the Start Date strings to Date objects
       var eventsData = "";
       //Check if user training plan is empty
+
+      document.getElementById("workout-task-select").style.display = "none";
+      document.getElementById("showModalWorkouts").click();
 
       if(userTrainingPlan.length == 0) {
         const summaryEventData = program.querySelector("#summaryEventData");
@@ -8272,13 +8277,15 @@ async function main() {
       document.getElementById("selectWorkoutPlaceholder").style.display = "none";
       document.getElementById("selectedWorkoutDescription").style.display = "none";
       document.querySelector(".workoutmodalinfo").style.display = "none";
-
+      
       // Split the original string by "-"
       var parts = selectedDate.split("-");
 
       if(parts.length > 2) {
         // Rearrange the parts to form the new string in the format "DD-MM-YYYY"
-        var newDate = parts[2] + "-" + parts[1] + "-" + parts[0];
+        var newDate = moment(selectedDate).format('DD MMMM');
+
+        // Set the formatted date to the element with the ID "selectedWorkoutName"
         document.getElementById("selectedWorkoutName").innerText = newDate;
       } else {
         document.getElementById("selectedWorkoutName").innerText = selectedDate;
@@ -8294,6 +8301,7 @@ async function main() {
       // Event listener for mouseover
       listElement.addEventListener("mouseover", function() {
         removeItem.style.display = "block";
+        listElement.style.cursor = 'grab'
       });
 
       // Event listener for mouseout
@@ -8560,6 +8568,133 @@ async function main() {
       return workout;
     }
 
+    function checkAndClearChallenge(destinationScreen, destinationButton, secondaryDestination=null) {
+      //Check if text boxes have values or events exist
+      const challengeName = document.getElementById("challengeInputName").value;
+      const challengeDescription = document.getElementById("challengeDescription").value;
+      const challengeEvents = calendar.getEvents();
+      const challengeStartDate = document.getElementById("challengeStartDate");
+      const challengeEndDate = document.getElementById("challengeEndDate");
+
+      if(challengeName != "" || challengeDescription != "" || challengeEvents.length > 0 || challengeStartDate.value != "" || challengeEndDate.value != "") {
+
+        if(challengeName != "") {
+          document.getElementById("closingText").innerText = `Do you want to save the changes to your challenge \"${challengeName}\"?`;
+        } else {
+          document.getElementById("closingText").innerText = "Do you want to save the changes to your program?";
+        }
+
+        //Show Modal
+        var closeBuilderModal = document.getElementById("confirmCloseBuilder");
+        //Set flex styling:
+        closeBuilderModal.style.display = "flex";
+        closeBuilderModal.style.flexDirection = "column";
+        closeBuilderModal.style.justifyContent = "center";
+        closeBuilderModal.style.alignItems = "center";
+        //Show modal:
+        closeBuilderModal.display = "block";
+
+        //Navigate to selected page
+        document.getElementById("dontSave").onclick = function() {
+        
+          //Reset user training plan:
+          userTrainingPlan = [];
+
+          //Close modal
+          document.getElementById("confirmCloseBuilder").style.display = "none";
+          //Hide and clear program builder or program summary
+          document.getElementById("programBuilder").style.display = "none";
+
+          document.getElementById("challengeBuilderInfo").style.display = "none";
+
+          //Clear session storage
+          sessionStorage.setItem('editChallenge', 'false');
+          sessionStorage.setItem('createChallenge', 'false');
+
+          //Clear program entries
+          clearChallenge();
+
+          document.getElementById("workoutRadio").click();
+          //Click workout radio button
+          checkProgramWorkoutCheckBox();
+
+          document.getElementById("summaryRadioButton").click();
+          //Click summary radio button
+          checkSummaryTrainingCheckBox();
+
+          if(destinationScreen != "workoutSummaryPage") {
+            document.getElementById("workoutSummaryPage").style.display = "none";
+            document.getElementById("workoutBuilderPage").style.display = "none";
+          }
+
+          if(destinationScreen != "usersBody" && destinationScreen != "userInfoDetails") {
+            document.getElementById("usersBody").style.display = "none";
+            document.getElementById("userSummaryPage").style.display = "none";
+            
+          } else if(destinationScreen == "usersBody") {
+            document.getElementById("userDetailsPage").style.display = "none";
+          }
+
+          document.getElementById(destinationScreen).style.display = "block";
+
+          if(destinationScreen == "userInfoDetails") {
+
+            document.getElementById(destinationScreen).style.display = "flex";
+            document.getElementById(destinationScreen).style.justifyContent = "center";
+          }
+          
+          if(secondaryDestination != null) {
+            document.getElementById(secondaryDestination).style.display = "block";
+          }
+
+          styleNavButtons(destinationButton)
+
+        }
+
+      } else {
+
+        //Remove training plan header
+        document.getElementById("trainingPlanName").style.display = "none";
+        document.getElementById("saveTrainingPlan").style.display = "none";
+        document.getElementById("programBuilder").style.display = "none";
+        document.getElementById("programPage").style.display = "none";
+        document.getElementById("challengesBody").style.display = "none";
+        document.getElementById("challengeBuilderInfo").style.display = "none";
+
+        document.getElementById("workoutSummaryPage").style.display = "none";
+        document.getElementById("workoutBuilderPage").style.display = "none";
+
+        if(destinationScreen != "usersBody" && destinationScreen != "userInfoDetails") {
+          document.getElementById("usersBody").style.display = "none";
+          document.getElementById("userDetailsPage").style.display = "none";
+          document.getElementById("userSummaryPage").style.display = "none";
+        } else if(destinationScreen == "usersBody") {
+          document.getElementById("userDetailsPage").style.display = "none";
+        }
+
+        
+        document.getElementById(destinationScreen).style.display = "block";
+
+        if(destinationScreen == "userInfoDetails") {
+          document.getElementById(destinationScreen).style.display = "flex";
+          document.getElementById(destinationScreen).style.justifyContent = "center";
+        }
+
+        if(secondaryDestination != null) {
+          document.getElementById(secondaryDestination).style.display = "block";
+        }
+
+        //Clear session storage
+        sessionStorage.setItem('editChallenge', 'false');
+        sessionStorage.setItem('createChallenge', 'false');
+
+        styleNavButtons(destinationButton)
+
+        //Clear program entries
+        clearChallenge();
+      }
+    }
+
     function checkAndClearProgram(destinationScreen, destinationButton, secondaryDestination=null) {
       //Check if text boxes have values or events exist
       const programBuilderName = document.getElementById("programName").value;
@@ -8571,7 +8706,7 @@ async function main() {
       if(programBuilderName != "" || programBuilderDescription != "" || programBuilderEvents.length > 0 || experiencePicker.selectedIndex != 0 || goalPicker.selectedIndex != 0) {
 
         if(programBuilderName != "") {
-          document.getElementById("closingText").innerText = `Do you want to save the changes to your workout \"${programBuilderName}\"?`;
+          document.getElementById("closingText").innerText = `Do you want to save the changes to your program \"${programBuilderName}\"?`;
         } else {
           document.getElementById("closingText").innerText = "Do you want to save the changes to your program?";
         }
@@ -8704,6 +8839,21 @@ async function main() {
 
     }
 
+    function clearChallenge() {
+
+      //Clear title
+      document.getElementById("challengeInputName").value = "";
+
+      //Clear description
+      document.getElementById("challengeDescription").value = "";
+      document.getElementById("challengeStartDate").value = "";
+      document.getElementById("challengeEndDate").value = "";
+
+      //Clear events
+      calendar.removeAllEvents();
+
+    }
+
     function clearProgram() {
 
       //Clear title
@@ -8718,6 +8868,8 @@ async function main() {
       experiencePicker.selectedIndex = 0;
 
       const goalPicker = document.getElementById("programGoal");
+
+      document.getElementById("programBuilderInfo").style.display = "none"
 
       // Reset the selected option to the default (first) option
       goalPicker.selectedIndex = 0;
