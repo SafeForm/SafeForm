@@ -55,12 +55,16 @@ function main() {
   currentWorkoutIndex = "";
   workoutInformation = "";
   var loadUnit = "kg";
-  var uniqueWorkoutID = sessionStorage.getItem("currentWorkout").split("+");
-  if(uniqueWorkoutID.length > 1) {
-    uniqueWorkoutID = uniqueWorkoutID[0]
-  } else {
-    uniqueWorkoutID = null;
+  var uniqueWorkoutID = sessionStorage.getItem("currentWorkout");
+  if(uniqueWorkoutID) {
+    uniqueWorkoutID = uniqueWorkoutID.split("+");
+    if(uniqueWorkoutID.length > 1) {
+      uniqueWorkoutID = uniqueWorkoutID[0]
+    } else {
+      uniqueWorkoutID = null;
+    }
   }
+  
 
   if((fromChallenge || fromProgram) && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
@@ -78,7 +82,6 @@ function main() {
       }
     });
     
-
     if(isWorkoutNumberInt) {
 
       //First try filter with workout ID
@@ -99,6 +102,7 @@ function main() {
       } else {
 
         if(uniqueWorkoutID) {
+          console.log(weekWorkouts)
           workoutInformation = weekWorkouts.filter(item => item.uniqueWorkoutID == uniqueWorkoutID);
         } else {
           workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
@@ -107,13 +111,14 @@ function main() {
       }
       
       if(workoutInformation.length == 0) {
-        
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
       }
 
     }
 
   } 
+
+  console.log(workoutInformation)
 
   MemberStack.onReady.then(async function(member) {  
 
