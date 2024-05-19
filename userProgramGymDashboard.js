@@ -19,16 +19,6 @@ async function main() {
     swapThreshold: 0.2, // Adjust this value as needed
   });
 
-  sortable.option("onStart", function(evt) {
-    evt.item.style.cursor = "grabbing";
-    console.log("Setting grabbing")
-  });
-
-  sortable.option("onEnd", function(evt) {
-    console.log("Ended")
-    //document.body.style.cursor = "auto";
-  });
-
   if (typeof moment === 'function') {
     // Moment.js is loaded, execute your code here
   } else {
@@ -3144,7 +3134,7 @@ async function main() {
                   currentEndOfWeek = new Date (getEndOfWeek(event.start));
   
                   if(index < events.length - 1) {
-                    if(new Date(events[index + 1].start).getTime() >= currentEndOfWeek.getTime()) {
+                    if(new Date(events[index + 1].start).getTime() > currentEndOfWeek.getTime()) {
                       incrementWeeks = true;
                     }
                   }
@@ -3173,6 +3163,8 @@ async function main() {
                     event.start.setDate(event.start.getDate() + ((difference * 7)));
   
                   }
+
+                  console.log(weekCounter * 7)
   
                   event.start.setDate(event.start.getDate() + ((weekCounter * 7)));
   
@@ -3201,6 +3193,8 @@ async function main() {
                     //Update unique workout ID
                     event.extendedProps.uniqueWorkoutID = uuidv4();
                   }
+
+                  console.log(event)
 
                   if(!duplicateEventExists && !addProgram) {
                     // Add event to calendar
@@ -8605,6 +8599,9 @@ async function main() {
           //Hide and clear program builder or program summary
           document.getElementById("programBuilder").style.display = "none";
 
+          //Re-show add week button
+          document.querySelector("#addWeekButton").style.display = "flex";
+
           document.getElementById("challengeBuilderInfo").style.display = "none";
 
           //Clear session storage
@@ -8660,6 +8657,9 @@ async function main() {
         document.getElementById("programPage").style.display = "none";
         document.getElementById("challengesBody").style.display = "none";
         document.getElementById("challengeBuilderInfo").style.display = "none";
+
+        //Re-show add week button
+        document.querySelector("#addWeekButton").style.display = "flex";
 
         document.getElementById("workoutSummaryPage").style.display = "none";
         document.getElementById("workoutBuilderPage").style.display = "none";
