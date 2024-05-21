@@ -27,7 +27,6 @@ function main() {
     workoutSummaryLink.href += "?fromChallenge=true";
     challengeWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
     challengeWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
-
   }
 
   MemberStack.onReady.then(async function(member) {
@@ -368,7 +367,7 @@ function main() {
         var count = 1;
         var currentDiv = null; // Track the current div for same-day workouts
         var completedWeeklyTasks = 0
-
+        var taskCounter = 0;
         for (var i = 0; i < workouts.length; i++) {
           const isWeekly = workouts[i].extendedProps.weeklyTask;
           currentDay = moment(workouts[i].start);
@@ -384,6 +383,7 @@ function main() {
             if (!currentDiv || !currentDiv.dataset.date || currentDiv.dataset.date !== currentDay.format("YYYY-MM-DD")) {
 
               currentDiv = document.createElement('div');
+              taskCounter = 0;
 
               currentDiv.style.marginBottom = '10px';
               currentDiv.style.borderBottom = '1px solid #CBCBCB';
@@ -405,19 +405,19 @@ function main() {
               
               workoutList.appendChild(currentDiv);
               count += 1;
-              
             } 
           } else {
             isSameDay = false;
             // Update currentDiv for next day's workouts
             currentDiv = null;
           }
-
+          
           // Find matching workout element
           for (var j = 0; j < workoutListWorkouts.length; j++) {
 
             //Check if workout
             if(workoutListWorkouts[j].querySelector("#workoutID")) {
+
               if (workoutListWorkouts[j].querySelector("#workoutID").innerText == workouts[i].extendedProps.workoutID) {
                 const clonedWorkout = workoutListWorkouts[j].cloneNode(true);
                 const workoutUniqueID = workouts[i].extendedProps.uniqueWorkoutID;
@@ -434,7 +434,7 @@ function main() {
                 }
                 
                 if (isSameDay) {
-
+                  
                   if(workouts[i].extendedProps.weeklyTask == "true") {
                     weeklyTaskList.appendChild(clonedWorkout); // Append to the current div for same-day workouts
                   } else {
@@ -455,13 +455,13 @@ function main() {
 
             if(workoutListWorkouts[j].querySelector("#taskID")) {
 
-              if (workoutListWorkouts[j].querySelector("#taskID").innerText == workouts[i].extendedProps.taskID) {              
-
+              if (workoutListWorkouts[j].querySelector("#taskID").innerText == workouts[i].extendedProps.taskID) {
                 const clonedTask = workoutListWorkouts[j].cloneNode(true);
 
                 const taskCompleteButton = clonedTask.querySelector("#completeExercise");
                 const taskCompletedButton = clonedTask.querySelector("#completedExercise");
                 const taskUniqueID = workouts[i].extendedProps.uniqueTaskID;
+
                 taskCompleteButton.onclick = () => {
                   handleCompleteTask(taskUniqueID, true);
                   metadata[taskUniqueID] = "true";
@@ -490,21 +490,34 @@ function main() {
                 }
 
                 if (isSameDay) {
-
                   if(workouts[i].extendedProps.weeklyTask == "true") {
                     weeklyTaskList.appendChild(clonedTask); // Append to the current div for same-day workouts
                   } else {
-                    currentDiv.appendChild(clonedTask); // Append to the current div for same-day workouts
+                    
+                    const textBlock = clonedTask.querySelector(".text-block-324");
+                    if (textBlock && textBlock.innerText.trim() !== "" && taskCounter === 0) {
+                        const firstChild = currentDiv.firstChild;
+                        if (firstChild && firstChild.innerText.includes("Day")) {
+                            currentDiv.insertBefore(clonedTask, firstChild.nextSibling);
+                        } else {
+                            currentDiv.insertBefore(clonedTask, firstChild);
+                        }
+                        taskCounter += 1;
+                    } else {
+                      
+                      currentDiv.appendChild(clonedTask); // Append to the current div for same-day workouts
+                    }
+                    
                   }
                   
                 } else {
+                  
                   if(workouts[i].extendedProps.weeklyTask == "true") {
                     weeklyTaskList.appendChild(clonedTask); // Append directly to the workout list
                   } else {
                     workoutList.appendChild(clonedTask); // Append directly to the workout list
                   }
                 }
-
                 break;
               }
             }
