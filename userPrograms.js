@@ -107,7 +107,8 @@ function main() {
 
     var formattedDate = moment(currentDate).format('YYYY-MM-DD');
 
-    var firstProgramDate = new Date(workouts[0].start);
+    var parts = workouts[0].start.split("-");
+    var firstProgramDate = new Date(parts[0], parts[1] - 1, parts[2]); // Adjust for zero-based month
     var lastProgramDate = new Date(workouts[workouts.length - 1].start);
 
     if (currentDate < firstProgramDate) {
