@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   showInstructions();
 
   //Save url
@@ -41,9 +40,7 @@ function main() {
     const weeks = [];
 
     //Get member metadata
-    MemberStack.onReady.then(async function(member) {  
-      metadata = await member.getMetaData();
-    });
+    metadata = await member.getMetaData();
 
     document.addEventListener('click', function (event) {
 
@@ -148,7 +145,7 @@ function main() {
     }
 
     //Check if workouts exist
-    if(workouts.length > 0 && tasks.length > 0) {
+    if(workouts.length > 0 || tasks.length > 0) {
 
       workouts = workouts.concat(tasks)
 
@@ -164,7 +161,6 @@ function main() {
         const dateB = moment(b['start']);
         return dateA - dateB;
       });
-      
 
       let currentWeek = [];
       var thisWeek = null;
@@ -359,7 +355,10 @@ function main() {
       if (workoutListWorkouts.length > 0) {
         // Clear the current workout list
         workoutList.innerHTML = '';
-        weeklyTaskList.innerHTML = '';
+        if(weeklyTaskList) {
+          weeklyTaskList.innerHTML = '';
+        }
+        
 
         var nextDay = null;
         var currentDay = null;
