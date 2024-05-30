@@ -30,9 +30,10 @@ function main() {
 
   MemberStack.onReady.then(async function(member) {
 
-    var metadata = await member.getMetaData()
+    var metadata = await member.getMetaData();
 
     const gymName = member["current-gym"];
+
     if(gymName && gymName != "" && gymName.toLowerCase() == "sam druce - fitness") {
       localStorage.setItem("fromGym", gymName);
     }
@@ -50,7 +51,8 @@ function main() {
           $('#weekParentDiv > button').show();
           event.target.classList.remove("dayweekbutton");
           event.target.classList.add("dayweekbuttonclicked");
-
+          
+          document.getElementById("scheduleText").innerText = "By Day";
 
           document.getElementById("weeklyView").click();
           
@@ -67,6 +69,8 @@ function main() {
           $('#weekParentDiv > button').hide();
           event.target.classList.remove("dayweekbutton");
           event.target.classList.add("dayweekbuttonclicked");
+
+          document.getElementById("scheduleText").innerText = "By Week";
 
           var selectedWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
           document.getElementById(`week-${selectedWeek}`).click();
@@ -654,8 +658,3 @@ function getMemberMetaData(uniqueTaskID) {
     });
   });
 }
-
-
-
-
-
