@@ -541,9 +541,17 @@ function main() {
 
     }
 
+    var weekButtonOffset = document.querySelector(".current-day").offsetLeft - 25;
+    //Get current week and scroll to it
+    document.getElementById("weekParentDiv").scrollTo({
+      left: weekButtonOffset
+    })
+
   });
 
 }
+
+
 
   // Function to check if the device is iOS
   function isIOS() {
