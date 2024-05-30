@@ -541,11 +541,15 @@ function main() {
 
     }
 
-    var weekButtonOffset = document.querySelector(".current-day").offsetLeft - 25;
-    //Get current week and scroll to it
-    document.getElementById("weekParentDiv").scrollTo({
-      left: weekButtonOffset
-    })
+    var weekButtonOffset = document.querySelector(".current-day");
+    if(weekButtonOffset) {
+      weekButtonOffset = weekButtonOffset.offsetLeft - 25
+      //Get current week and scroll to it
+      document.getElementById("weekParentDiv").scrollTo({
+        left: weekButtonOffset
+      })
+    }
+
 
   });
 
