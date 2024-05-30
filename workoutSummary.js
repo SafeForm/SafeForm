@@ -118,8 +118,6 @@ function main() {
 
   } 
 
-  console.log(workoutInformation)
-
   MemberStack.onReady.then(async function(member) {  
 
     if(member.memberPage) {
@@ -671,7 +669,6 @@ function main() {
   if ((document.referrer == "" || sessionStorage.getItem("onlyFinish") == "true") || (!fromProgram && !currentProgram)) {
     sessionStorage.setItem("onlyFinish", "true");
     document.getElementById("workoutNavigation").style.display = "none";
-    document.getElementById("shareWorkout").style.display = "block";
   } else {
     sessionStorage.setItem("onlyFinish", "false");
   }
