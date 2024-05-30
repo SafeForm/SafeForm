@@ -39,7 +39,7 @@ function main() {
 
   for (var i = 0; i < programWorkoutList.length; i++) {
     //Get link from workout summary information and set thumbnail link
-    var workoutSummaryLink = programWorkoutList[i].querySelector("#svgPersonLink");
+    var workoutSummaryLink = programWorkoutList[i].querySelector("#workoutSummaryLink");
     workoutSummaryLink.href += "?fromProgram=true";
     programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
     programWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
@@ -326,7 +326,6 @@ function main() {
         newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
 
         workoutList.appendChild(newElement);
-
         //Check if the workout is complete
         if(workout.extendedProps.completedID != undefined || (lastCompletedWorkout && (lastCompletedWorkout == workout.extendedProps.uniqueWorkoutID))) {
           newElement.querySelector(".workoutprogramdiv").style.borderColor = "#08D58B" //make border green if complete
@@ -336,8 +335,6 @@ function main() {
           newElement.querySelector(".workoutprogramdiv").classList.add("current-workout"); //change background colour if current
         } else {
           newElement.querySelector(".workoutprogramdiv").classList.add("future-workout"); //change border colour and time image if future
-          //Workout info breaker
-          newElement.querySelector("#workoutInfoBreaker").style.borderRightColor = "#6f6e6e";
         }
         addedWorkout += 1;
         const newElementParent = newElement.closest(".workoutprogramitem");
