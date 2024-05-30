@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-  showInstructions();
 
   //Save url
   sessionStorage.setItem("challengePage", window.location);
@@ -22,7 +21,7 @@ function main() {
   const challengeWorkoutList = document.getElementById("challengeWorkoutList").children;
   for (var i = 0; i < challengeWorkoutList.length; i++) {
     //Get link from workout summary information and set thumbnail link
-    var workoutSummaryLink = challengeWorkoutList[i].querySelector("#svgPersonLink");
+    var workoutSummaryLink = challengeWorkoutList[i].querySelector("#workoutSummaryLink");
     workoutSummaryLink.href += "?fromChallenge=true";
     challengeWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
     challengeWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
@@ -109,7 +108,7 @@ function main() {
 
     for (var i = 0; i < challengeWorkoutList.length; i++) {
       //Get link from workout summary information and set thumbnail link
-      var workoutSummaryLink = challengeWorkoutList[i].querySelector("#svgPersonLink");
+      var workoutSummaryLink = challengeWorkoutList[i].querySelector("#workoutSummaryLink");
       challengeWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
       challengeWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
     }
@@ -401,7 +400,7 @@ function main() {
               const daytext = document.createElement('div');
               daytext.innerText = `Day ${count}`;
               daytext.style.padding = "5px";
-              daytext.style.color = "black";
+              daytext.style.color = "#0C08D5";
               if(view == "week") {
                 currentDiv.appendChild(daytext);
               }
