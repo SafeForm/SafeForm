@@ -682,8 +682,7 @@ function main() {
     if(fromChallenge) {
       window.location = sessionStorage.getItem("challengePage");
     } else if(fromProgram) {
-      const myProgramLink = document.getElementById("myProgram").href;
-      window.location = myProgramLink;
+      history.back()
     } else if(fromFreeProgram) {
 
       window.location = localStorage.getItem("freeProgramLink");
