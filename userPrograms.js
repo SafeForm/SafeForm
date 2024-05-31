@@ -15,6 +15,7 @@ if (document.readyState !== 'loading') {
 function main() {
   //Update workout index
   var workoutList = document.querySelectorAll(".workoutprogramitem");
+  var currentDayNumber = "";
 
   for(var i = 0; i < workoutList.length; i++) {
     workoutList[i].querySelector("#workoutIndex").innerText = i;
@@ -256,6 +257,11 @@ function main() {
 
     // Clear the current workout list
     workoutList.innerHTML = '';
+    var nextDay = null;
+    var currentDay = null;
+    var isSameDay = true;
+    var count = 1;
+    var currentDiv = null; // Track the current div for same-day workouts
 
     // Get the selected week's workouts from the JSON structure
     const selectedWeekWorkouts = weeks[weekIndex];
@@ -285,8 +291,6 @@ function main() {
       }
     }
 
-    
-
     for (let i = 0; i < selectedWeekWorkouts.length; i++) {
       const workout = selectedWeekWorkouts[i];
 
@@ -300,11 +304,47 @@ function main() {
     // Iterate over the selected week's workouts
 
     selectedWeekWorkouts.forEach((workout, index) => {
+
+      currentDay = moment(workout.start);
+      if (i < workouts.length - 1) {
+          nextDay = moment(workout.start);
+      }
+
+       // Check if the current workout and the next workout are on the same day
+       if (currentDay.isSame(nextDay) || isSameDay) {
+        isSameDay = true;
+        // If the current div is not set or different from the new div date, create a new div
+        if (!currentDiv || !currentDiv.dataset.date || currentDiv.dataset.date !== currentDay.format("YYYY-MM-DD")) {
+
+          currentDiv = document.createElement('div');
+          taskCounter = 0;
+
+          currentDiv.style.display = "flex";
+          currentDiv.style.flexDirection = "column";
+          currentDiv.style.alignItems = "flex-start";
+          currentDiv.style.width = "100%";
+
+          currentDiv.dataset.date = currentDay.format("YYYY-MM-DD"); // Set dataset to track date
+          const daytext = document.createElement('div');
+          daytext.innerText = `Day ${count}`; //TO-DO CHANGE TO WEEK DAY
+          daytext.style.padding = "5px";
+          daytext.style.color = "#0C08D5";
+
+          currentDiv.appendChild(daytext);
+          workoutList.appendChild(currentDiv);
+          count += 1;
+        } 
+      } else {
+          isSameDay = false;
+          // Update currentDiv for next day's workouts
+          currentDiv = null;
+      }
       
       // Get the workout element based on the workout ID
       var workoutElement = null;
       var foundIndex = "";
       var workoutIndex = 0;
+      
 
       for(var i = 0; i < workoutListWorkouts.length; i++) {
 
@@ -333,6 +373,8 @@ function main() {
         } else if(workout === closestWorkout) {
           newElement.querySelector("#workoutNumber").style.display = "block";
           newElement.querySelector(".workoutprogramdiv").classList.add("current-workout"); //change background colour if current
+          currentDayNumber = newElement.previousSibling.innerText;
+          newElement.previousSibling.remove()
         } else {
           newElement.querySelector(".workoutprogramdiv").classList.add("future-workout"); //change border colour and time image if future
         }
@@ -363,11 +405,6 @@ function main() {
       }
     });
 
-    var progressBar = document.getElementById("workoutProgress");
-
-    progressBar.max = selectedWeekWorkouts.length;
-    progressBar.value = completedWorkouts;
-
     // Get the current workout element
     var currentWorkout = document.querySelector('.current-workout');
 
@@ -376,7 +413,7 @@ function main() {
       // Move the current workout element to the beginning of the list
       currentWorkout = currentWorkout.parentElement;
       workoutList.insertBefore(currentWorkout, workoutList.firstChild);
-      currentWorkout.querySelector("#workoutNumber").innerText = "Todays Workout";
+      currentWorkout.querySelector("#workoutNumber").innerText = `${currentDayNumber} - Todays Workout`;
     }
 
 
