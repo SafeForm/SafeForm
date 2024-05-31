@@ -102,7 +102,6 @@ function main() {
       } else {
 
         if(uniqueWorkoutID) {
-          console.log(weekWorkouts)
           workoutInformation = weekWorkouts.filter(item => item.uniqueWorkoutID == uniqueWorkoutID);
         } else {
           workoutInformation = weekWorkouts.filter(item => item.workoutID == fullWorkoutID);
@@ -654,7 +653,6 @@ function main() {
     for(var i = 0; i < pageLinks.length; i++) {
       if(pageLinks[i].id != "shareLink" && pageLinks[i].id != "closeMenu" && pageLinks[i].id != "clearFilters") {
         if(pageLinks[i].id == "home" && utm_campaign.toLowerCase() == "alfie robertson - fitness") {
-          //pageLinks[i].href = `${window.location.origin.location}/alfiegetshard-exerciselibrary`;
           pageLinks[i].href = "";
         } else {
           pageLinks[i].href = pageLinks[i].href += `?utm_campaign=${utm_campaign}`;
@@ -807,11 +805,17 @@ function main() {
           exerciseList[i].querySelector("#repInput").innerText = `${minLoad}-${maxLoad}`;
           exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + `${exerciseInformation[0].quantityUnit}`;
         }
+        exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
+        exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+        exerciseList[i].querySelector("#exerciseNotes").innerText = exerciseInformation[0].notes
 
+        
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
 
+        
         var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       } else {
