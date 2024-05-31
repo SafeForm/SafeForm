@@ -763,7 +763,7 @@ function main() {
       if(exerciseInformation.length > 0 && exerciseInformation[0].exercise != "") {
 
         //Hide rest div
-        exerciseList[i].querySelector("#restDiv").style.display = "none";
+        exerciseList[i].querySelector("#weightDiv").style.display = "none";
 
         //Another if to check if the exercise is bodyweight
         if(checkBodyWeight(exerciseList[i])) {
