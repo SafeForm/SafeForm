@@ -553,6 +553,8 @@ function main() {
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restSeconds").innerText = flattenedArray[i].exercises[0].exerciseRestSeconds;
         exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+        exerciseList[i].querySelector("#exerciseNotes").innerText = flattenedArray[i].exerciseNotes;
+
        }
 
     }
@@ -786,7 +788,8 @@ function main() {
           //Another if statement to check if there is a range - 'amount range unit.. 12-15 Kg' 
           var minLoad = getLoadAmountMin(exerciseInformation)
           var maxLoad = getLoadAmountMax(exerciseInformation)
-          exerciseList[i].querySelector("#load").innerText = `${minLoad}-${maxLoad} ${exerciseInformation[0].load}`;
+          //exerciseList[i].querySelector("#load").innerText = `${minLoad}-${maxLoad} ${exerciseInformation[0].load}`;
+          exerciseList[i].querySelector("#load").innerText = `${minLoad} ${exerciseInformation[0].load}`;
         }
 
         //Another if to check if the exercise is bodyweight
@@ -802,14 +805,15 @@ function main() {
           //Another if statement to check if there is a range - 'amount range unit.. 12-15 Kg' 
           var minLoad = getQuantityAmountMin(exerciseInformation)
           var maxLoad = getQuantityAmountMax(exerciseInformation)
-          exerciseList[i].querySelector("#repInput").innerText = `${minLoad}-${maxLoad}`;
+          //exerciseList[i].querySelector("#repInput").innerText = `${minLoad}-${maxLoad}`;
+          exerciseList[i].querySelector("#repInput").innerText = `${minLoad}`;
           exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + `${exerciseInformation[0].quantityUnit}`;
         }
+
         exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
         exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
         exerciseList[i].querySelector("#exerciseNotes").innerText = exerciseInformation[0].notes
 
-        
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
@@ -819,18 +823,22 @@ function main() {
         var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       } else {
+        
         //Hide rest div
         exerciseList[i].querySelector("#weightDiv").style.display = "none";
+        
         if(exerciseInformation.length > 0) {
           exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
           exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
           exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
           exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
+          exerciseList[i].querySelector("#exerciseNotes").innerText = exerciseInformation[0].notes
         } else {
           exerciseList[i].querySelector("#setInput").innerText = 3;
           exerciseList[i].querySelector("#repInput").innerText = 12;
           exerciseList[i].querySelector("#restMinutes").innerText = 2;
           exerciseList[i].querySelector("#restSeconds").innerText = 0;
+          exerciseList[i].querySelector("#exerciseNotes").innerText = "";
         }
         
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
@@ -840,8 +848,9 @@ function main() {
         var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       }
-    } else {
 
+    } else {
+      
       //Set default values
       //Hide rest div
       exerciseList[i].querySelector("#weightDiv").style.display = "none";
@@ -853,6 +862,8 @@ function main() {
       exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#restSeconds").innerText = 0;
       exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
+      exerciseList[i].querySelector("#exerciseNotes").innerText = "";
+      
     }
 
   }
