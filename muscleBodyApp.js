@@ -21,7 +21,8 @@ function main() {
     "gluteus-maximus":"Glutes",
     "hamstrings":"Hamstrings",
     "gastrocnemius":"Calves",
-    "erector-spinae":"Lower Back"
+    "erector-spinae":"Lower Back",
+    "hips":"Hips"
   }
 
   const svgPerson = document.getElementById("ajaxContent");
