@@ -46,7 +46,8 @@ async function main() {
     "gluteus-maximus":"Glutes",
     "hamstrings":"Hamstrings",
     "gastrocnemius":"Calves",
-    "erector-spinae":"Lower Back"
+    "erector-spinae":"Lower Back",
+    "hips":"Hips"
   }
 
   var reverseMuscleMapping = {
@@ -63,7 +64,8 @@ async function main() {
     "Glutes": "Gluteus Maximus",
     "Hamstrings": "Hamstrings",
     "Calves": "Gastrocnemius",
-    "Lower Back": "Erector Spinae"
+    "Lower Back": "Erector Spinae",
+    "Hips":"Hips"
   };  
 
   //Flag for checking if radio button was human clicked or programmatic
