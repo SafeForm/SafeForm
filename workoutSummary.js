@@ -171,6 +171,7 @@ function main() {
 
           // Iterate over exercises array and construct new objects
           exerciseInformation[0].exercises.forEach((exercise, index) => {
+            
             newArray.push({
               "exercise": exerciseInformation[0].exerciseName,
               "reps": exercise.reps,
@@ -182,7 +183,7 @@ function main() {
               "notes": exerciseInformation[0].exerciseNotes,
               "setNumber": index,
               "guideID": exerciseInformation[0].guideID,
-              "uniqueWorkoutID": "048192f9-96a1-4afe-bb37-4f9afe443a8f"
+              "uniqueWorkoutID": exerciseInformation[0].uniqueWorkoutID
             });
           });
 
@@ -290,9 +291,18 @@ function main() {
           if(memberJSONExerciseName == undefined) {
             memberJSONExerciseName = memberJSON[exerciseName];
           }
+
           const summaryWeightLoad = document.querySelectorAll("#load");
 
           if(memberJSONExerciseName != undefined) {
+
+            var workoutKeys = Object.keys(memberJSONExerciseName.workouts);
+            var foundKey = workoutKeys.find(key => key == uniqueWorkoutID);
+            var numberOfSetsComplete = memberJSONExerciseName.workouts[foundKey];
+
+            if(numberOfSetsComplete != undefined && numberOfSetsComplete > 0) {
+              exerciseInputSection.querySelector("#completeExercise").classList.add("pre-complete");
+            }
             
             if(memberJSONExerciseName.weight != undefined) {
               
@@ -360,9 +370,6 @@ function main() {
             newRepsInput.value = "";
             newWeightInput.value = "";
             newRestDiv.style.display = "flex";
-
-            const completeButton = newInputSection.querySelector("#completeExercise");
-            completeButton.style.display = "none";
 
             //Check if it is an empty filler exercise from god mode:
             if(exerciseInformation.length > 0 && exerciseInformation[j+1] && exerciseInformation[j+1].exercise != "") {
@@ -439,6 +446,16 @@ function main() {
             });
             
             if(memberJSONExerciseName != undefined) {
+
+              var workoutKeys = Object.keys(memberJSONExerciseName.workouts);
+
+              var foundKey = workoutKeys.find(key => key == uniqueWorkoutID);
+              var numberOfSetsComplete = memberJSONExerciseName.workouts[foundKey];
+              newInputSection.querySelector("#completeExercise").classList.remove("pre-complete");
+              if(numberOfSetsComplete != undefined && numberOfSetsComplete > j+1) {
+                newInputSection.querySelector("#completeExercise").classList.add("pre-complete");
+              }
+              
               if(memberJSONExerciseName.weight != undefined) {
                 if(memberJSONExerciseName.weight[j+1] != undefined) {
 
@@ -496,6 +513,15 @@ function main() {
             button.closest("#inputSection").querySelector("#reps").value  = repsValue;
 
             hideCompleteButton(button);
+            // Get the rest time from the div and parse it
+            let restDiv = button.closest("#inputSection").nextElementSibling;
+            if(restDiv) {
+              let restTime = parseTime(restDiv.textContent);
+  
+              // Start the timer with the parsed rest time
+              startTimer(restTime, restDiv);
+            }
+
           }
         }
 
@@ -516,6 +542,16 @@ function main() {
 
           hideCompleteButton(button);
 
+          // Get the rest time from the div and parse it
+          let restDiv = button.closest("#inputSection").nextElementSibling;
+          if(restDiv && !button.classList.contains("pre-complete")) {
+            let restTime = parseTime(restDiv.textContent);
+
+            // Start the timer with the parsed rest time
+            startTimer(restTime, restDiv);
+          }
+
+
           //Increment 'completed sets' counter
           completedSets += 1;
 
@@ -523,11 +559,23 @@ function main() {
             document.getElementById("finishWorkout").click;
           }
 
-          if(workoutID != null || workoutID != "") {
-            updateWorkoutDetails(completedExerciseID, completedExercisename, workoutID, (index)%3 + 1);
+          if((workoutID != null || workoutID != "") && !button.classList.contains("pre-complete")) {
+            var workoutIDUnique = workoutID.split("+");
+
+            if(workoutIDUnique.length > 0) {
+              workoutIDUnique = workoutIDUnique[0];
+              updateWorkoutDetails(completedExerciseID, completedExercisename, workoutIDUnique, (index)%3 + 1);
+            } else {
+              updateWorkoutDetails(completedExerciseID, completedExercisename, workoutID, (index)%3 + 1);
+            }
+            
           }
           
         });
+
+        if(button.classList.contains("pre-complete")) {
+          button.click();
+        }
 
       });
 
@@ -549,10 +597,11 @@ function main() {
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").innerText = flattenedArray[i].sets;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#restMinutes").innerText = flattenedArray[i].exercises[0].exerciseRestMinutes;
+        if(flattenedArray[i].exercises[0].exerciseRestSeconds == 0) {
+          flattenedArray[i].exercises[0].exerciseRestSeconds = "00";
+        }
+        exerciseList[i].querySelector("#restMinutes").innerText = `${flattenedArray[i].exercises[0].exerciseRestMinutes}:${flattenedArray[i].exercises[0].exerciseRestSeconds}`;
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#restSeconds").innerText = flattenedArray[i].exercises[0].exerciseRestSeconds;
-        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#exerciseNotes").innerText = flattenedArray[i].exerciseNotes;
 
        }
@@ -752,7 +801,7 @@ function main() {
             "notes": exerciseInformation[0].exerciseNotes,
             "setNumber": index,
             "guideID": exerciseInformation[0].guideID,
-            "uniqueWorkoutID": "048192f9-96a1-4afe-bb37-4f9afe443a8f"
+            "uniqueWorkoutID": exerciseInformation[0].uniqueWorkoutID
           });
         });
 
@@ -810,8 +859,12 @@ function main() {
           exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + `${exerciseInformation[0].quantityUnit}`;
         }
 
-        exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
-        exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+        if(exerciseInformation[0].exerciseRestSeconds == 0) {
+          exerciseInformation[0].exerciseRestSeconds = "00";
+        }
+
+        exerciseList[i].querySelector("#restMinutes").innerText = `${exerciseInformation[0].exerciseRestMinutes}:${exerciseInformation[0].exerciseRestSeconds}`;
+
         exerciseList[i].querySelector("#exerciseNotes").innerText = exerciseInformation[0].notes
 
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
@@ -829,22 +882,22 @@ function main() {
         
         if(exerciseInformation.length > 0) {
           exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
-          exerciseList[i].querySelector("#restMinutes").innerText = exerciseInformation[0].exerciseRestMinutes;
-          exerciseList[i].querySelector("#restSeconds").innerText = exerciseInformation[0].exerciseRestSeconds;
+          if(exerciseInformation[0].exerciseRestSeconds == 0) {
+            exerciseInformation[0].exerciseRestSeconds = "00";
+          }
+          exerciseList[i].querySelector("#restMinutes").innerText = `${exerciseInformation[0].exerciseRestMinutes}:${exerciseInformation[0].exerciseRestSeconds}`;
           exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
           exerciseList[i].querySelector("#exerciseNotes").innerText = exerciseInformation[0].notes
         } else {
           exerciseList[i].querySelector("#setInput").innerText = 3;
           exerciseList[i].querySelector("#repInput").innerText = 12;
-          exerciseList[i].querySelector("#restMinutes").innerText = 2;
-          exerciseList[i].querySelector("#restSeconds").innerText = 0;
+          exerciseList[i].querySelector("#restMinutes").innerText = "2:00";
           exerciseList[i].querySelector("#exerciseNotes").innerText = "";
         }
         
         exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
-        exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
         var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       }
@@ -858,10 +911,8 @@ function main() {
       exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#setInput").innerText = 3;
       exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
-      exerciseList[i].querySelector("#restMinutes").innerText = 2;
+      exerciseList[i].querySelector("#restMinutes").innerText = "2:00";
       exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
-      exerciseList[i].querySelector("#restSeconds").innerText = 0;
-      exerciseList[i].querySelector("#restSeconds").classList.remove("w-dyn-bind-empty");
       exerciseList[i].querySelector("#exerciseNotes").innerText = "";
       
     }
@@ -904,11 +955,12 @@ function main() {
       newDiv.classList.add('exercise-list-item-superset');
       newDiv.style.borderRadius = '8px';
       newDiv.style.marginBottom = '10px';
-      newDiv.style.border = '2px solid #CBCBCB';
+      newDiv.style.border = '1px solid #CBCBCB';
       newDiv.style.backgroundColor = "white";
       newDiv.style.display = "flex";
       newDiv.style.flexDirection = "column";
       newDiv.style.alignItems = "center";
+      newDiv.style.boxShadow = "0 4px 4px 0px rgba(0, 0, 0, 0.25)";
       const supersetText = document.createElement('div');
       supersetText.innerText = "Superset";
 
@@ -931,6 +983,7 @@ function main() {
         inputNewDiv.appendChild(inputListExercises[exerciseCount]);
         
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.border = "none";
+        listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.boxShadow = "0 0px 0px 0px rgba(0, 0, 0, 0)";
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.marginBottom = 0;
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.marginTop = 0;
 
@@ -1148,12 +1201,14 @@ function main() {
       }
 
       var workoutsMap = null;
+
       if(exerciseInfo == undefined) {
         workoutsMap =  new Map();
-        exerciseInfo = {"weight": [], "reps":[], "workouts": workoutsMap};
-      } else if(exerciseInfo.workouts == null) {
+        exerciseInfo = {"weight": [], "reps":[], "workouts": new Map()};
+      } else if(exerciseInfo.workouts.length == 0) {
         workoutsMap =  new Map();
         exerciseInfo["workouts"] = workoutsMap;
+        
       }
 
       var workoutsMap = exerciseInfo.workouts;
@@ -1167,6 +1222,29 @@ function main() {
 
 
     });
+  }
+
+  function parseTime(timeString) {
+    let timeParts = timeString.split(" ");
+    let minutes = parseInt(timeParts[0].replace("m", ""));
+    let seconds = parseInt(timeParts[1].replace("s", ""));
+    return minutes * 60 + seconds;
+  }
+
+  function startTimer(initialTime, restDiv) {
+    let timeRemaining = initialTime;
+    let timerInterval = setInterval(() => {
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            restDiv.innerHTMl = "<br>";
+        } else {
+            timeRemaining--;
+            // Update the div content with the remaining time
+            let minutes = Math.floor(timeRemaining / 60);
+            let seconds = timeRemaining % 60;
+            restDiv.textContent = `${minutes}m ${seconds}s`;
+        }
+    }, 1000);
   }
 
   function hideCompleteButton(button) {
@@ -1184,6 +1262,13 @@ function main() {
         }
         nextInputSection = nextInputSection.nextElementSibling;
       }
+
+      //Style outside div
+      button.closest("#inputSection").style.backgroundColor = "#DBDAFF";
+      button.closest("#inputSection").style.borderColor = "#0C08D5";
+
+      button.closest("#inputSection").querySelector("#reps").style.borderColor = "#0C08D5";
+      button.closest("#inputSection").querySelector("#weight").style.borderColor = "#0C08D5";
 
       if(nextInputSection) {
         if(nextInputSection.querySelector("#completedExercise").style.display != "block") {
