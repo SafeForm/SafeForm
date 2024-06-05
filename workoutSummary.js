@@ -14,8 +14,9 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+
   //Add workout flag to guide links
-  const exerciseLinks = document.querySelectorAll("#exerciseInfo");
+  var exerciseLinks = document.querySelectorAll("#exerciseInfo, #guideLink");
   for(var i = 0; i < exerciseLinks.length; i++) {
     exerciseLinks[i].href += "?isWorkout=true";
   }
@@ -637,6 +638,7 @@ function main() {
           workoutObj["member"] = member;
           workoutObj["programName"] = sessionStorage.getItem("programName");
           workoutObj["programID"] = sessionStorage.getItem("programID");
+
           if(userProgram != null) {
             var uniqueWorkoutIDToFind = workoutID.split("+");
             if(uniqueWorkoutIDToFind && uniqueWorkoutIDToFind.length > 1) {
@@ -649,13 +651,21 @@ function main() {
                 foundObject = event;
               }
             });
+
             //Set the completed ID
             foundObject["extendedProps"]["completedID"] = workoutID;
 
             workoutObj["userProgram"] = JSON.stringify(userProgram);
 
           } 
-          sendWorkoutDetailsToMake(workoutObj);
+
+          if(workoutObj["programID"]) {
+            sendWorkoutDetailsToMake(workoutObj);
+          } else {
+            const programPageLink = document.getElementById("myProgram").href;
+            window.location = programPageLink;
+          }
+          
         }
 
 
@@ -954,7 +964,7 @@ function main() {
       const newDiv = document.createElement('div');
       newDiv.classList.add('exercise-list-item-superset');
       newDiv.style.borderRadius = '8px';
-      newDiv.style.marginBottom = '10px';
+      newDiv.style.marginBottom = '20px';
       newDiv.style.border = '1px solid #CBCBCB';
       newDiv.style.backgroundColor = "white";
       newDiv.style.display = "flex";
@@ -963,6 +973,8 @@ function main() {
       newDiv.style.boxShadow = "0 4px 4px 0px rgba(0, 0, 0, 0.25)";
       const supersetText = document.createElement('div');
       supersetText.innerText = "Superset";
+      supersetText.classList.add("superset-text")
+      
 
       //Add 'superset text to list'
       listOfExercises[exerciseCount].parentNode.insertBefore(supersetText, listOfExercises[exerciseCount]);
@@ -988,6 +1000,7 @@ function main() {
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.marginTop = 0;
 
         inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.border = "none";
+        inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.boxShadow = "0 0px 0px 0px rgba(0, 0, 0, 0)";
         inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.marginBottom = 0;
         inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.marginTop = 0;
         exerciseCount += 1;
@@ -1234,16 +1247,18 @@ function main() {
   function startTimer(initialTime, restDiv) {
     let timeRemaining = initialTime;
     let timerInterval = setInterval(() => {
-        if (timeRemaining <= 0) {
-            clearInterval(timerInterval);
-            restDiv.innerHTMl = "<br>";
-        } else {
-            timeRemaining--;
-            // Update the div content with the remaining time
-            let minutes = Math.floor(timeRemaining / 60);
-            let seconds = timeRemaining % 60;
-            restDiv.textContent = `${minutes}m ${seconds}s`;
-        }
+    restDiv.style.color = "black";
+    if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        restDiv.innerHTMl = "<br>";
+        restDiv.style.color = "#CBCBCB";
+    } else {
+        timeRemaining--;
+        // Update the div content with the remaining time
+        let minutes = Math.floor(timeRemaining / 60);
+        let seconds = timeRemaining % 60;
+        restDiv.textContent = `${minutes}m ${seconds}s`;
+    }
     }, 1000);
   }
 
