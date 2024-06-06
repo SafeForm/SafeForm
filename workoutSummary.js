@@ -638,7 +638,7 @@ function main() {
           workoutObj["member"] = member;
           workoutObj["programName"] = sessionStorage.getItem("programName");
           workoutObj["programID"] = sessionStorage.getItem("programID");
-
+          
           if(userProgram != null) {
             var uniqueWorkoutIDToFind = workoutID.split("+");
             if(uniqueWorkoutIDToFind && uniqueWorkoutIDToFind.length > 1) {
@@ -663,7 +663,12 @@ function main() {
             sendWorkoutDetailsToMake(workoutObj);
           } else {
             const programPageLink = document.getElementById("myProgram").href;
-            window.location = programPageLink;
+            if(localStorage.getItem("currentTrainingPlan")) {
+              window.location = localStorage.getItem("currentTrainingPlan");
+            } else {
+              window.location = programPageLink;
+            }
+            
           }
           
         }
@@ -681,6 +686,8 @@ function main() {
 
     //Set onclick for start button
     document.getElementById("startWorkout").onclick = () => {
+
+      sessionStorage.setItem("startedWorkout", uniqueWorkoutID);
 
       if(currentProgram && member.loggedIn) {
       
@@ -702,6 +709,11 @@ function main() {
       }
 
     };
+
+    if(sessionStorage.getItem("startedWorkout") == uniqueWorkoutID) {
+      console.log("Clicing")
+      document.getElementById("startWorkout").click();
+    }
 
 
   });
@@ -1189,8 +1201,14 @@ function main() {
       throw new Error('Something went wrong');
     })
     .then((data) => {
-      const programPageLink = document.getElementById("myProgram").href;
-      window.location = programPageLink;
+
+
+      if(localStorage.getItem("currentTrainingPlan")) {
+        window.location = localStorage.getItem("currentTrainingPlan");
+      } else {
+        const programPageLink = document.getElementById("myProgram").href;
+        window.location = programPageLink;
+      }
 
       
     })
