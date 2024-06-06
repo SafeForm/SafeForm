@@ -152,19 +152,14 @@ function main() {
     if (currentWeek.length > 0) {
       weeks.push(currentWeek);
     }
-    
+
+
     const buttons = document.querySelectorAll('a[id^="week-"]');
     const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
     const workoutList = document.getElementById('programWorkoutList');
 
     // Add event listeners to the buttons
     buttons.forEach((button, index) => {
-
-      //Style all buttons before current
-      if(index+1 < thisWeek) {
-        button.style.backgroundColor = "#6F6E6E";
-        button.style.color = "white";
-      }
 
       if(index+1 == thisWeek) {
         $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
@@ -174,6 +169,9 @@ function main() {
 
       button.addEventListener('click', (event) => {
         displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
+        $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
+        event.target.classList.remove("week-button");
+        event.target.classList.add("current-week");
 
         //Set current week number again
         sessionStorage.setItem("currentWeekNumber", event.target.innerText.split(" ")[1])
