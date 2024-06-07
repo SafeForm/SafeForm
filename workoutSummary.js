@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+  sessionStorage.setItem("numberOfGuides", 0);
 
   //Add workout flag to guide links
   var exerciseLinks = document.querySelectorAll("#exerciseInfo, #guideLink");
@@ -711,7 +712,6 @@ function main() {
     };
 
     if(sessionStorage.getItem("startedWorkout") == uniqueWorkoutID) {
-      console.log("Clicing")
       document.getElementById("startWorkout").click();
     }
 
