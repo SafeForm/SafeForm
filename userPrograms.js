@@ -13,9 +13,16 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   //Update workout index
   var workoutList = document.querySelectorAll(".workoutprogramitem");
   var currentDayNumber = "";
+
+  //Show all status
+  var workoutStatus = document.querySelectorAll("#workoutStatus");
+  for(var i = 0; i < workoutStatus.length; i++) {
+    workoutStatus[i].style.display = "block";
+  }
 
   localStorage.setItem("currentTrainingPlan", window.location)
 
@@ -49,11 +56,15 @@ function main() {
 
   }
 
-  MemberStack.onReady.then(async function(member) {  
+  MemberStack.onReady.then(async function(member) {
 
     if(member.memberPage) {
       document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
     }
+    if(localStorage.getItem("currentTrainingPlan")) {
+      document.getElementById("home").href = localStorage.getItem("currentTrainingPlan");
+    }
+
     const gymName = member["current-gym"];
     localStorage.setItem("fromGym", gymName);
 
@@ -153,7 +164,6 @@ function main() {
       weeks.push(currentWeek);
     }
 
-
     const buttons = document.querySelectorAll('a[id^="week-"]');
     const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
     const workoutList = document.getElementById('programWorkoutList');
@@ -162,16 +172,32 @@ function main() {
     buttons.forEach((button, index) => {
 
       if(index+1 == thisWeek) {
-        $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
         button.classList.remove("week-button");
         button.classList.add("current-week");
+      } else if(index+1 < thisWeek) {
+        button.classList.remove("week-button");
+        button.classList.add("previous-week");
       }
 
       button.addEventListener('click', (event) => {
         displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
-        $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
-        event.target.classList.remove("week-button");
-        event.target.classList.add("current-week");
+
+        $('#weekParentDiv .current-week-clicked').removeClass('current-week-clicked').addClass("current-week");
+        $('#weekParentDiv .week-button-clicked').removeClass('week-button-clicked').addClass("week-button");
+        $('#weekParentDiv .previous-week-clicked').removeClass('previous-week-clicked').addClass("previous-week");
+
+
+        //Check what the target class was:
+        if(event.target.classList.contains("current-week")) {
+          event.target.classList.remove("current-week");
+          event.target.classList.add("current-week-clicked");
+        } else if(event.target.classList.contains("week-button")) {
+          event.target.classList.remove("week-button");
+          event.target.classList.add("week-button-clicked");
+        } else if(event.target.classList.contains("previous-week")) {
+          event.target.classList.remove("previous-week");
+          event.target.classList.add("previous-week-clicked");
+        }
 
         //Set current week number again
         sessionStorage.setItem("currentWeekNumber", event.target.innerText.split(" ")[1])
@@ -193,7 +219,7 @@ function main() {
     document.getElementById("workout-empty-state").style.display = "flex";
   }
 
-  var weekButtonOffset = document.querySelector(".current-week");
+  var weekButtonOffset = document.querySelector(".current-week-clicked");
 
   if(weekButtonOffset) {
     weekButtonOffset = weekButtonOffset.offsetLeft - 25;
@@ -328,25 +354,25 @@ function main() {
           currentDiv = document.createElement('div');
           taskCounter = 0;
 
-          currentDiv.style.display = "flex";
-          currentDiv.style.flexDirection = "column";
-          currentDiv.style.alignItems = "flex-start";
           currentDiv.style.width = "100%";
+          currentDiv.id = "workoutDay";
 
           currentDiv.dataset.date = currentDay.format("YYYY-MM-DD"); // Set dataset to track date
+
           const daytext = document.createElement('div');
-          daytext.innerText = `Day ${count}`; //TO-DO CHANGE TO WEEK DAY
-          daytext.style.padding = "5px";
-          daytext.style.color = "#0C08D5";
+          daytext.innerText = `Day ${count}`; 
+
+          daytext.classList.add("workout-day")
+          daytext.style.display = "block";
 
           currentDiv.appendChild(daytext);
           workoutList.appendChild(currentDiv);
           count += 1;
         } 
       } else {
-          isSameDay = false;
-          // Update currentDiv for next day's workouts
-          currentDiv = null;
+        isSameDay = false;
+        // Update currentDiv for next day's workouts
+        currentDiv = null;
       }
       
       // Get the workout element based on the workout ID
@@ -372,21 +398,23 @@ function main() {
 
         var newElement = workoutElement.closest('.workoutprogramitem').cloneNode(true);
 
-        newElement.querySelector("#workoutNumber").innerText = `Workout ${addedWorkout}.`;
-
         workoutList.appendChild(newElement);
         //Check if the workout is complete
         if(workout.extendedProps.completedID != undefined || (lastCompletedWorkout && (lastCompletedWorkout == workout.extendedProps.uniqueWorkoutID))) {
-          newElement.querySelector(".workoutprogramdiv").style.borderColor = "#08D58B" //make border green if complete
           completedWorkouts += 1;
-        } else if(workout === closestWorkout) {
-          newElement.querySelector("#workoutNumber").style.display = "block";
-          newElement.querySelector(".workoutprogramdiv").classList.add("current-workout"); //change background colour if current
-          currentDayNumber = newElement.previousSibling.innerText;
-          newElement.previousSibling.remove()
-        } else {
-          newElement.querySelector(".workoutprogramdiv").classList.add("future-workout"); //change border colour and time image if future
-        }
+          newElement.querySelector("#workoutStatus").classList.remove("not-started");
+          newElement.querySelector("#workoutStatus").classList.add("finished");
+          newElement.querySelector("#workoutStatus").innerText = "Finished";
+        } else if(localStorage.getItem("startedWorkout") == workout.extendedProps.uniqueWorkoutID || workout === closestWorkout) { //Next workout
+          newElement.querySelector("#workoutStatus").classList.add("not-started-current-workout");
+
+          if(localStorage.getItem("startedWorkout") == workout.extendedProps.uniqueWorkoutID ) {
+            newElement.querySelector("#workoutStatus").classList.remove("not-started");
+            newElement.querySelector("#workoutStatus").classList.add("in-progress");
+            newElement.querySelector("#workoutStatus").innerText = "In Progress";
+          } 
+
+        } 
         addedWorkout += 1;
         const newElementParent = newElement.closest(".workoutprogramitem");
         const workoutIndex = newElementParent.querySelector("#workoutIndex").innerText;
@@ -415,16 +443,30 @@ function main() {
     });
 
     // Get the current workout element
-    var currentWorkout = document.querySelector('.current-workout');
-
+    var currentWorkout = document.querySelector('.not-started-current-workout');
+  
     // Check if the current workout element is not already the first element
-    if (currentWorkout && currentWorkout !== workoutList.firstChild) {
-      // Move the current workout element to the beginning of the list
-      currentWorkout = currentWorkout.parentElement;
-      workoutList.insertBefore(currentWorkout, workoutList.firstChild);
-      currentWorkout.querySelector("#workoutNumber").innerText = `${currentDayNumber} - Todays Workout`;
-    }
+    if (currentWorkout ) {
 
+      currentWorkout = currentWorkout.closest(".workoutprogramitem");
+
+      if(!currentWorkout.previousElementSibling.innerText.toLowerCase().includes("day 1") && !currentWorkout.previousElementSibling.innerText.toLowerCase().includes("monday")) {
+
+        window.scrollTo({
+          top: currentWorkout.offsetTop - 100,
+          behavior: 'smooth' 
+        });
+
+      }
+
+      currentWorkout.previousElementSibling.querySelector(".workout-day").style.color = "#0C08D5";
+
+      while(currentWorkout.previousElementSibling.previousElementSibling) {
+        currentWorkout = currentWorkout.previousElementSibling.previousElementSibling;
+        currentWorkout.previousElementSibling.querySelector(".workout-day").style.color = "#000000";
+      }
+
+    }
 
   }
 
