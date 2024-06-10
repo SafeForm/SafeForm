@@ -16,6 +16,8 @@ function main() {
 
   sessionStorage.setItem("numberOfGuides", 0);
 
+  sessionStorage.setItem("onlyFinish", "false")
+
   //Add workout flag to guide links
   var exerciseLinks = document.querySelectorAll("#exerciseInfo, #guideLink");
   for(var i = 0; i < exerciseLinks.length; i++) {
@@ -688,7 +690,7 @@ function main() {
     //Set onclick for start button
     document.getElementById("startWorkout").onclick = () => {
 
-      sessionStorage.setItem("startedWorkout", uniqueWorkoutID);
+      localStorage.setItem("startedWorkout", uniqueWorkoutID);
 
       if(currentProgram && member.loggedIn) {
       
@@ -711,7 +713,7 @@ function main() {
 
     };
 
-    if(sessionStorage.getItem("startedWorkout") == uniqueWorkoutID) {
+    if(localStorage.getItem("startedWorkout") == uniqueWorkoutID) {
       document.getElementById("startWorkout").click();
     }
 
@@ -724,7 +726,7 @@ function main() {
     //Find all links on the page and add utm parameter for future filtering
     var pageLinks = document.querySelectorAll("a");
     for(var i = 0; i < pageLinks.length; i++) {
-      if(pageLinks[i].id != "shareLink" && pageLinks[i].id != "closeMenu" && pageLinks[i].id != "clearFilters") {
+      if(pageLinks[i].id != "startWorkout" && pageLinks[i].id != "shareLink" && pageLinks[i].id != "closeMenu" && pageLinks[i].id != "clearFilters") {
         if(pageLinks[i].id == "home" && utm_campaign.toLowerCase() == "alfie robertson - fitness") {
           pageLinks[i].href = "";
         } else {
