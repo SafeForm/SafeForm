@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   //Update workout index
   var workoutList = document.querySelectorAll(".workoutprogramitem");
   var currentDayNumber = "";
@@ -83,6 +82,7 @@ function main() {
 
     parentDiv.appendChild(newButton);
   }
+
   //Remove original placeholder button
   weekButton.remove();
 
@@ -163,6 +163,43 @@ function main() {
     if (currentWeek.length > 0) {
       weeks.push(currentWeek);
     }
+
+    // Find the latest completed workout and its week
+    let latestCompletedWorkout = null;
+    let latestCompletedWeekIndex = -1;
+
+    for (let i = 0; i < weeks.length; i++) {
+      for (const workout of weeks[i]) {
+        if (workout.extendedProps.completedID) {
+          latestCompletedWorkout = workout;
+          latestCompletedWeekIndex = i;
+        }
+      }
+    }
+
+    let currentWeekIndex = latestCompletedWeekIndex;
+
+    // Check if all workouts in the latest completed week are completed
+    if (latestCompletedWorkout) {
+      let allWorkoutsCompletedInLatestWeek = true;
+
+      for (const workout of weeks[latestCompletedWeekIndex]) {
+        if (!workout.extendedProps.completedID) {
+          allWorkoutsCompletedInLatestWeek = false;
+          break;
+        }
+      }
+
+      if (allWorkoutsCompletedInLatestWeek && latestCompletedWeekIndex + 1 < weeks.length) {
+        currentWeekIndex = latestCompletedWeekIndex + 1;
+      }
+    }
+
+    if (currentWeekIndex < 0) {
+      currentWeekIndex = 0;
+    }
+
+    thisWeek = currentWeekIndex+1;
 
     const buttons = document.querySelectorAll('a[id^="week-"]');
     const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
@@ -471,3 +508,5 @@ function main() {
   }
 
 }
+
+
