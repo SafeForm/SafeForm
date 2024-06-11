@@ -16,7 +16,7 @@ function main() {
 
   sessionStorage.setItem("numberOfGuides", 0);
 
-  sessionStorage.setItem("onlyFinish", "false")
+  sessionStorage.setItem("onlyFinish", "false");
 
   //Add workout flag to guide links
   var exerciseLinks = document.querySelectorAll("#exerciseInfo, #guideLink");
@@ -835,12 +835,9 @@ function main() {
       //Check if it is an empty filler exercise from god mode:
       if(exerciseInformation.length > 0 && exerciseInformation[0].exercise != "") {
 
-        //Hide rest div
-        exerciseList[i].querySelector("#weightDiv").style.display = "none";
-
         //Another if to check if the exercise is bodyweight
         if(checkBodyWeight(exerciseList[i])) {
-          exerciseList[i].querySelector("#load").innerText = "Bodyweight";
+
         } else if(checkSameLoadAmount(exerciseInformation) ) {
           //Another if to check if the amounts are the same - 'amount unit.. 12 Kg' 
           if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase() ) {
@@ -870,6 +867,13 @@ function main() {
           //Check if there is no quantity amount
           exerciseList[i].querySelector("#quantityUnit").innerText = "-";
           exerciseList[i].querySelector("#quantityUnit").closest("#quantityParent").style.display = "none";
+          
+          //Show RPE
+          var hiddenInfo = exerciseList[i].querySelector(".hidden-exercise-info");
+          hiddenInfo.classList.remove("hidden-exercise-info");
+          hiddenInfo.classList.add("exercise-info");
+
+
         } else if(checkSameQuantityUnit(exerciseInformation)) {
           //Another if to check if the amounts are the same - 'amount unit.. 12 Reps'
           exerciseList[i].querySelector("#repInput").innerText = `${exerciseInformation[0].reps}`;
@@ -895,14 +899,10 @@ function main() {
         exerciseList[i].querySelector("#setInput").innerText = exerciseInformation.length;
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
         exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
-
         
         var loadingMechanism = exerciseList[i].querySelector("#exerciseLoadingMechanism").innerText;
         workoutExercises.push(`${shortName},${loadingMechanism}`);
       } else {
-        
-        //Hide rest div
-        exerciseList[i].querySelector("#weightDiv").style.display = "none";
         
         if(exerciseInformation.length > 0) {
           exerciseList[i].querySelector("#repInput").innerText = exerciseInformation[0].reps;
