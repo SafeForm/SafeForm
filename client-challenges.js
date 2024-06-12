@@ -215,15 +215,41 @@ function main() {
 
       // Add event listeners to the buttons
       buttons.forEach((button, index) => {
+
+
+        thisWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
+
+        if(index+1 == thisWeek) {
+          button.classList.remove("week-button");
+          button.classList.add("current-week");
+        } else if(index+1 < thisWeek) {
+          button.classList.remove("week-button");
+          button.classList.add("previous-week");
+        }
+
         button.addEventListener('click', (event) => {
           addWorkoutsToList(workoutList, workoutListWorkouts, index, weeks, weeklyTaskList, "week");
+         
+          $('#weekParentDiv .current-week-clicked').removeClass('current-week-clicked').addClass("current-week");
+          $('#weekParentDiv .week-button-clicked').removeClass('week-button-clicked').addClass("week-button");
+          $('#weekParentDiv .previous-week-clicked').removeClass('previous-week-clicked').addClass("previous-week");
 
-          $('#weekParentDiv > a:not(.div-block-574 .w-button)').removeClass('current-week').addClass("week-button");
-          event.target.classList.remove("week-button");
-          event.target.classList.add("current-week");
+
+          //Check what the target class was:
+          if(event.target.classList.contains("current-week")) {
+            event.target.classList.remove("current-week");
+            event.target.classList.add("current-week-clicked");
+          } else if(event.target.classList.contains("week-button")) {
+            event.target.classList.remove("week-button");
+            event.target.classList.add("week-button-clicked");
+          } else if(event.target.classList.contains("previous-week")) {
+            event.target.classList.remove("previous-week");
+            event.target.classList.add("previous-week-clicked");
+          }
 
           //Set current week number again
           sessionStorage.setItem("currentWeekNumber", event.target.innerText.split(" ")[1])
+
         });
       });
       
@@ -250,26 +276,51 @@ function main() {
       Object.keys(days).forEach((day, index) => {
         const button = document.createElement('button');
         button.innerText = index + 1;
-        button.id = day
+        button.id = day;
+
+        var currentDay = moment().format('YYYY-MM-DD');
+
+        if(button.id == currentDay) {
+          button.classList.remove("day-button");
+          button.classList.add("current-day");
+        } else if(button.id < currentDay) {
+          button.classList.remove("day-button");
+          button.classList.add("previous-day");
+        } else {
+          button.classList.add("day-button");
+        }
 
         const filteredWorkouts = workouts.filter(workout => {
           if (workout.extendedProps.weeklyTask) {
-              const workoutDate = new Date(workout.start);
-              const selectedDate = new Date(day);
-              return isInSameWeek(selectedDate, workoutDate);
+            const workoutDate = new Date(workout.start);
+            const selectedDate = new Date(day);
+            return isInSameWeek(selectedDate, workoutDate);
           }
           return false;
         });
 
         days[day] = filteredWorkouts.concat(days[day]);
-        //days[day].append(filteredWorkouts);
-        button.classList.add('day-button'); // Add the same class as week buttons
+        //button.classList.add("day-button")
         button.addEventListener('click', (event) => {
           addWorkoutsToList(workoutList, workoutListWorkouts, day, days, weeklyTaskList, "day");
-          $('#weekParentDiv > button').removeClass('current-day').addClass("day-button");
-          event.target.classList.remove("day-button");
-          event.target.classList.add("current-day");
 
+          $('#weekParentDiv .current-day-clicked').removeClass('current-day-clicked').addClass("current-day");
+          $('#weekParentDiv .day-button-clicked').removeClass('day-button-clicked').addClass("day-button");
+          $('#weekParentDiv .previous-day-clicked').removeClass('previous-day-clicked').addClass("previous-day");
+  
+  
+          //Check what the target class was:
+          if(event.target.classList.contains("current-day")) {
+            event.target.classList.remove("current-day");
+            event.target.classList.add("current-day-clicked");
+          } else if(event.target.classList.contains("day-button")) {
+            event.target.classList.remove("day-button");
+            event.target.classList.add("day-button-clicked");
+          } else if(event.target.classList.contains("previous-day")) {
+            event.target.classList.remove("previous-day");
+            event.target.classList.add("previous-day-clicked");
+          }
+  
           sessionStorage.setItem("currentDay", day);
         });
 
@@ -388,7 +439,7 @@ function main() {
               taskCounter = 0;
 
               currentDiv.style.marginBottom = '10px';
-              currentDiv.style.borderBottom = '1px solid #CBCBCB';
+              //currentDiv.style.borderBottom = '1px solid #CBCBCB';
 
               currentDiv.style.display = "flex";
               currentDiv.style.flexDirection = "column";
@@ -544,7 +595,7 @@ function main() {
 
     }
 
-    var weekButtonOffset = document.querySelector(".current-day");
+    var weekButtonOffset = document.querySelector(".current-day-clicked");
     if(weekButtonOffset) {
       weekButtonOffset = weekButtonOffset.offsetLeft - 25
       //Get current week and scroll to it
