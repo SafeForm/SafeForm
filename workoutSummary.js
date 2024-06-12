@@ -122,6 +122,8 @@ function main() {
   } 
 
   MemberStack.onReady.then(async function(member) {  
+    
+    var metadata = await member.getMetaData();
 
     if(member.memberPage) {
       document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
@@ -989,7 +991,6 @@ function main() {
       supersetText.innerText = "Superset";
       supersetText.classList.add("superset-text")
       
-
       //Add 'superset text to list'
       listOfExercises[exerciseCount].parentNode.insertBefore(supersetText, listOfExercises[exerciseCount]);
       //Add new div to list
@@ -1006,7 +1007,10 @@ function main() {
         
       exercise.forEach((item, index) => {
         newDiv.appendChild(listOfExercises[exerciseCount]);
+
         inputNewDiv.appendChild(inputListExercises[exerciseCount]);
+
+        listOfExercises[exerciseCount].style.marginBottom = 0;
         
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.border = "none";
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.boxShadow = "0 0px 0px 0px rgba(0, 0, 0, 0)";
