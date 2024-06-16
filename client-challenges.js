@@ -39,9 +39,6 @@ function main() {
 
     const weeks = [];
 
-    //Get member metadata
-    metadata = await member.getMetaData();
-
     document.addEventListener('click', function (event) {
 
       if(event.target.id == "dayView") {
@@ -399,6 +396,7 @@ function main() {
     }
 
     function addWorkoutsToList(workoutList, workoutListWorkouts, index, weeks, weeklyTaskList, view="week") {
+
       var workouts = [];
       if(index >= weeks.length) {
         workouts = weeks[weeks.length-1];
@@ -413,7 +411,6 @@ function main() {
           weeklyTaskList.innerHTML = '';
         }
         
-
         var nextDay = null;
         var currentDay = null;
         var isSameDay = true;
@@ -448,10 +445,17 @@ function main() {
               currentDiv.style.padding = "5px";
 
               currentDiv.dataset.date = currentDay.format("YYYY-MM-DD"); // Set dataset to track date
+
               const daytext = document.createElement('div');
               daytext.innerText = `Day ${count}`;
               daytext.style.padding = "5px";
-              daytext.style.color = "#0C08D5";
+
+              if(currentDay.format("YYYY-MM-DD") == moment(new Date).format("YYYY-MM-DD")) {
+                daytext.style.color = "#0c08d5";
+              } else if(currentDay.format("YYYY-MM-DD") < moment(new Date).format("YYYY-MM-DD")) {
+                daytext.style.color = "#000000";
+              }
+
               if(view == "week") {
                 currentDiv.appendChild(daytext);
               }
@@ -478,13 +482,22 @@ function main() {
                 clonedWorkout.onclick = () => {
                   sessionStorage.setItem("currentWorkout", workoutUniqueID);
                 }
+
                 if(metadata[workoutUniqueID]) {
-                  clonedWorkout.style.borderColor = "#08D58B";
+
+                  clonedWorkout.querySelector("#workoutStatus").classList.remove("not-started");
+                  clonedWorkout.querySelector("#workoutStatus").classList.add("finished");
+                  clonedWorkout.querySelector("#workoutStatus").innerText = "Finished";
+
                   if(isWeekly) {
                     completedWeeklyTasks += 1;
                     updateWeeklyTaskText(completedWeeklyTasks, numberOfWeeklyTasks);
                   }
-                }
+                } else if(workoutUniqueID == localStorage.getItem("startedWorkout")) {
+                  clonedWorkout.querySelector("#workoutStatus").classList.remove("not-started");
+                  clonedWorkout.querySelector("#workoutStatus").classList.add("in-progress");
+                  clonedWorkout.querySelector("#workoutStatus").innerText = "In Progress";
+                } 
                 
                 if (isSameDay) {
                   
@@ -661,8 +674,8 @@ function updateWeeklyTaskText(completedWeeklyTasks, numberOfWeeklyTasks) {
   if(numberOfWeeklyTasks == 0) {
     document.querySelector(".div-block-573").style.display = "none";
   } else if(numberOfWeeklyTasks != 0 && completedWeeklyTasks == numberOfWeeklyTasks) {
-    document.querySelector(".weekly-tasks").style.borderColor = "#08D58B";
-    document.querySelector("#weeklyTaskText").style.color = "#08D58B";
+    document.querySelector(".weekly-tasks").style.borderColor = "#6F6E6E";
+    document.querySelector("#weeklyTaskText").style.color = "#6F6E6E";
   } else {
     document.querySelector(".weekly-tasks").style.borderColor = "#cbcbcb";
     document.querySelector("#weeklyTaskText").style.color = "";
@@ -671,16 +684,16 @@ function updateWeeklyTaskText(completedWeeklyTasks, numberOfWeeklyTasks) {
 
 
 function styleCompleteTask(taskElement) {
-  taskElement.style.borderColor = "#08D58B";
+  taskElement.style.borderColor = "#6F6E6E";
   
-  taskElement.querySelector(".text-block-317").style.color = "#08D58B";
+  taskElement.querySelector(".text-block-317").style.color = "black";
   taskElement.querySelector("#completeExercise").style.display = "none";
   taskElement.querySelector("#completedExercise").style.display = "block";
 }
 
 function styleCompletedTask(taskElement) {
   taskElement.style.borderColor = "#cbcbcb";
-  taskElement.querySelector(".text-block-317").style.color = "";
+  taskElement.querySelector(".text-block-317").style.color = "#6f6e6e";
   taskElement.querySelector("#completedExercise").style.display = "none";
   taskElement.querySelector("#completeExercise").style.display = "block";
 }
