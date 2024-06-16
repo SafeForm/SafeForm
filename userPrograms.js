@@ -17,12 +17,6 @@ function main() {
   var workoutList = document.querySelectorAll(".workoutprogramitem");
   var currentDayNumber = "";
 
-  //Show all status
-  var workoutStatus = document.querySelectorAll("#workoutStatus");
-  for(var i = 0; i < workoutStatus.length; i++) {
-    workoutStatus[i].style.display = "block";
-  }
-
   localStorage.setItem("currentTrainingPlan", window.location)
 
   for(var i = 0; i < workoutList.length; i++) {
@@ -508,3 +502,5 @@ function main() {
   }
 
 }
+
+
