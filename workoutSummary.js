@@ -59,19 +59,21 @@ function main() {
   currentWorkoutIndex = "";
   workoutInformation = "";
   var loadUnit = "kg";
+
   var uniqueWorkoutID = sessionStorage.getItem("currentWorkout");
+
   if(uniqueWorkoutID) {
     uniqueWorkoutID = uniqueWorkoutID.split("+");
-    if(uniqueWorkoutID.length > 1) {
+    if(uniqueWorkoutID.length > 0) {
       uniqueWorkoutID = uniqueWorkoutID[0]
     } else {
       uniqueWorkoutID = null;
     }
   }
-  
 
   if((fromChallenge || fromProgram) && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
+
     workoutName = document.querySelector(".workout-summary-header h1").innerText;
     fullWorkoutID = document.getElementById("workoutItemID").innerText; 
     weekWorkouts = currentProgram.filter(item => item.week === weekToFilter);
@@ -128,6 +130,14 @@ function main() {
     if(member.memberPage) {
       document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
     }
+
+    var currentProgram = {
+      [sessionStorage.getItem("programID")]: sessionStorage.getItem("currentWeekNumber"),
+      ["currentProgram"]: sessionStorage.getItem("programID")
+    }
+
+    await member.updateMetaData(currentProgram);
+    
 
     if((fromChallenge || fromProgram) && member.loggedIn && currentProgram) {
 
@@ -530,7 +540,7 @@ function main() {
 
           }
         }
-
+        
         button.addEventListener("click", () => {
 
           //Get both input boxes from that row
@@ -619,8 +629,12 @@ function main() {
       if(member.loggedIn) {
         //Get user metadata
         memberJSON = await member.getMetaData();
-        const workoutID = sessionStorage.getItem("currentWorkout");
+        var workoutID = sessionStorage.getItem("currentWorkout");
 
+        if(workoutID && workoutID.split("+").length > 0) {
+          workoutID = workoutID.split("+")[0];
+        }
+        
         if(fromChallenge) {
 
           var memberProgress = {
@@ -631,9 +645,9 @@ function main() {
 
           //Navigate back to challenge page
           window.location = sessionStorage.getItem("challengePage");
-
+          
         } else {
-
+          
           //Get program JSON and modify it to include the new workout id
           const userProgram = JSON.parse(sessionStorage.getItem("currentProgram"));
           const workoutIndex = sessionStorage.getItem("workoutIndex");
@@ -646,16 +660,26 @@ function main() {
           
           if(userProgram != null) {
             var uniqueWorkoutIDToFind = workoutID.split("+");
-            if(uniqueWorkoutIDToFind && uniqueWorkoutIDToFind.length > 1) {
+            if(uniqueWorkoutIDToFind && uniqueWorkoutIDToFind.length > 0) {
               uniqueWorkoutIDToFind = uniqueWorkoutIDToFind[0];
             }
             var foundObject = {};
             //Find corresponding unique workout ID
+            var numberOfCompletedWorkouts = 0;
             userProgram[0].events.forEach(event => {
               if (event.extendedProps.uniqueWorkoutID === uniqueWorkoutIDToFind) {
                 foundObject = event;
               }
+
+              if(event.extendedProps.completedID) {
+                numberOfCompletedWorkouts += 1;
+              }
+
             });
+
+            if(userProgram[0].events.length == numberOfCompletedWorkouts + 1) {
+              workoutObj["programCompleted"] = true;
+            }
 
             //Set the completed ID
             foundObject["extendedProps"]["completedID"] = workoutID;
@@ -963,6 +987,7 @@ function main() {
 
   //Set current workout link in storage
   localStorage.setItem("currentWorkout", document.URL);
+
   //Set exercises in storage
   localStorage.setItem("workoutExercises", JSON.stringify(workoutExercises));
 
@@ -1139,6 +1164,12 @@ function main() {
     }
 
     return minLoadAmount !== "" ? minLoadAmount : null; // Return the minimum loadAmount found or null if none is valid
+  }
+
+  function numberOfIncompleteWorkouts() {
+    const userProgram = sessionStorage.getItem("currentProgram");
+
+
   }
 
   
