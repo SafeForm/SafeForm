@@ -495,6 +495,8 @@ function main() {
       while(currentWorkout.previousElementSibling.previousElementSibling) {
         currentWorkout = currentWorkout.previousElementSibling.previousElementSibling;
         currentWorkout.previousElementSibling.querySelector(".workout-day").style.color = "#000000";
+        currentWorkout.querySelectorAll("#workoutHeading")[0].style.color = "#000000";
+        currentWorkout.querySelectorAll("#workoutHeading")[1].style.color = "#000000";
       }
 
     }
