@@ -687,7 +687,7 @@ function main() {
             workoutObj["userProgram"] = JSON.stringify(userProgram);
 
           } 
-
+          localStorage.setItem("completedWorkout", workoutID);
           if(workoutObj["programID"]) {
             sendWorkoutDetailsToMake(workoutObj);
           } else {
@@ -703,7 +703,7 @@ function main() {
         }
 
 
-        localStorage.setItem("completedWorkout", workoutID)
+        
 
       } else {
         var baseURL = window.location.origin;
