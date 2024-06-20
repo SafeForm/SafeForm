@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   //Update workout index
   var workoutList = document.querySelectorAll(".workoutprogramitem");
   var currentDayNumber = "";
@@ -350,10 +351,12 @@ function main() {
       lastFinishedWorkout = lastFinishedWorkout.split("+");
       var lastFinishedWorkoutIndex = null;
       var lastCompletedWorkout = null;
+
       if(lastFinishedWorkout.length > 2) {
         lastFinishedWorkoutIndex = lastFinishedWorkout[2];
         lastCompletedWorkout = lastFinishedWorkout[0];
-
+      } else if(lastFinishedWorkout.length == 1) {
+        lastCompletedWorkout = lastFinishedWorkout[0];
       }
     }
 
