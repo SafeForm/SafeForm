@@ -12,11 +12,18 @@ if (document.readyState !== 'loading') {
   });
 }
 
-async function main() {
+async function mainFunc() {
+
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
     swapThreshold: 0.2, // Adjust this value as needed
+  });
+
+  var workoutSortable = new Sortable(document.getElementById("workoutList"), {
+    animation: 150,
+    swapThreshold: 0.5, // Adjust this value as needed
+    handle: '.drag-item' // Specify the handle element
   });
 
   if (typeof moment === 'function') {
@@ -199,6 +206,7 @@ async function main() {
   }
 
   function styleNavButtons(destinationButton) {
+    
     //Reset background colour of all buttons:
     var navButtons = document.querySelectorAll(".navbutton");
     var middleNavButtons = document.querySelectorAll(".middlenavbutton");
@@ -232,8 +240,8 @@ async function main() {
       destinationDiv.querySelector(".users").style.display = "none";
       destinationDiv.querySelector(".users-clicked").style.display = "block";
     } else if(destinationButton == "challengesPage" ) {
-      destinationDiv.querySelector(".challenges").style.display = "none";
-      destinationDiv.querySelector(".challenges-clicked").style.display = "block";
+      // destinationDiv.querySelector(".challenges").style.display = "none";
+      // destinationDiv.querySelector(".challenges-clicked").style.display = "block";
     }else {
       destinationDiv.querySelector(".navicon").style.display = "none";
       destinationDiv.querySelector(".naviconclicked").style.display = "block";
@@ -706,33 +714,6 @@ async function main() {
 
   }
 
-  function setUpCMSLoad() {
-    window.fsAttributes = window.fsAttributes || [];
-    window.fsAttributes.push([
-      'cmsload',
-      (listInstances) => { 
-        //Iterate through each list
-        for(var i = 0; i < listInstances.length; i++) {
-          if(listInstances[i].list.id == "workoutSummaryList") {
-            listInstances[i].on('renderitems', async (renderedItems) => {
-              //addWorkoutDetails();
-              //addMoreThanFiveWorkouts();
-            });
-          } else if (listInstances[i].list.id == "clientList") {
-
-            listInstances[i].on('renderitems', async (renderedItems) => {
-              loadAndUpdateAllSummaries();
-              //Calculate the days until the clients program ends or weight inputs aren't complete
-              calculateProgramUrgencyDays();
-              addStatusToUsers();
-            });
-
-          }
-        }
-      },
-    ]);
-  }
-
   async function addWorkoutDetails() {
 
     // Select all elements with class 'userSummary'
@@ -1014,6 +995,43 @@ async function main() {
 
 
     }
+  }
+
+  function prefillTaskModal(taskItem) {
+
+    //Task Name
+    document.getElementById("taskInputName").value = taskItem.querySelector("#taskListName").innerText;
+
+    //Task Content Link
+    document.getElementById("taskContentLink").value = taskItem.querySelector("#taskListContentLink").innerText;
+
+    //Task Content file name
+
+    if(taskItem.querySelector("#taskListFilename").innerText != "") {
+      document.getElementById("contentContainer").innerText = `File: ${taskItem.querySelector("#taskListFilename").innerText}`
+      document.getElementById("taskContentUploaded").style.display = "none";
+    }
+
+    // Select the image element
+    const imgElement = taskItem.querySelector("#taskListContentImage img");
+    // Check if the src attribute is not empty or contains only whitespace
+    if (imgElement.getAttribute('src').trim() !== "") {
+      document.getElementById("uploadImage2").src = imgElement.src;
+      document.getElementById("taskProductFile").style.display = "none";
+    }
+
+    //Affiliate code / description
+    document.getElementById("taskDescription").value = taskItem.querySelector("#taskListDescription").innerText;
+
+    //Task id
+    document.getElementById("taskID").value = taskItem.querySelector("#taskListItemID").innerText;
+
+    document.getElementById("submitTask").innerText = "Update";
+
+    sessionStorage.setItem("editTask", "true");
+
+    taskItem.classList.add("editedTask");
+
   }
 
     function prefillExerciseLibraryForm(exerciseItem) {
@@ -1485,7 +1503,7 @@ async function main() {
           nextSibling.querySelector("#removeFullExercise").style.display = "none";
 
           // Create a new div with styling
-          const newDiv = document.createElement('div');
+          const newDiv = document.createElement('li');
           newDiv.classList.add('exercise-list-item-superset');
           newDiv.style.borderRadius = '8px';
           newDiv.style.width = '90%';
@@ -3165,8 +3183,6 @@ async function main() {
                     event.start.setDate(event.start.getDate() + ((difference * 7)));
   
                   }
-
-                  console.log(weekCounter * 7)
   
                   event.start.setDate(event.start.getDate() + ((weekCounter * 7)));
   
@@ -3195,8 +3211,6 @@ async function main() {
                     //Update unique workout ID
                     event.extendedProps.uniqueWorkoutID = uuidv4();
                   }
-
-                  console.log(event)
 
                   if(!duplicateEventExists && !addProgram) {
                     // Add event to calendar
@@ -3322,6 +3336,20 @@ async function main() {
           createExerciseModal.style.justifyContent = "center";
           createExerciseModal.style.alignItems = "center";
         }
+      }
+
+      if(event.target.closest("#taskSummary")) {
+        //Prefill Modal
+        prefillTaskModal(event.target.closest("#taskSummary"));
+
+        //Show Modal
+        var createTaskModal = document.getElementById("createTaskModal");
+        //Set flex styling:
+        createTaskModal.style.display = "flex";
+        createTaskModal.style.flexDirection = "column";
+        createTaskModal.style.justifyContent = "center";
+        createTaskModal.style.alignItems = "center";
+
       }
 
       if(event.target.closest("#individualGuide")) {
@@ -3575,79 +3603,6 @@ async function main() {
         taskList.insertBefore(taskItem, firstChild);
 
       }
-
-      //Create task button in the list
-      if(event.target.closest(".taskwrapperlist #createTaskItem")) {
-        //Check task has a name
-
-        var taskList = document.querySelector(".taskwrapperlist");
-        const newTask = taskList.querySelector("#addTaskTemplate");
-
-        if(newTask.querySelector(".tasknameinput").value != "") {
-
-          createTaskObject(newTask);
-
-          //Style to match others
-          newTask.classList.add("taskitem", "task-select-grid");
-          newTask.querySelector(".tasknameinputparent").classList.add("div-block-465");
-          newTask.querySelector("#taskEmptyName").className = '';
-          //newTask.querySelector("#taskEmptyCreatedDate").className = '';
-          newTask.querySelector("#taskEmptyName").classList.add("modal-list-header");
-          newTask.querySelector("#taskEmptyCreatedDate").classList.add("modal-list-header-copy");
-          
-          newTask.id = "addTaskTemplate";
-          // Hide text box and show #taskEmptyName
-          newTask.querySelector('#taskEmptyName').innerText = newTask.querySelector('#newTask').value;
-          newTask.querySelector('#newTask').style.display = 'none';
-          newTask.querySelector('#taskEmptyName').style.display = 'block';
-          newTask.querySelector('#taskEmptyName').classList.add("modal-list-header");
-
-          newTask.querySelector('label').style.display = 'none';
-
-          // Hide #createTaskItem button with text of current date in format of DD/MM/YYYY
-          var currentDate = new Date();
-          var formattedDate = currentDate.getDate() + '/' + (currentDate.getMonth() + 1) + '/' + currentDate.getFullYear();
-          newTask.querySelector('#createTaskItem').style.display = 'none';
-          newTask.querySelector('#taskEmptyCreatedDate').style.display = 'block';
-          newTask.querySelector('#taskEmptyCreatedDate').innerText = formattedDate;
-
-          desiredDate = new Date(selectedDate);
-
-          //Show create button again and hide cancel
-          document.getElementById("cancelTask").style.display = "none";
-          document.getElementById("createTask").style.display = "flex";
-
-          newTask.querySelector('#taskEmptyName').id = "taskName";
-          newTask.querySelector('#taskEmptyItemID').id = "taskItemID";
-          
-          newTask.onclick = (event) => {
-            if(event.target.querySelector("#taskItemID").innerText == "Task Item ID") {
-              alert("Please wait until file upload is complete");
-            } else {
-              prefillWorkoutTaskList(event.target, "task");
-            }
-            
-          }
-
-        } else {
-          alert("Please fill in a name for the task");
-        }
-
-      }
-
-      if (event.target.closest("#cancelTask")) {
-        document.getElementById("cancelTask").style.display = "none";
-        document.getElementById("createTask").style.display = "flex";
-      
-        const taskList = document.querySelector(".taskwrapperlist");
-        
-        // Remove the first child element from taskList
-        const taskInput = taskList.querySelector("#addTaskTemplate")
-        if (taskInput) {
-          taskInput.remove();
-        }
-      }
-
 
       if(event.target.id == "machine-parent") {
         document.getElementById("pin-checkbox").click();
@@ -3938,48 +3893,7 @@ async function main() {
         }
         
 
-      } else if(event.target.closest("#createUser")) {
-
-        /*
-        //Get button
-        const createUserGymName = document.getElementById("gymFullName").innerText;
-        const createUserGymID = document.getElementById("gymID").innerText;
-
-        var staffInfo = event.target.closest("#staffDiv");
-
-        if(staffInfo == null) {
-
-        } else {
-          //Get staff email
-          const staffEmail = staffInfo.querySelector("#staffEmail").innerText;
-        }
-
-        var link = ``;
-        //Create QR Code
-        if(createUserGymName.toLowerCase() == "uts - activatefit gym" || createUserGymName.toLowerCase() == "sam druce - fitness") {
-          //link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}&payment=false`;
-          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&payment=false`;
-        } else {
-          //link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}&staff_email=${staffEmail}`;
-          link = `https://app.bene-fit.io/user-sign-up?utm_campaign=${createUserGymName}&gym_id=${createUserGymID}`;
-        }
-        
-        generateQRCode(link);
-
-        //Hide staff select modal
-        document.getElementById("staffSelectModal").style.display = "none";
-        document.getElementById("selectStaffMember").style.display = "none";
-        document.getElementById("addStaffMember").style.display = "none";
-
-        //Show sign up instructions
-        var createUserModal = document.getElementById("createUserModal");
-        createUserModal.style.display = "flex";
-        createUserModal.style.flexDirection = "column";
-        createUserModal.style.alignItems = "center";
-        */
-
-      
-      } else if(event.target.id == "ipadBackButton") {
+      }  else if(event.target.id == "ipadBackButton") {
         //Reset filters on workout summary page
         //workoutSummaryPage.style.display = "block";
         //workoutBuilderPage.style.display = "none";
@@ -4295,6 +4209,29 @@ async function main() {
         }
  
 
+      } else if(event.target.closest("#createTaskButton")) {
+
+        //Show Modal
+        var createTaskModal = document.getElementById("createTaskModal");
+        //Set flex styling:
+        createTaskModal.style.display = "flex";
+        createTaskModal.style.flexDirection = "column";
+        createTaskModal.style.justifyContent = "center";
+        createTaskModal.style.alignItems = "center";
+
+        sessionStorage.setItem("editTask", "false");
+        sessionStorage.setItem("createTask", "true");
+      
+      } else if(event.target.closest("#submitTask")) {
+
+        const taskForm = document.getElementById("taskForm");
+        if(taskForm.checkValidity()) {
+          submitTaskForm();
+        } else {
+          document.getElementById("taskInputName").reportValidity();
+        }
+        
+      
       } else if(event.target.closest("#createExercise") || event.target.closest("#emptyCreateExercise") || event.target.closest("#addCustomExerciseWorkout")) {
 
         //Show Modal
@@ -4339,11 +4276,13 @@ async function main() {
           submitExerciseUploadForm();
         } else {
           document.getElementById("uploadExerciseName").reportValidity();
-          //document.getElementById("uploadPrimaryMuscle").reportValidity();
         }
 
 
 
+      } else if(event.target.id == "closeTaskModal") {
+        hideAndClearTaskModal();
+      
       } else if(event.target.id == "closeCreateExerciseModal") {
         updatedMedia = false;
         hideAndClearExerciseUploadModal();
@@ -4945,6 +4884,10 @@ async function main() {
     }, false);
 
     document.addEventListener("mouseover",function (event) {
+
+      if(event.target.closest("#workoutsPage") || event.target.closest("#navPanel")) {
+        //document.getElementById("navPanel").style.display = "flex";
+      }
       
       if(event.target.id == "experienceTag" || event.target.id == "experience") {
         document.getElementById("toolTipText").style.display = "block";
@@ -5011,6 +4954,10 @@ async function main() {
     }, false);
 
     document.addEventListener("mouseout",function (event) {
+
+      if(event.target.closest(".navbar")) {
+        //document.getElementById("navPanel").style.display = "none";
+      }
 
       if(event.target.id == "experienceTag" || event.target.id == "experience") {
         document.getElementById("toolTipText").style.display = "none";
@@ -5157,6 +5104,47 @@ async function main() {
           listItems[i].click();
           break;
         }
+      }
+
+    }
+
+    function submitTaskForm() {
+
+      const taskName = document.getElementById("taskInputName").value;
+      const taskContentLink = document.getElementById("taskContentLink").value;
+      const taskDescription = document.getElementById("taskDescription").value;
+
+      const formData = new FormData();
+      formData.append('name', taskName);
+      formData.append('taskContentLink', taskContentLink);
+      formData.append('taskDescription', taskDescription);
+      formData.append('gymID', document.getElementById("gymID").innerText);
+      formData.append('taskID', document.getElementById("taskID").value);
+
+      //Task content
+      var taskContent = document.getElementById("contentInput");
+    
+      if (taskContent.files && taskContent.files.length > 0) {
+        var file = taskContent.files[0]; // Get the first file
+        formData.append('taskFile', file);
+      }
+
+      //Task product image
+      var taskImage = document.getElementById("affiliateInput");
+    
+      if (taskImage.files && taskImage.files.length > 0) {
+        var file = taskImage.files[0]; // Get the first file
+        formData.append('taskImage', file);
+      }
+
+      if(sessionStorage.getItem("editTask") == "true") {
+
+        submitTaskToMake("https://hook.us1.make.com/ojgq4bok6717v1x8rh6fobyn5n0bjzon", "update", null, formData);
+        updateSelectedTask();
+        hideAndClearTaskModal();
+      } else {
+        var newTask = addNewTaskToList(formData);
+        submitTaskToMake("https://hook.us1.make.com/9rqng7uxekaivq5oczbo32fswndx6ey8", "create", newTask, formData);
       }
 
     }
@@ -5461,6 +5449,87 @@ async function main() {
           return { source: 'unknown', id: null };
       }
     }
+
+    
+
+    function updateSelectedTask() {
+      var taskItem = document.querySelector(".editedTask");
+      if (!taskItem) return; // Exit if no task is selected
+    
+      // Update task name
+      taskItem.querySelector("#taskListName").innerText = document.getElementById("taskInputName").value;
+    
+      // Update task content link
+      taskItem.querySelector("#taskListContentLink").innerText = document.getElementById("taskContentLink").value;
+    
+      // Update task content file name
+      const contentContainerText = document.getElementById("contentContainer").innerText;
+      const fileNamePrefix = "File: ";
+      if (contentContainerText.startsWith(fileNamePrefix)) {
+        taskItem.querySelector("#taskListFilename").innerText = contentContainerText.substring(fileNamePrefix.length);
+      } else {
+        taskItem.querySelector("#taskListFilename").innerText = "";
+      }
+    
+      // Update the image src attribute if it is not empty or contains only whitespace
+      const newImgSrc = document.getElementById("uploadImage2").src;
+      if (newImgSrc.trim() !== "") {
+        taskItem.querySelector("#taskListContentImage img").src = newImgSrc;
+      }
+    
+      // Update affiliate code / description
+      taskItem.querySelector("#taskListDescription").innerText = document.getElementById("taskDescription").value;
+    
+      // Update task id
+      taskItem.querySelector("#taskListItemID").innerText = document.getElementById("taskID").value;
+    
+      // Remove the editedTask class
+      taskItem.classList.remove("editedTask");
+    
+      // Reset the submit button text
+      document.getElementById("submitTask").innerText = "Create";
+    
+      // Reset the edit task flag
+      sessionStorage.setItem("editTask", "false");
+    }
+
+    function hideAndClearTaskModal() {
+
+      //Task Name
+      document.getElementById("taskInputName").value = "";
+
+      //Task Content Link
+      document.getElementById("taskContentLink").value = "";
+
+      //Task Content file name
+      document.getElementById("contentContainer").innerText = "";
+
+      //Product thumbnail file name
+      document.getElementById("uploadImage2").src = "https://assets-global.website-files.com/627e2ab6087a8112f74f4ec5/65504c5a73ed7d0d9ae8c2c6_Upload.webp";
+
+      //Affiliate code / description
+      document.getElementById("taskDescription").value = "";
+
+      //Task id
+      document.getElementById("taskID").value = "";
+
+      //Clear file inputs
+      document.getElementById("affiliateInput").value = "";
+
+      document.getElementById("contentInput").value = "";
+
+      //Hide Modal
+      var createTaskModal = document.getElementById("createTaskModal");
+      //Set flex styling:
+      createTaskModal.style.display = "none";
+
+      document.getElementById("taskContentUploaded").style.display = "block";
+      document.getElementById("taskProductFile").style.display = "block";
+      sessionStorage.setItem("createTask", "false");
+      sessionStorage.setItem("editTask", "false");
+
+    }
+    
 
     function hideAndClearExerciseUploadModal() {
 
@@ -6031,24 +6100,8 @@ async function main() {
 
     }
 
-    async function createTaskObject(task) {
-
-      const formData = new FormData();
-      formData.append('name', task.querySelector("#newTask").value);
-    
-      var taskAttachment = task.querySelectorAll("input")[1];
-    
-      if (taskAttachment.files && taskAttachment.files.length > 0) {
-        var file = taskAttachment.files[0]; // Get the first file
-        formData.append('taskFile', file);
-      }
-
-      formData.append('gymID', document.getElementById("gymID").innerText);
-      submitTaskToMake(task, formData);
-    }
-
-    async function submitTaskToMake(taskElement, task) {
-      fetch("https://hook.us1.make.com/9rqng7uxekaivq5oczbo32fswndx6ey8", {
+    async function submitTaskToMake(url, method="create", taskElement, task) {
+      fetch(url, {
         method: "POST",
         body: task
       }).then((res) => {
@@ -6060,7 +6113,10 @@ async function main() {
       .then((data) => {
 
         //Set itemID text
-        taskElement.querySelector("#taskItemID").innerText = data;
+        if(method == "create") {
+          taskElement.querySelector("#taskListItemID").innerText = data;
+          sessionStorage.setItem("createTask", "false");
+        } 
 
       })
       .catch((error) => {
@@ -6071,6 +6127,45 @@ async function main() {
 
         //Reset cancel button
       });
+
+    }
+
+    function addNewTaskToList(formData) {
+      // Find the first .exerciseguideitem element to clone
+      const templateItem = document.querySelector('.tasklistitem');
+  
+      if (!templateItem) {
+          console.error('Template item not found');
+          return;
+      }
+  
+      // Clone the template item
+      const newTaskItem = templateItem.cloneNode(true);
+  
+      // Fill in the gaps with the data from formData
+      newTaskItem.querySelector('#taskListName').innerText = formData.get('name');
+      newTaskItem.querySelector('#taskListContentLink').innerText = formData.get('taskContentLink');
+      newTaskItem.querySelector('#taskListDescription').innerText = formData.get('taskDescription');
+  
+      const taskFile = formData.get('taskFile');
+      const taskImage = formData.get('taskImage');
+  
+      if (taskFile) {
+          newTaskItem.querySelector('#taskListFilename').innerText = taskFile.name;
+      }
+  
+      if (taskImage) {
+          newTaskItem.querySelector('#taskListContentImage').innerHTML = taskImage.name;
+      }
+
+      newTaskItem.querySelector('#taskListCreated').innerText = moment().format('MMMM D, YYYY');
+  
+      // Add the new task item to the start of the exerciseLibraryList
+      const exerciseLibraryList = document.getElementById('taskList');
+      exerciseLibraryList.insertBefore(newTaskItem, exerciseLibraryList.firstChild);
+
+      return newTaskItem;
+
 
     }
 
@@ -8659,7 +8754,7 @@ async function main() {
         document.getElementById("programPage").style.display = "none";
         document.getElementById("challengesBody").style.display = "none";
         document.getElementById("challengeBuilderInfo").style.display = "none";
-
+        
         //Re-show add week button
         document.querySelector("#addWeekButton").style.display = "flex";
 
