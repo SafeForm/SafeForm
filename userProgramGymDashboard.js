@@ -12,7 +12,7 @@ if (document.readyState !== 'loading') {
   });
 }
 
-async function mainFunc() {
+async function main() {
 
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
