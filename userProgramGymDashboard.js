@@ -1212,7 +1212,7 @@ async function main() {
           //Formatting of items
           workoutItem.querySelector("#navigationButtons").remove();
           workoutItem.querySelector("#guidePlaceHolder").width = "100%";
-          workoutItem.querySelector(".div-block-183").style.display = "block";
+          workoutItem.querySelector(".exercisegroup").style.display = "block";
 
           workoutItem.querySelector("#removeExercise").style.display = "none";
           workoutItem.querySelector(".repsinput").innerText = exerciseInformation.exerciseReps;
@@ -1445,6 +1445,7 @@ async function main() {
       } else if(index > 1) {
         //For all others get last element in superset list and click superset image
         var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling.querySelector(".exercise-list-item-superset").lastChild;
+        console.log(previousExercise)
         previousExercise.querySelector(".supersetparent img").click();
       }
 
@@ -1477,7 +1478,6 @@ async function main() {
         for(var i = 0; i < removeButtons.length; i++) {
           removeButtons[i].style.display = "none";
         }
-
 
       }
       
@@ -1555,7 +1555,9 @@ async function main() {
           wrapper.style.borderRadius = '8px';
 
           // Append the drag item to the wrapper
-          wrapper.appendChild(dragItem);
+          if(event.target.closest("#workoutList")) {
+            wrapper.appendChild(dragItem);
+          }
 
           // Append the new div to the wrapper
           wrapper.appendChild(newDiv);
@@ -1572,8 +1574,10 @@ async function main() {
           // Remove existing border styling from #guideCopy
           newDiv.querySelectorAll('.exercisegroup').forEach(guideCopy => {
             guideCopy.style.border = 'none';
-            var exerciseItem = guideCopy.closest(".exercise-list-item")
-            exerciseItem.querySelector("#navigationButtons").style.display = "none";
+            var exerciseItem = guideCopy.closest(".exercise-list-item");
+            if(exerciseItem.querySelector("#navigationButtons")) {
+              exerciseItem.querySelector("#navigationButtons").style.display = "none";
+            }
             exerciseItem.style.width = "100%";
           });
 
@@ -1581,7 +1585,6 @@ async function main() {
           //Now check if next element is in a superset
           supersetParent.querySelector(".exercisegroup").style.border = 'none';
           supersetParent.querySelector("#navigationButtons").style.display = 'none';
-
           nextSibling.querySelector(".exercise-list-item-superset").insertBefore(supersetParent, nextSibling.querySelector(".exercise-list-item-superset").firstChild);
 
         } else if(previousSibling && supersetParent) {
@@ -1590,20 +1593,19 @@ async function main() {
             
             nextSibling = supersetParent.closest(".exercise-list-item-superset");
             if(nextSibling && nextSibling.parentElement && nextSibling.querySelector(".supersetWrapper")) {
-              console.log("Problem here")
             } else {
-              console.log("through here")
               //Now check if current element is in a superset
               supersetParent = previousSibling.parentElement.nextElementSibling;
-  
+              supersetParent.style.width = "100%";
               supersetParent.querySelector(".exercisegroup").style.border = 'none';
-              supersetParent.querySelector("#navigationButtons").style.display = 'none';
+              if(supersetParent.querySelector("#navigationButtons")) {
+                supersetParent.querySelector("#navigationButtons").style.display = 'none';
+              }
+
               previousSibling.appendChild(supersetParent);
             }
           }
 
-        } else {
-          
         }
 
         //Remove supersetimageopen class
@@ -1621,7 +1623,6 @@ async function main() {
         const workoutList = document.getElementById('workoutList'); // Assuming 'workoutList' is the ID of your list
 
         supersetItem.style.width = "";
-
         //Change superset image back  
         supersetImage.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc7674f21dd849120ea_open_superset.webp";
       
@@ -1657,6 +1658,7 @@ async function main() {
             supersetItem = supersetItem.nextElementSibling;
             supersetItem.querySelector(".exercisegroup").style.border = '';
             insertAfter(supersetItem, supersetParent);
+            supersetItem.style.width = "";
             
           }
 
@@ -2639,7 +2641,7 @@ async function main() {
         
       }
 
-      if(event.target.closest(".exercise-details-parent")) {
+      if(event.target.closest(".exercise-details-parent") && event.target.closest("#workoutList")) {
 
         event.target.closest(".exercise-details-parent").querySelector(".remove-set").style.display = "block";
       }
@@ -2680,7 +2682,8 @@ async function main() {
     document.addEventListener('mouseout', function (event) {
 
 
-      if(event.target.closest(".exercise-details-parent")) {
+      if(event.target.closest(".exercise-details-parent") && event.target.closest("#workoutList")) {
+        // Append the drag item to the wrapper
         event.target.closest(".exercise-details-parent").querySelector("#removeExercise").style.display = "none";
       }
 
