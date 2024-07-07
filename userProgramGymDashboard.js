@@ -1157,7 +1157,6 @@ async function main() {
       } else {
         workoutList = document.getElementById("programWorkoutList");
       }
-
       if(jsonExercises != null && exerciseList != null) {
         for(var i = 0; i < exerciseList.length; i++) {
           createWorkoutExerciseElement(exerciseList[i][0], workoutList, exerciseInformation[i], prefill, exerciseList[i][1], exerciseList[i][2], programWorkout, i, jsonExercises[i]); 
@@ -1290,8 +1289,6 @@ async function main() {
             exerciseInfoDiv.querySelector("#repsInput").style.display = "none";
             exerciseInfoDiv.querySelector("#repsInput").required = false;
           }
-
-          
 
           //Add to exercise divs
           const workoutItemExercise = workoutItem;
@@ -1447,7 +1444,7 @@ async function main() {
         previousExercise.querySelector(".supersetparent img").click();
       } else if(index > 1) {
         //For all others get last element in superset list and click superset image
-        var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling.lastChild;
+        var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling.querySelector(".exercise-list-item-superset").lastChild;
         previousExercise.querySelector(".supersetparent img").click();
       }
 
@@ -2976,10 +2973,11 @@ async function main() {
   
           var exerciseList = [];
           //Check if list element is superset
-          if(workoutList[i].classList.contains("exercise-list-item-superset")) {
+          if(workoutList[i].classList.contains("supersetWrapper")) {
+
             var supersetExerciseList = [];
             const supersetExercises = workoutList[i].querySelectorAll(".exercise-list-item");
-  
+
             //If it is, iterate through each item in the superset
             for(var k = 0; k < supersetExercises.length; k++) {
               
@@ -8489,7 +8487,7 @@ async function main() {
       if(!programWorkout) {
         //Get all necessary values from row selected
         var workout = getWorkoutExerciseInformation(workoutSummary);
-    
+
         //Hide summary screen and show builder
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
@@ -8522,7 +8520,7 @@ async function main() {
           const guideID = exercise.guideID;
           const matchingExercise = workout.exercises.find(item => item.exerciseGuideID === guideID);
           if (matchingExercise) {
-              reorderedExercises.push(matchingExercise);
+            reorderedExercises.push(matchingExercise);
           } else {
             console.log("Couldnt find: ", guideID)
           }
