@@ -213,7 +213,6 @@ function main() {
       // Add event listeners to the buttons
       buttons.forEach((button, index) => {
 
-
         thisWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
 
         if(index+1 == thisWeek) {
@@ -230,7 +229,6 @@ function main() {
           $('#weekParentDiv .current-week-clicked').removeClass('current-week-clicked').addClass("current-week");
           $('#weekParentDiv .week-button-clicked').removeClass('week-button-clicked').addClass("week-button");
           $('#weekParentDiv .previous-week-clicked').removeClass('previous-week-clicked').addClass("previous-week");
-
 
           //Check what the target class was:
           if(event.target.classList.contains("current-week")) {
@@ -327,7 +325,7 @@ function main() {
 
       var currentDate = moment().format('YYYY-MM-DD');
       if(document.getElementById(currentDate)) {
-        document.getElementById(currentDate).click()
+        //document.getElementById(currentDate).click()
         sessionStorage.setItem("currentDay", currentDate);
       } else {
         //Iterate backwards and find button
@@ -483,7 +481,7 @@ function main() {
                   sessionStorage.setItem("currentWorkout", workoutUniqueID);
                 }
 
-                if(metadata[workoutUniqueID]) {
+                if(metadata[workoutUniqueID] == "true" || metadata[workoutUniqueID] == true || (metadata[workoutUniqueID] && metadata[workoutUniqueID]["challenge"]) ) {
 
                   clonedWorkout.querySelector("#workoutStatus").classList.remove("not-started");
                   clonedWorkout.querySelector("#workoutStatus").classList.add("finished");
