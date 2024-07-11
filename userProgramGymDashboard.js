@@ -654,7 +654,7 @@ async function main() {
 
         // Copy thumbnail and svg person into a separate div
         var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-        var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+        //var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
 
         // Change ID of exercise name
         copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
@@ -662,9 +662,9 @@ async function main() {
         copyOfGuide.querySelector("#itemID").innerText = formData.get('guideID');
 
         // Ensure copy border colour is BF blue
-        copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+        copyOfGuide.style.borderColor = "#cbcbcb";
 
-        addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+        addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, null);
 
         createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideListItem);
       }
@@ -1312,26 +1312,11 @@ async function main() {
         workoutItem.querySelector("#exerciseNotes").value = jsonExercises.exerciseNotes;
         
       }
-  
-      //Make svg person smaller
-      svgPerson[0].firstChild.style.width = "80px";
-      svgPerson[0].firstChild.style.height = "80px";
-      svgPerson[0].firstChild.querySelector("#exerciseMuscleImage").style.width = "80px";
-      svgPerson[0].firstChild.querySelector("#exerciseMuscleImage").style.height = "80px";
-      svgPerson[0].style.width = "80px";
-      svgPerson[0].style.height = "80px";
-      thumbnail[0].firstChild.style.width = "80px";
-      thumbnail[0].firstChild.style.height = "80px";
-      thumbnail[0].style.width = "80px";
-      thumbnail[0].style.height = "80px";
-    
-      //Add thumbnail and svg person to hover div
-      $(workoutItem).find("#thumbnailAndMuscleDiv").append(thumbnail);
-      $(workoutItem).find("#thumbnailAndMuscleDiv").append(svgPerson);
       
       workoutItem.style.display = "block";
       
       //Reduce headers font size:
+      workoutItem.querySelector("#exerciseInfoRight").style.height = "35px";
       workoutItem.querySelector("#workoutExercisename").style.fontSize = "16px";
       workoutItem.querySelector("#exerciseDifficultyParent").style.display = "none";
       if(globalWeightUnit == "lbs") {
@@ -1689,7 +1674,7 @@ async function main() {
         guideToWorkoutObj[workoutExerciseID] = [];
         guideToWorkoutObj[workoutExerciseID].push(guideExercise);
       }
-      guideExercise.style.borderColor = "rgb(8, 213, 139)";
+      guideExercise.style.borderColor = "#6D6D6F";
     }
 
   window.addEventListener('load', (event) => {
@@ -2531,7 +2516,6 @@ async function main() {
               title: eventElement.querySelector('#workoutSummaryNameProgram').innerText,
               details: eventElement.querySelector('#workoutDurationProgram').innerText,
               extendedProps: {
-                targetArea: eventElement.querySelector('#workoutFocusAreaProgram').innerText,
                 length: eventElement.querySelector('#workoutDurationProgram').innerText,
                 workoutID: eventElement.querySelector('#itemID').innerText,
                 uniqueWorkoutID: uuidv4()
@@ -2956,9 +2940,21 @@ async function main() {
 
         //Obtain form data
         workout["name"] = document.getElementById("workoutName").value;
-        workout["length"] = document.getElementById("estTime").value;
+        
+        var hours = parseInt(document.getElementById("workoutLengthHour").value) || 0;
+        var minutes = parseInt(document.getElementById("workoutLengthMin").value) || 0;
+
+        if (hours > 0 && minutes > 0) {
+            workout["length"] = hours + " hour" + (hours > 1 ? "s" : "") + " " + minutes + " mins";
+        } else if (hours > 0) {
+            workout["length"] = hours + " hour" + (hours > 1 ? "s" : "");
+        } else if (minutes > 0) {
+            workout["length"] = minutes + " mins";
+        } else {
+            workout["length"] = "0 mins";
+        }
+
         workout["description"] = document.getElementById("workoutDescription").value;
-        workout["focusArea"] = document.getElementById("focusArea").value;
         workout["gymName"] = document.getElementById("gymFullName").innerText;
         workout["gymID"] = document.getElementById("gymID").innerText;
         workout["workoutID"] = document.getElementById("workoutSummaryID").innerText;
@@ -3065,20 +3061,16 @@ async function main() {
         workout.muscleGroups = workout.muscleGroups.join(", ");
   
         //Make sure they have selected a duration and focus area
-        if(!workout["length"].includes("Duration") && !workout["focusArea"].includes("Focus Area")) {
+        if(!workout["length"].includes("Duration")) {
           document.getElementById("saveWorkout").value = "Please wait...";
           sendWorkoutToMake(workout);      
-        } else {
+        } /*else {
           if(workout["length"] == "Duration") {
             document.getElementById("estTimeDiv").style.borderRadius = "8px";
             document.getElementById("estTimeDiv").style.border = "1px solid red";
             document.getElementById("durationRequired").style.display = "block";
-          } else if(workout["focusArea"] == "Focus Area") {
-            document.getElementById("focusArea").style.borderRadius = "8px";
-            document.getElementById("focusArea").style.border = "1px solid red";
-            document.getElementById("focusAreaRequired").style.display = "block";
           }
-        }
+        }*/
       }
           
     }
@@ -3404,15 +3396,14 @@ async function main() {
     
           //Copy thumbnail and svg person into a separate div
           var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-          var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
 
           //Change ID of exercise name
           copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
     
           //Ensure copy border colour is SF blue
-          copyOfGuide.style.borderColor = "rgb(12, 8, 213)";
+          copyOfGuide.style.borderColor = "rgb(109, 109, 111)";
 
-          addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, svgPersonDiv);
+          addExerciseToWorkoutList(copyOfGuide, null, null, null, null);
 
           createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, event.target.closest("#individualGuide"));
 
@@ -3547,7 +3538,6 @@ async function main() {
               document.getElementById("selectedWorkoutName").innerText = selectedWorkout.workoutName;
               document.getElementById("selectedWorkoutDescription").innerText = selectedWorkout.workoutSummaryDescription;
               document.getElementById("selectedWorkoutDuration").innerText = selectedWorkout.workoutDuration;
-              document.getElementById("selectedWorkoutFocusArea").innerText = selectedWorkout.workoutFocusArea;
 
               //Now populate exercises
               prefillWorkoutBuilder(selectedWorkout, true)
@@ -3571,9 +3561,7 @@ async function main() {
           // Create a new event object with the desired date
           newEvent = {
             title: selectedWorkout.workoutName,
-            details: selectedWorkout.workoutFocusArea,
             extendedProps: {
-              targetArea: selectedWorkout.workoutFocusArea,
               length: selectedWorkout.workoutDuration,
               workoutID: selectedWorkout.workoutSummaryID,
               uniqueWorkoutID: uuidv4()
@@ -4045,7 +4033,7 @@ async function main() {
         }
   
   
-      } else if(event.target.id == "clearText" || event.target.id == "clearTextDiv" || event.target.id == "clearTextImage" || event.target.id == "clearTextBlock") {
+      } else if(event.target.closest("#clearText")) {
         svgPerson.style.display = 'block';
         guideList.style.display = 'none';
         clickExerciseText.style.display = 'none';
@@ -4216,7 +4204,7 @@ async function main() {
         //Check if the guide exercise is still in the list, if not then turn border back to SF blue
         var result = checkIfLastExerciseInList(workoutExerciseItemId);
         if(result) {
-          result.style.borderColor = "rgb(12, 8, 213)"
+          result.style.borderColor = "#cbcbcb"
         }
       
       } else if(event.target.id == "moveUp" || event.target.id == "moveUpLink") {
@@ -4466,14 +4454,6 @@ async function main() {
 
       } else if(event.target.classList.contains("dropdownitem")) {
         
-      } else if(event.target.classList.contains("dropdownitem")) {
-        if(event.target.parentElement.id == "focusAreaDropdown") {
-          document.getElementById("focusArea").innerText = event.target.innerText;
-          document.getElementById("focusAreaDropdown").style.display = "none";
-        } else if(event.target.parentElement.id == "durationDropdown") {
-          document.getElementById("estTime").innerText = event.target.innerText;
-          document.getElementById("durationDropdown").style.display = "none";
-        }
       } else if(event.target.id == "deleteProgram") {
         //Get row of clicked element:
         var currentProgramRow = event.target.closest(".programsummary");
@@ -4745,15 +4725,7 @@ async function main() {
         }
       }
 
-      if(event.target.id == "estTime") {
-        document.getElementById("estTimeDiv").style.borderRadius = "0px";
-        document.getElementById("estTimeDiv").style.border = "";
-        document.getElementById("durationRequired").style.display = "none";
-      } else if (event.target.id == "focusArea") {
-        document.getElementById("focusArea").style.borderRadius = "0px";
-        document.getElementById("focusArea").style.border = "";
-        document.getElementById("focusAreaRequired").style.display = "none";
-      } else if(document.getElementById("workoutRadio").checked && event.target.id == "workoutRadio") {
+      if(document.getElementById("workoutRadio").checked && event.target.id == "workoutRadio") {
         workoutRadioClicked = true;
         if(!isProgrammaticClick) {
           checkAndClearProgram("workoutSummaryPage", "workoutsPage", "workoutSummaryDiv");
@@ -4877,7 +4849,6 @@ async function main() {
             if(res["workoutSummaryFilters"] > 0) {
               document.getElementById("filterOn").style.display = "block";
             } else {
-              document.getElementById("clearExperienceExerciseFilters").style.display = "none";
               document.getElementById("filterOn").style.display = "none";
             }
           } 
@@ -4886,7 +4857,8 @@ async function main() {
           
           if (res["workoutBuilderForm"] !== undefined) {
             if (res["workoutBuilderForm"] > 0) {
-              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
+              document.getElementById("searchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/668d17c04c0f7acb2b57aa05_Union.webp";
+              
               document.getElementById("clearExperienceExerciseFilters").style.display = "block";
               document.getElementById("filterOnIpad").style.display = "block";
               document.getElementById("reset-filters-ipad").style.display = "block";
@@ -4901,7 +4873,7 @@ async function main() {
           if (res["userSummaryForm"] !== undefined) {
             if (res["userSummaryForm"] > 0) {
               document.getElementById("clearClientFilters").style.display = "block";
-              document.getElementById("clientFilterImage").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
+              document.getElementById("clientFilterImage").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/668d17c04c0f7acb2b57aa05_Union.webp";
 
             } else {
               document.getElementById("clearClientFilters").style.display = "none";
@@ -4913,7 +4885,7 @@ async function main() {
           if (res["exerciseLibraryForm"] !== undefined) {
 
             if (res["exerciseLibraryForm"] > 0) {
-              document.getElementById("exerciseSearchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65a20d9f736b28beba8a0a8a_filterFilled.webp";
+              document.getElementById("exerciseSearchFilterImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/668d17c04c0f7acb2b57aa05_Union.webp";
               document.getElementById("clearCustomExerciseFilters").style.display = "block";
               document.getElementById("exerciseFilterBodyIpad").style.display = "block";
             } else {
@@ -6443,7 +6415,7 @@ async function main() {
       for (var guide in guideToWorkoutObj) {
         //Check if entry has values in it
         if(guideToWorkoutObj[guide].length > 0) {
-          guideToWorkoutObj[guide][0].style.borderColor = "rgb(12, 8, 213)";
+          guideToWorkoutObj[guide][0].style.borderColor = "#cbcbcb";
         }
 
       }
@@ -8081,7 +8053,6 @@ async function main() {
 
         workoutSummaryItem.querySelector("#workoutModalHeading").innerText = workoutName;
         workoutSummaryItem.querySelector("#workoutModalDuration").innerText = duration;
-        workoutSummaryItem.querySelector("#workoutModalFocusArea").innerText = targetArea;
         workoutSummaryItem.querySelector("#workoutModalID").innerText = workoutID;
         workoutSummaryItem.querySelector("#workoutNumber").innerText = `Workout ${index}.`;
 
@@ -8465,9 +8436,6 @@ async function main() {
         listElement.querySelector("#exerciseListTempID").innerText = element.querySelector("#workoutDurationProgram").innerText;
         listElement.querySelector("#exerciseListTempID").id = "workoutDurationProgram";
 
-        listElement.querySelector("#exerciseDifficulty").innerText = element.querySelector("#workoutFocusAreaProgram").innerText;
-        listElement.querySelector("#exerciseDifficulty").id = "workoutFocusAreaProgram";
-
         listElement.querySelector("#itemID").innerText = element.querySelector("#workoutIDProgram").innerText;
 
       } else if(type == "task") {
@@ -8497,8 +8465,29 @@ async function main() {
     
         //Fill all workout summary fields first
         document.getElementById("workoutName").value = workout.workoutName;
-        document.getElementById("estTime").value = workout.workoutDuration;
-        document.getElementById("focusArea").value = workout.workoutFocusArea;
+        var hours = 0;
+        var minutes = 0;
+
+        // Use regular expressions to extract hours and minutes
+        var hourMatch = workout.workoutDuration.match(/(\d+)\s*hours?/);
+        var minMatch = workout.workoutDuration.match(/(\d+)\s*mins?/);
+
+        if (hourMatch) {
+            hours = parseInt(hourMatch[1]);
+        }
+
+        if (minMatch) {
+            minutes = parseInt(minMatch[1]);
+        }
+
+        // Prefill the text boxes
+        if(hours > 0) {
+          document.getElementById("workoutLengthHour").value = hours;
+        }
+        if(minutes > 0) {
+          document.getElementById("workoutLengthMin").value = minutes;
+        }
+        
         document.getElementById("workoutDescription").value = workout.workoutSummaryDescription;
         document.getElementById("workoutSummaryID").innerText = workout.workoutSummaryID;
         document.getElementById("workoutSummaryFullName").innerText = workout.workoutFullName;
@@ -8587,8 +8576,8 @@ async function main() {
       var copyOfGuide = document.querySelector("#individualGuide:not([addedToList]").cloneNode(true);
 
       copyOfGuide.setAttribute("addedToList", 'true');
-
       copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
+
 
       var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
       //Check if there are multiple thumbails, randomly select one if so
@@ -8622,8 +8611,8 @@ async function main() {
 
       //Copy thumbnail and svg person into a separate div
       var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-      var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-      return [copyOfGuide, exerciseThumbnail, svgPersonDiv];
+      //var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+      return [copyOfGuide, exerciseThumbnail, null];
     }
 
     //Given a row of a workout, extract all data points within each
@@ -8634,8 +8623,6 @@ async function main() {
       workout["workoutName"] = selectedWorkout.querySelector("#workoutSummaryName").innerText;
       // Workout duration
       workout["workoutDuration"] = selectedWorkout.querySelector("#workoutDuration").innerText;
-      // Workout focus area
-      workout["workoutFocusArea"] = selectedWorkout.querySelector("#workoutFocusArea").innerText;
       // Workout Description
       workout["workoutSummaryDescription"] = selectedWorkout.querySelector("#workoutSummaryDescription").innerText;
 
@@ -9045,10 +9032,9 @@ async function main() {
       //Check if list size is > 1 and obtain values for workout summary inputs to check if they are empty or not
       const workoutList = document.getElementById("workoutList").children;
       const workoutTitle = document.getElementById("workoutName").value;
-      const workoutDuration = document.getElementById("estTime").value;
-      const workoutFocusArea = document.getElementById("focusArea").value;
+
       const workoutDescription = document.getElementById("workoutDescription").value;
-      if (workoutList.length > 1 || workoutTitle != "" || workoutDuration != "Duration" || workoutFocusArea != "Focus Area" || workoutDescription != "") {
+      if (workoutList.length > 1 || workoutTitle != "" || workoutDescription != "") {
   
         if (workoutTitle != "") {
           //Set workout name text in modal
@@ -9183,9 +9169,8 @@ async function main() {
         // Clear workout name
         document.getElementById("workoutName").value = "";
         // Reset duration value
-        document.getElementById("estTime").value = "Duration";
-        // Reset focus area value
-        document.getElementById("focusArea").value = "Focus Area";
+        document.getElementById("workoutLengthMin").value = "";
+        document.getElementById("workoutLengthHour").value = "";
         //Reset description value
         document.getElementById("workoutDescription").value = "";
       } else {
@@ -9207,8 +9192,6 @@ async function main() {
 
         // Reset duration value
         document.getElementById("selectedWorkoutDuration").value = "";
-        // Reset focus area value
-        document.getElementById("selectedWorkoutFocusArea").value = "";
         //Reset description value
         document.getElementById("selectedWorkoutDescription").value = "";
       }
@@ -9284,15 +9267,6 @@ async function main() {
           break;
       }
     });
-      
-    $('#focusArea').each( function () {
-      $(this).children('option:first').attr("disabled", "disabled");
-    });
-    $('#estTime').each( function () {
-      $(this).children('option:first').attr("disabled", "disabled");
-    });
-    $("#focusArea").attr("required", true);
-    $("#estTime").attr("required", true);
     
   });
 } 
