@@ -1430,7 +1430,6 @@ async function main() {
       } else if(index > 1) {
         //For all others get last element in superset list and click superset image
         var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling.querySelector(".exercise-list-item-superset").lastChild;
-        console.log(previousExercise)
         previousExercise.querySelector(".supersetparent img").click();
       }
 
@@ -1566,9 +1565,16 @@ async function main() {
             exerciseItem.style.width = "100%";
           });
 
+          const elements = newDiv.querySelectorAll(".supersetparent");
+          elements.forEach(element => {
+            element.style.marginRight = "31px";
+          });
+
         } else if(nextSibling && nextSibling.querySelector(".exercise-list-item-superset")) {
           //Now check if next element is in a superset
           supersetParent.querySelector(".exercisegroup").style.border = 'none';
+          supersetParent.querySelector(".supersetparent").style.marginRight = "31px";
+          nextSibling.querySelector(".supersetparent").style.marginRight = "31px";
           supersetParent.querySelector("#navigationButtons").style.display = 'none';
           nextSibling.querySelector(".exercise-list-item-superset").insertBefore(supersetParent, nextSibling.querySelector(".exercise-list-item-superset").firstChild);
 
@@ -1577,6 +1583,7 @@ async function main() {
           if(nextSibling == null) {
             
             nextSibling = supersetParent.closest(".exercise-list-item-superset");
+            nextSibling.querySelector(".supersetparent").style.marginRight = "31px";
             if(nextSibling && nextSibling.parentElement && nextSibling.querySelector(".supersetWrapper")) {
             } else {
               //Now check if current element is in a superset
@@ -1594,6 +1601,7 @@ async function main() {
         }
 
         //Remove supersetimageopen class
+        supersetParent.querySelector(".supersetparent").style.marginRight = "31px";
         supersetImage.classList.remove("supersetimageopen");
         supersetImage.classList.add("supersetimageclosed");
         if(supersetParent.querySelector("#removeFullExercise")) {
@@ -1628,6 +1636,7 @@ async function main() {
             workoutList.insertBefore(exercise, supersetParent.nextSibling);
             if(exercise.nextSibling != null) {
               exercise.querySelector(".supersetparent").style.display = "block";
+              exercise.querySelector(".supersetparent").style.marginRight = "";
             }
             
           });
@@ -1646,7 +1655,7 @@ async function main() {
             supersetItem.style.width = "";
             
           }
-
+          supersetItem.querySelector(".supersetparent").style.marginRight = "";
           supersetItem.querySelector("#navigationButtons").style.display = "";
         }
 
