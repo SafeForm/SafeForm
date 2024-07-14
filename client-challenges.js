@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   //Save url
   sessionStorage.setItem("challengePage", window.location);
 
@@ -249,8 +248,11 @@ function main() {
       });
       
       weekButton = document.getElementById("week-1");
-      weekButton.click();
+
       sessionStorage.setItem("currentWeekNumber", thisWeek)
+
+      //Click this week:
+      document.querySelector(".current-week").click();
 
       var days = [];
       
