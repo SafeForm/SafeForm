@@ -16,6 +16,9 @@ function main() {
   //Save url
   sessionStorage.setItem("challengePage", window.location);
 
+  var currentDate = moment().format('YYYY-MM-DD');
+  sessionStorage.setItem("currentDay", currentDate);
+
   //Loop through all list items and assign href to each workout
   const challengeWorkoutList = document.getElementById("challengeWorkoutList").children;
   for (var i = 0; i < challengeWorkoutList.length; i++) {
@@ -208,12 +211,13 @@ function main() {
       const workoutListWorkouts = document.querySelectorAll('.challengeitem');
       const workoutList = document.getElementById('challengeWorkoutList');
       const weeklyTaskList = document.getElementById('challengeWeeklyTaskList');
-
+      console.log(buttons)
       // Add event listeners to the buttons
       buttons.forEach((button, index) => {
 
         thisWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
-
+        console.log(thisWeek)
+        console.log(index+1)
         if(index+1 == thisWeek) {
           button.classList.remove("week-button");
           button.classList.add("current-week");
@@ -248,6 +252,7 @@ function main() {
       });
       
       weekButton = document.getElementById("week-1");
+      console.log(thisWeek)
 
       sessionStorage.setItem("currentWeekNumber", thisWeek)
 
@@ -357,7 +362,6 @@ function main() {
 
     function getWeekNumber(dateString, weeks) {
       const date = new Date(dateString);
-      
       for (let i = 0; i < weeks.length; i++) {
           const week = weeks[i];
           for (let j = 0; j < week.length; j++) {
@@ -366,6 +370,7 @@ function main() {
               if (eventDate.getFullYear() === date.getFullYear() &&
                   eventDate.getMonth() === date.getMonth() &&
                   eventDate.getDate() === date.getDate()) {
+                  console.log(date.getDate())
                   return i + 1;
               }
           }
