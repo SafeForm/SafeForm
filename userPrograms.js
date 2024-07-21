@@ -13,10 +13,11 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   //Update workout index
   var workoutList = document.querySelectorAll(".workoutprogramitem");
   var currentDayNumber = "";
+  var oneOnOneWeek = 0;
+  var thisWeek = 
 
   localStorage.setItem("currentTrainingPlan", window.location)
 
@@ -55,12 +56,72 @@ function main() {
     if(member.memberPage) {
       document.getElementById("home").href = window.location.origin + `/${member.memberPage}`;
     }
+
     if(localStorage.getItem("currentTrainingPlan")) {
       document.getElementById("home").href = localStorage.getItem("currentTrainingPlan");
     }
 
+    var metadata = await member.getMetaData();
     const gymName = member["current-gym"];
     localStorage.setItem("fromGym", gymName);
+
+    /* FOR CLIENT NUMBERS SUMMARY
+    var completedExercises = getWeekCompletedWorkouts(); // Returns a Map of exercise IDs and metadata
+
+    var totalWeight = 0;
+    var totalReps = 0;
+
+    completedExercises.forEach((completedExercise, exerciseId ) => {
+
+      if (metadata) {
+        var weightInput = 0;
+        var repInput = 0;
+
+        if (metadata[exerciseId].weight && metadata[exerciseId].weight.length > 0) {
+          weightInput = parseFloat(metadata[exerciseId].weight[0]) || 0;
+        }
+        
+        // Calculate the weight lifted for this exercise
+        var exerciseWeight = weightInput * completedExercise.reps * completedExercise.sets;
+        
+        // Add to the totals
+        totalWeight += parseInt(exerciseWeight);
+        totalReps += parseInt(completedExercise.reps);
+
+      }
+    });
+
+    console.log(`Total Weight Lifted: ${totalWeight}`);
+    console.log(`Total Reps: ${totalReps}`);
+    */
+
+
+    //Look each one up in memberstack and sum up each thing
+    var oneOnOneWeekButton = document.getElementById(`week-${oneOnOneWeek}`);
+
+    if(oneOnOneWeekButton && member.gender && member.gender != "") {
+      if(oneOnOneWeekButton.classList.contains("week-button")) {
+        $('#weekParentDiv .current-week-clicked').removeClass('current-week-clicked').addClass("week-button");
+        $('#weekParentDiv .current-week-clicked').removeClass('current-week-clicked').addClass("week-button");
+        oneOnOneWeekButton.classList.remove("week-button");
+        oneOnOneWeekButton.classList.add("current-week-clicked");
+        
+      }
+      oneOnOneWeekButton.click();
+      // Check every button to the left of .current-week-clicked
+      var buttons = document.querySelectorAll('#weekParentDiv .w-button');
+      for (var i = 0; i < buttons.length; i++) {
+        if (buttons[i].classList.contains("current-week-clicked")) {
+          break;
+        }
+        if (buttons[i].classList.contains("week-button")) {
+          buttons[i].classList.remove("week-button");
+          buttons[i].classList.add("previous-week");
+        }
+      }
+
+    }
+    
 
   });
 
@@ -194,6 +255,8 @@ function main() {
       currentWeekIndex = 0;
     }
 
+    oneOnOneWeek = thisWeek;
+
     thisWeek = currentWeekIndex+1;
 
     const buttons = document.querySelectorAll('a[id^="week-"]');
@@ -260,6 +323,72 @@ function main() {
       left: weekButtonOffset
     });
   }
+
+  function getWeekCompletedWorkouts() {
+    const eventDataElement = document.getElementById("programEventData");
+    const fullEventDataElement = document.getElementById("programFullEventData");
+  
+    if (!eventDataElement) {
+      console.warn("Program event data not found");
+      return new Map();
+    }
+  
+    let eventData, fullEventData;
+  
+    try {
+      eventData = JSON.parse(eventDataElement.innerText);
+      if (fullEventDataElement) {
+        fullEventData = JSON.parse(fullEventDataElement.innerText);
+      }
+    } catch (error) {
+      console.error("Error parsing event data:", error);
+      return new Map();
+    }
+  
+    if (eventData.length > 0) {
+      eventData = eventData[0].events;
+    }
+  
+    const completedExercises = new Map();
+    const startOfWeek = moment().startOf('week');
+    const endOfWeek = moment().endOf('week');
+  
+    eventData.forEach(event => {
+      if (event.extendedProps.completedID) {
+        const startDate = moment(event.start);
+  
+        if (startDate.isBetween(startOfWeek, endOfWeek, 'day', '[]')) {
+          const targetWorkoutID = event.extendedProps.workoutID;
+  
+          if (fullEventData) {
+            const filteredFullEventData = fullEventData.filter(item => {
+              const itemDate = moment(item.startDate);
+              return item.workoutID === targetWorkoutID && 
+                      itemDate.isBetween(startOfWeek, endOfWeek, 'day', '[]');
+            });
+  
+            filteredFullEventData.forEach(item => {
+              if (item.guideID && (item.quantityUnit.toLowerCase() != "km" && item.quantityUnit.toLowerCase() != "mi")) {
+                if (!completedExercises.has(item.guideID)) {
+                  completedExercises.set(item.guideID, {
+                    reps: item.reps,
+                    sets: 1
+                  });
+                } else {
+                  const current = completedExercises.get(item.guideID);
+                  current.sets += 1;
+                  completedExercises.set(item.guideID, current);
+                }
+              }
+            });
+          }
+        }
+      }
+    });
+  
+    return completedExercises;
+  }
+  
 
 
   // Function to check if the device is iOS
