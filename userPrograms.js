@@ -257,8 +257,16 @@ function main() {
 
     oneOnOneWeek = thisWeek;
 
-    thisWeek = currentWeekIndex+1;
+    //Get account type
+    var programType = document.getElementById("programType").innerText;
 
+    if(programType && programType == "personalised") {
+      //Leave as is - meaning current date week will be selected
+    } else {
+      //Ensure the current week at the users pace is selected
+      thisWeek = currentWeekIndex+1;
+    }
+  
     const buttons = document.querySelectorAll('a[id^="week-"]');
     const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
     const workoutList = document.getElementById('programWorkoutList');
