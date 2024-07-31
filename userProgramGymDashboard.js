@@ -904,10 +904,7 @@ async function main() {
         }
       }
     }
-  }
-  
-  
-   
+  } 
 
   async function loadAndUpdateAllSummaries() {
     // Select all elements with class 'userSummary'
@@ -965,8 +962,6 @@ async function main() {
       calculateWorkoutUrgencyDays();
     });
   }
-
-
 
   function cloneAndAddElement(valueArr, elementToClone, containerElement, tagElement, newID, customID=null) {
 
@@ -3073,13 +3068,7 @@ async function main() {
         if(!workout["length"].includes("Duration")) {
           document.getElementById("saveWorkout").value = "Please wait...";
           sendWorkoutToMake(workout);      
-        } /*else {
-          if(workout["length"] == "Duration") {
-            document.getElementById("estTimeDiv").style.borderRadius = "8px";
-            document.getElementById("estTimeDiv").style.border = "1px solid red";
-            document.getElementById("durationRequired").style.display = "block";
-          }
-        }*/
+        }
       }
           
     }
@@ -5172,6 +5161,8 @@ async function main() {
 
     }
 
+    
+
     function submitExerciseUploadForm() {
 
       //Exercise name
@@ -6504,7 +6495,6 @@ async function main() {
 
       userInputsChanged = false;
 
-
     }
 
     function createUserProgram() {
@@ -6529,6 +6519,9 @@ async function main() {
 
       // Event data
       userProgram["events"] = JSON.stringify(userTrainingPlan);
+
+      //Account / program type
+      userProgram["programType"] = document.getElementById("accountType").innerText;
 
       //Memberstack ID
       userProgram["userMemberstackID"] = document.getElementById("userMemberstackID").innerText;
@@ -9278,4 +9271,4 @@ async function main() {
     });
     
   });
-} 
+}
