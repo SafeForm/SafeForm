@@ -8451,6 +8451,13 @@ async function main() {
         //Get all necessary values from row selected
         var workout = getWorkoutExerciseInformation(workoutSummary);
 
+        if(workout.workoutJSON != "" && workout.workoutJSON != "workoutJSON") {
+          workoutJSON = JSON.parse(workout.workoutJSON);
+        } else {
+          alert("Workout has not finished loading. Please try again");
+          return;
+        }
+
         //Hide summary screen and show builder
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
@@ -8483,9 +8490,6 @@ async function main() {
         document.getElementById("workoutDescription").value = workout.workoutSummaryDescription;
         document.getElementById("workoutSummaryID").innerText = workout.workoutSummaryID;
         document.getElementById("workoutSummaryFullName").innerText = workout.workoutFullName;
-        if(workout.workoutJSON != "") {
-          workoutJSON = JSON.parse(workout.workoutJSON);
-        }
         
       } else {
         var workout = workoutSummary;
