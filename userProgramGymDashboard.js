@@ -636,39 +636,11 @@ async function main() {
     ]);
   }
 
-
   function cloneAndFillExerciseList(formData, customGuide=false) {
     // Clone the first element
     const firstListItem = document.querySelector("#individualGuide:not([addedToList]").parentElement;
     const clonedElement = firstListItem.cloneNode(true);
     const guideListItem = clonedElement.querySelector("#individualGuide");
-    //Add onclick
-    guideListItem.onclick = (event) => {
-
-      // Make sure when the info button is clicked, the exercise isn't added to the list
-      if (event.target.id !== "guideLinkInfo" && event.target.id !== "guideLinkInfoImage") {
-        var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
-
-        // Remove info button
-        copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
-
-        // Copy thumbnail and svg person into a separate div
-        var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-        //var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-
-        // Change ID of exercise name
-        copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
-
-        copyOfGuide.querySelector("#itemID").innerText = formData.get('guideID');
-
-        // Ensure copy border colour is BF blue
-        copyOfGuide.style.borderColor = "#cbcbcb";
-
-        addExerciseToWorkoutList(copyOfGuide, null, null, exerciseThumbnail, null);
-
-        createWorkoutListEntry(copyOfGuide.querySelector("#itemID").innerText, guideListItem);
-      }
-    };
   
     // Update fields with form data
     clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
@@ -1152,6 +1124,7 @@ async function main() {
       } else {
         workoutList = document.getElementById("programWorkoutList");
       }
+
       if(jsonExercises != null && exerciseList != null) {
         for(var i = 0; i < exerciseList.length; i++) {
           createWorkoutExerciseElement(exerciseList[i][0], workoutList, exerciseInformation[i], prefill, exerciseList[i][1], exerciseList[i][2], programWorkout, i, jsonExercises[i]); 
@@ -1214,6 +1187,7 @@ async function main() {
           workoutItem.querySelector(".setrestinputm").innerText = exerciseInformation.exerciseRestMins;
           workoutItem.querySelector(".setrestinput").innerText = exerciseInformation.exerciseRestSecs;
         }
+
         copyOfGuide.querySelector("#itemID").innerText = exerciseInformation.exerciseItemID;
 
         copyOfGuide.querySelector("#workoutExerciseItemID").innerText = exerciseInformation.exerciseItemID;
@@ -3387,8 +3361,9 @@ async function main() {
       if(event.target.closest("#individualGuide")) {
         //Make sure when info button is clicked the exercise isnt added to the list
         if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
+
           var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
-          
+
           //Remove info button
           copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
     
@@ -5249,12 +5224,24 @@ async function main() {
         sendNewExerciseToMake(formData, "update");
       }
 
+      document.getElementById("exerciseSearch").value = formData.get("exerciseName");
+      document.getElementById("exerciseSearch").dispatchEvent(new Event('input', { bubbles: true }));
+
+      const newFormData = new FormData();
+    
+      // Copy each entry
+      formData.forEach((value, key) => {
+          newFormData.append(key, value);
+      });
+
       if(sessionStorage.getItem("editExercise") == 'false') {
-        cloneAndFillExerciseLibrary(formData);
-        cloneAndFillExerciseList(formData);
+
+        cloneAndFillExerciseLibrary(newFormData);
+
+        cloneAndFillExerciseList(newFormData);
       } else {
-        updateExerciseLibraryItem(formData, videoFile);
-        updateExerciseListItem(formData, videoFile);
+        updateExerciseLibraryItem(newFormData, videoFile);
+        updateExerciseListItem(newFormData, videoFile);
       }
 
       hideAndClearExerciseUploadModal();
@@ -5663,6 +5650,9 @@ async function main() {
               //Update make function
               sendNewExerciseToMake(formData, "update");
             }
+
+            document.getElementById("exerciseSearch").value = formData.get("exerciseName");
+            document.getElementById("exerciseSearch").dispatchEvent(new Event('input', { bubbles: true }));
             
             const uploadLink = createMediaData.upload_link;
     
@@ -5756,6 +5746,7 @@ async function main() {
 
           //Find exercise item with temp id
           const exerciseLibItems = document.querySelectorAll(".exerciseguideitem");
+
           for(var i = 0; i < exerciseLibItems.length; i++) {
             var exerciseLibTempID = exerciseLibItems[i].querySelector("#exerciseLibraryTempID").innerText;
             if(exerciseLibTempID == exerciseJSON.tempID) {
@@ -5781,9 +5772,7 @@ async function main() {
             }
           }
 
-
-          const workoutGuideItems = document.querySelectorAll("#individualGuide");
-
+          const workoutGuideItems = document.querySelector("#guideList").children;
           for(var i = 0; i < workoutGuideItems.length; i++) {
             var workoutItemTempID = workoutGuideItems[i].querySelector("#exerciseListTempID").innerText;
             if(workoutItemTempID == exerciseJSON.tempID) {
@@ -5796,7 +5785,8 @@ async function main() {
                 //Update thumbnail source
                 workoutGuideItems[i].querySelector(".exerciseThumbnail").src = exerciseJSON.thumbnailURL;
               }
-              workoutGuideItems[i].querySelector("#itemID").innerText = exerciseJSON.itemID;
+
+              workoutGuideItems[i].querySelector("#itemID").innerHTML = exerciseJSON.itemID;
               
               workoutGuideItems[i].querySelector("#guideLinkInfo").href = `/guides/${exerciseJSON.slug}`;
 
@@ -8579,7 +8569,6 @@ async function main() {
 
       copyOfGuide.setAttribute("addedToList", 'true');
       copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
-
 
       var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
       //Check if there are multiple thumbails, randomly select one if so
