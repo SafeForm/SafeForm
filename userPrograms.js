@@ -39,6 +39,7 @@ function main() {
   });
 
   showInstructions();
+
   //Loop through all list items and assign href to each workout
   const programWorkoutList = document.getElementById("programWorkoutList").children;
 
@@ -137,6 +138,10 @@ function main() {
     newButton.id = `week-${i+1}`;
 
     parentDiv.appendChild(newButton);
+  }
+
+  for (var i = 0; i < FileList.length; i++) {
+    console.log("Hellow workld")
   }
 
   //Remove original placeholder button
@@ -260,7 +265,7 @@ function main() {
     //Get account type
     var programType = document.getElementById("programType").innerText;
 
-    if(programType && programType == "personalised") {
+    if(programType && (programType == "personalised" || programType == "customised")) {
       //Leave as is - meaning current date week will be selected
     } else {
       //Ensure the current week at the users pace is selected
