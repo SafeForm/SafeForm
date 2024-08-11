@@ -43,18 +43,44 @@ function main() {
 
     document.addEventListener('click', function (event) {
 
-      if(event.target.id == "dayView") {
-        if(event.target.classList.contains("dayweekbutton")) {
+      if (event.target.id == "dayView") {
+        if (event.target.classList.contains("dayweekbutton")) {
           $('#weekParentDiv > a:not(.div-block-574 .w-button)').hide();
           $('#weekParentDiv > button').show();
           event.target.classList.remove("dayweekbutton");
           event.target.classList.add("dayweekbuttonclicked");
-          
+      
           document.getElementById("scheduleText").innerText = "By Day";
-
+      
           document.getElementById("weeklyView").click();
-          
-          document.getElementById(sessionStorage.getItem("currentDay")).click();
+      
+          let currentDay = sessionStorage.getItem("currentDay");
+          let dayButton = document.getElementById(currentDay);
+      
+          if (!dayButton) {
+            // Get all buttons in the weekParentDiv
+            let buttons = document.querySelectorAll("#weekParentDiv > button");
+      
+            // Convert NodeList to array and sort by date
+            let sortedButtons = Array.from(buttons).sort((a, b) => {
+              return new Date(a.id) - new Date(b.id);
+            });
+      
+            // Find the nearest future date
+            let today = new Date(currentDay);
+            for (let btn of sortedButtons) {
+              let btnDate = new Date(btn.id);
+              if (btnDate > today) {
+                dayButton = btn;
+                break;
+              }
+            }
+          }
+      
+          if (dayButton) {
+            dayButton.click();
+          }
+      
           document.getElementById("weeklyView").classList.remove("dayweekbuttonclicked");
           document.getElementById("weeklyView").classList.add("dayweekbutton");
         }
@@ -73,14 +99,11 @@ function main() {
           var selectedWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
           document.getElementById(`week-${selectedWeek}`).click();
           
-          
           document.getElementById("dayView").click();
     
           document.getElementById("dayView").classList.remove("dayweekbuttonclicked");
           document.getElementById("dayView").classList.add("dayweekbutton");
         }
-
-
 
       }
 
@@ -111,22 +134,6 @@ function main() {
       challengeWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
       challengeWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
     }
-
-    //Add week buttons to paginate through workout, based on number of workouts
-    var numWeeks = document.getElementById("challengeWeeks").innerText;
-    var weekButton = document.getElementById("week-1");
-    var parentDiv = document.getElementById("weekParentDiv");
-    
-    for (var i = 0; i < numWeeks; i++) {
-        var newButton = weekButton.cloneNode(true);
-        newButton.innerText = `Week ${i+1}`;
-        // Apply styling based on completion and current week status
-        newButton.id = `week-${i+1}`;
-
-        parentDiv.appendChild(newButton);
-    }
-    //Remove original placeholder button
-    weekButton.remove();
 
     const challenge = JSON.parse(document.getElementById("challengeEventData").innerText);
 
@@ -172,34 +179,43 @@ function main() {
       var challengeEndDate = new Date(document.getElementById("challengeEndDate").innerText);
       const formattedDate = moment(challengeStartDate).format('YYYY-MM-DD');
 
-      var weekCount = 1;
-
+      const currentMonthStart = moment().startOf('month');
+      const currentMonthEnd = moment().endOf('month');
+      
+      let weeks = [];
+      let weekCount = 1;
+      
       for (const workout of workouts) {
-
-        const startDate = moment(workout['start']);
-
-        let endOfWeek = null;
-        let startOfWeek = null;
-
-        // Get end of week for current array
-        if (currentWeek.length > 0) {
-
-          endOfWeek = getEndOfWeek(currentWeek[0]['start']);
-          startOfWeek = moment(endOfWeek).subtract(6, 'days').format('YYYY-MM-DD');
-
-          if(moment(formattedDate).isSameOrAfter(moment(startOfWeek)) && moment(formattedDate).isSameOrBefore(moment(endOfWeek))) {
-            thisWeek = weekCount;
+      
+          const startDate = moment(workout['start']);
+      
+          // Only consider workouts within the current month
+          if (startDate.isSameOrAfter(currentMonthStart) && startDate.isSameOrBefore(currentMonthEnd)) {
+      
+              let endOfWeek = null;
+              let startOfWeek = null;
+      
+              // Get end of week for current array
+              if (currentWeek.length > 0) {
+      
+                  endOfWeek = getEndOfWeek(currentWeek[0]['start']);
+                  startOfWeek = moment(endOfWeek).subtract(6, 'days').format('YYYY-MM-DD');
+      
+                  if (startDate.isSameOrAfter(moment(startOfWeek)) && startDate.isSameOrBefore(moment(endOfWeek))) {
+                      thisWeek = weekCount;
+                  }
+      
+              }
+      
+              if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
+                  currentWeek.push(workout);
+              } else {
+                  weeks.push(currentWeek);
+                  currentWeek = [workout];
+                  weekCount++;
+              }
+      
           }
-
-        }
-
-        if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
-          currentWeek.push(workout);
-        } else {
-          weeks.push(currentWeek);
-          currentWeek = [workout];
-          weekCount++;
-        }
       }
 
       // Push the last week
@@ -207,17 +223,34 @@ function main() {
         weeks.push(currentWeek);
       }
 
+      //Add week buttons to paginate through workout, based on number of workouts
+      var numWeeks = weeks.length;
+      var weekButton = document.getElementById("week-1");
+      var parentDiv = document.getElementById("weekParentDiv");
+      
+      for (var i = 0; i < numWeeks; i++) {
+          var newButton = weekButton.cloneNode(true);
+          newButton.innerText = `Week ${i+1}`;
+          // Apply styling based on completion and current week status
+          newButton.id = `week-${i+1}`;
+
+          parentDiv.appendChild(newButton);
+      }
+      //Remove original placeholder button
+      weekButton.remove();
+
+      //Show body once everything has loaded
+      document.querySelector(".workoutbodydiv").style.display = "flex"
+
       const buttons = document.querySelectorAll('a[id^="week-"]');
       const workoutListWorkouts = document.querySelectorAll('.challengeitem');
       const workoutList = document.getElementById('challengeWorkoutList');
       const weeklyTaskList = document.getElementById('challengeWeeklyTaskList');
-      console.log(buttons)
+
       // Add event listeners to the buttons
       buttons.forEach((button, index) => {
 
         thisWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
-        console.log(thisWeek)
-        console.log(index+1)
         if(index+1 == thisWeek) {
           button.classList.remove("week-button");
           button.classList.add("current-week");
@@ -252,7 +285,6 @@ function main() {
       });
       
       weekButton = document.getElementById("week-1");
-      console.log(thisWeek)
 
       sessionStorage.setItem("currentWeekNumber", thisWeek)
 
@@ -357,8 +389,8 @@ function main() {
 
 
     //Hide week buttons for now
-    $('#weekParentDiv > a:not(.div-block-574 .w-button)').hide();
-    $('#weekParentDiv > button').show();
+    //$('#weekParentDiv > a:not(.div-block-574 .w-button)').hide();
+    $('#weekParentDiv > button').hide();
 
     function getWeekNumber(dateString, weeks) {
       const date = new Date(dateString);
@@ -370,7 +402,6 @@ function main() {
               if (eventDate.getFullYear() === date.getFullYear() &&
                   eventDate.getMonth() === date.getMonth() &&
                   eventDate.getDate() === date.getDate()) {
-                  console.log(date.getDate())
                   return i + 1;
               }
           }
