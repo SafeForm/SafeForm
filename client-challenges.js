@@ -240,7 +240,7 @@ function main() {
       weekButton.remove();
 
       //Show body once everything has loaded
-      document.querySelector(".workoutbodydiv").style.display = "flex"
+      document.querySelector(".workoutbodychallenge").style.display = "flex"
 
       const buttons = document.querySelectorAll('a[id^="week-"]');
       const workoutListWorkouts = document.querySelectorAll('.challengeitem');
