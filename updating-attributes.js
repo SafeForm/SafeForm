@@ -17,6 +17,8 @@ async function main() {
   //Check what page the user is on:
   const pathname = window.location.pathname;
   var baseURL = window.location.origin;
+  var cancelSubscription = document.getElementById("cancelSubscription");
+  var subscriptionCancelled = false;
 
 
   //Check if user is logged in
@@ -43,8 +45,21 @@ async function main() {
       } else {
         document.getElementById("kgRadio").previousElementSibling.classList.add("w--redirected-checked");
       }
-    }
 
+      if(member.subscriptionstatus) {
+        cancelSubscription.style.display = "block";
+        if(member.subscriptionstatus.toLowerCase() == "cancelled") {
+          // Change background of button
+          cancelSubscription.style.backgroundColor = "rgba(111, 110, 110, 0.5)";
+          cancelSubscription.style.color = "black";
+          cancelSubscription.innerText = "Subscription Cancelled";
+          subscriptionCancelled = true;
+        }
+        
+      }
+
+
+    }
 
   })
 
@@ -223,44 +238,27 @@ async function main() {
         }
       }
 
+      if(event.target.id == "cancelSubscription") {
+
+        if(!subscriptionCancelled) {
+
+          // Update profile field to be cancelled
+          updateProfile("subscriptionstatus", "cancelled", null, true);
+
+
+          // Change background of button
+          cancelSubscription.style.backgroundColor = "rgba(111, 110, 110, 0.5)";
+          cancelSubscription.style.color = "black";
+          cancelSubscription.innerText = "Subscription Cancelled";
+          subscriptionCancelled = true;
+        } else {
+          alert("We have been notified and will cancel your subscription within 12 hours");
+        }
+
+      }
+
     });
 
-    /*
-    document.getElementById('experience').addEventListener('blur', function(event) {
-      const experience = document.getElementById("experience").value;
-      updateProfile("experience", experience, null, true);
-    });
-    
-    document.getElementById('goals').addEventListener('blur', function(event) {
-      const goals = document.getElementById("goals").value;
-      updateProfile("goals", goals, null, true);
-    });
-    
-    document.getElementById('workout-frequency').addEventListener('blur', function(event) {
-      const workoutFrequency = document.getElementById("workout-frequency").value;
-      updateProfile("workout-frequency", workoutFrequency, null, true);
-    });
-    
-    document.getElementById('workout-duration').addEventListener('blur', function(event) {
-      const workoutDuration = document.getElementById("workout-duration").value;
-      updateProfile("workout-duration", workoutDuration, null, true);
-    });
-    
-    document.getElementById('height').addEventListener('blur', function(event) {
-      const height = document.getElementById("height").value;
-      updateProfile("height", height, null, true);
-    });
-    
-    document.getElementById('weight').addEventListener('blur', function(event) {
-      const weight = document.getElementById("weight").value;
-      updateProfile("weight", weight, null, true);
-    });
-    
-    document.getElementById('physical-limitations').addEventListener('blur', function(event) {
-      const physicalLimitations = document.getElementById("physical-limitations").value;
-      updateProfile("physical-limitations", physicalLimitations, null, true);
-    });
-    */
   }
 
   async function updateProfile(attributeKey, attributeValue, nextPage, userProfile=false) {
@@ -319,6 +317,16 @@ async function main() {
           "workout-duration": attributeValue
         }, true);
         member["workout-duration"] = attributeValue;
+      } else if(attributeKey == "subscriptionstatus") {
+
+        // Call make to send email
+        sendNotificationToMake(member["email"], member["first-name"], member["last-name"], member["current-gym"]);
+
+        await member.updateProfile({
+          "subscriptionstatus": attributeValue
+        }, true);
+        member["subscriptionstatus"] = attributeValue;
+        return;
       } else if(attributeKey == "userDetails") {
         var gymName = localStorage.getItem('fromGym');
         member.updateProfile({
@@ -382,6 +390,27 @@ async function main() {
       }
     });
     
+  }
+
+  async function sendNotificationToMake(email, firstName, lastName, fitnessCreator) {
+
+    var userObj = {
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      fitnessCreator: fitnessCreator
+    };
+    fetch("https://hook.us1.make.com/3ciw1z6iofi33ja94jnrc4jrkeog3o1k", {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify(userObj)
+    }).then((res) => {
+      if (res.ok) {
+        return res.text();
+      }
+      throw new Error('Something went wrong');
+    })
+
   }
 
   async function updateUserWebflow(member) {
