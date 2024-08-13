@@ -47,7 +47,7 @@ async function main() {
       }
 
       if(member.subscriptionstatus) {
-        cancelSubscription.style.display = "block";
+        //cancelSubscription.style.display = "block";
         if(member.subscriptionstatus.toLowerCase() == "cancelled") {
           // Change background of button
           cancelSubscription.style.backgroundColor = "rgba(111, 110, 110, 0.5)";
@@ -244,7 +244,6 @@ async function main() {
 
           // Update profile field to be cancelled
           updateProfile("subscriptionstatus", "cancelled", null, true);
-
 
           // Change background of button
           cancelSubscription.style.backgroundColor = "rgba(111, 110, 110, 0.5)";
