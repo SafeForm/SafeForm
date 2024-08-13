@@ -293,17 +293,22 @@ function main() {
 
       var days = [];
       
-      // Group workouts by days
+      // Group workouts by days within the current month
       for (const workout of workouts) {
         const workoutDate = moment(workout['start']).format('YYYY-MM-DD');
-        
-        if (workout.extendedProps.weeklyTask != "true" && !days[workoutDate]) {
-          days[workoutDate] = [];
+      
+        // Only add workouts that are within the current month
+        if (
+          moment(workoutDate).isSameOrAfter(currentMonthStart) &&
+          moment(workoutDate).isSameOrBefore(currentMonthEnd)
+        ) {
+          if (workout.extendedProps.weeklyTask != "true" && !days[workoutDate]) {
+            days[workoutDate] = [];
+          }
+          if (workout.extendedProps.weeklyTask != "true") {
+            days[workoutDate].push(workout);
+          }
         }
-        if(workout.extendedProps.weeklyTask != "true") {
-          days[workoutDate].push(workout);  
-        }
-        
       }
 
       // Create buttons for each day
