@@ -172,56 +172,55 @@ function main() {
       });
 
       let currentWeek = [];
-      var thisWeek = null;
+let thisWeek = null;
 
-      
-      var challengeStartDate = new Date(document.getElementById("challengeStartDate").innerText);
-      var challengeEndDate = new Date(document.getElementById("challengeEndDate").innerText);
-      const formattedDate = moment(challengeStartDate).format('YYYY-MM-DD');
+let challengeStartDate = new Date(document.getElementById("challengeStartDate").innerText);
+let challengeEndDate = new Date(document.getElementById("challengeEndDate").innerText);
+const formattedDate = moment(challengeStartDate).format('YYYY-MM-DD');
 
-      const currentMonthStart = moment().startOf('month');
-      const currentMonthEnd = moment().endOf('month');
-      
-      let weeks = [];
-      let weekCount = 1;
-      
-      for (const workout of workouts) {
-      
-          const startDate = moment(workout['start']);
-      
-          // Only consider workouts within the current month
-          if (startDate.isSameOrAfter(currentMonthStart) && startDate.isSameOrBefore(currentMonthEnd)) {
-      
-              let endOfWeek = null;
-              let startOfWeek = null;
-      
-              // Get end of week for current array
-              if (currentWeek.length > 0) {
-      
-                  endOfWeek = getEndOfWeek(currentWeek[0]['start']);
-                  startOfWeek = moment(endOfWeek).subtract(6, 'days').format('YYYY-MM-DD');
-      
-                  if (startDate.isSameOrAfter(moment(startOfWeek)) && startDate.isSameOrBefore(moment(endOfWeek))) {
-                      thisWeek = weekCount;
-                  }
-      
-              }
-      
-              if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
-                  currentWeek.push(workout);
-              } else {
-                  weeks.push(currentWeek);
-                  currentWeek = [workout];
-                  weekCount++;
-              }
-      
-          }
-      }
+const currentMonthStart = moment().startOf('month');
+const currentMonthEnd = moment().endOf('month');
 
-      // Push the last week
-      if (currentWeek.length > 0) {
-        weeks.push(currentWeek);
-      }
+let weeks = [];
+let weekCount = 1;
+
+for (const workout of workouts) {
+  const startDate = moment(workout['start']);
+  let endOfWeek = null;
+  let startOfWeek = null;
+
+  // If the currentWeek array is not empty, calculate the start and end of the week
+  if (currentWeek.length > 0) {
+    endOfWeek = getEndOfWeek(currentWeek[0]['start']);
+    startOfWeek = moment(endOfWeek).subtract(6, 'days').format('YYYY-MM-DD');
+
+    // Check if the current workout falls within this week
+    if (startDate.isSameOrAfter(moment(startOfWeek)) && startDate.isSameOrBefore(moment(endOfWeek))) {
+      thisWeek = weekCount;
+    }
+  }
+
+  // Handle workouts that may overlap months
+  if (
+    (startDate.isSameOrAfter(currentMonthStart) && startDate.isSameOrBefore(currentMonthEnd)) ||
+    (startDate.isBefore(currentMonthStart) && endOfWeek && moment(endOfWeek).isSameOrAfter(currentMonthStart)) ||
+    (startDate.isSameOrAfter(currentMonthEnd) && startDate.isSameOrBefore(moment(currentMonthEnd).endOf('week')))
+  ) {
+    if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
+      currentWeek.push(workout);
+    } else {
+      weeks.push(currentWeek);
+      currentWeek = [workout];
+      weekCount++;
+    }
+  }
+}
+
+// Push the last week
+if (currentWeek.length > 0) {
+  weeks.push(currentWeek);
+}
+
 
       //Add week buttons to paginate through workout, based on number of workouts
       var numWeeks = weeks.length;
