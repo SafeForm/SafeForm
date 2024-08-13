@@ -172,54 +172,54 @@ function main() {
       });
 
       let currentWeek = [];
-let thisWeek = null;
+      let thisWeek = null;
 
-let challengeStartDate = new Date(document.getElementById("challengeStartDate").innerText);
-let challengeEndDate = new Date(document.getElementById("challengeEndDate").innerText);
-const formattedDate = moment(challengeStartDate).format('YYYY-MM-DD');
+      let challengeStartDate = new Date(document.getElementById("challengeStartDate").innerText);
+      let challengeEndDate = new Date(document.getElementById("challengeEndDate").innerText);
+      const formattedDate = moment(challengeStartDate).format('YYYY-MM-DD');
 
-const currentMonthStart = moment().startOf('month');
-const currentMonthEnd = moment().endOf('month');
+      const currentMonthStart = moment().startOf('month');
+      const currentMonthEnd = moment().endOf('month');
 
-let weeks = [];
-let weekCount = 1;
+      let weeks = [];
+      let weekCount = 1;
 
-for (const workout of workouts) {
-  const startDate = moment(workout['start']);
-  let endOfWeek = null;
-  let startOfWeek = null;
+      for (const workout of workouts) {
+        const startDate = moment(workout['start']);
+        let endOfWeek = null;
+        let startOfWeek = null;
 
-  // If the currentWeek array is not empty, calculate the start and end of the week
-  if (currentWeek.length > 0) {
-    endOfWeek = getEndOfWeek(currentWeek[0]['start']);
-    startOfWeek = moment(endOfWeek).subtract(6, 'days').format('YYYY-MM-DD');
+        // If the currentWeek array is not empty, calculate the start and end of the week
+        if (currentWeek.length > 0) {
+          endOfWeek = getEndOfWeek(currentWeek[0]['start']);
+          startOfWeek = moment(endOfWeek).subtract(6, 'days').format('YYYY-MM-DD');
 
-    // Check if the current workout falls within this week
-    if (startDate.isSameOrAfter(moment(startOfWeek)) && startDate.isSameOrBefore(moment(endOfWeek))) {
-      thisWeek = weekCount;
-    }
-  }
+          // Check if the current workout falls within this week
+          if (startDate.isSameOrAfter(moment(startOfWeek)) && startDate.isSameOrBefore(moment(endOfWeek))) {
+            thisWeek = weekCount;
+          }
+        }
 
-  // Handle workouts that may overlap months
-  if (
-    (startDate.isSameOrAfter(currentMonthStart) && startDate.isSameOrBefore(currentMonthEnd)) ||
-    (startDate.isBefore(currentMonthStart) && endOfWeek && moment(endOfWeek).isSameOrAfter(currentMonthStart)) ||
-    (startDate.isSameOrAfter(currentMonthEnd) && startDate.isSameOrBefore(moment(currentMonthEnd).endOf('week')))
-  ) {
-    if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
-      currentWeek.push(workout);
-    } else {
-      weeks.push(currentWeek);
-      currentWeek = [workout];
-      weekCount++;
-    }
-  }
-}
+        // Handle workouts that may overlap months
+        if (
+          (startDate.isSameOrAfter(currentMonthStart) && startDate.isSameOrBefore(currentMonthEnd)) ||
+          (startDate.isBefore(currentMonthStart) && endOfWeek && moment(endOfWeek).isSameOrAfter(currentMonthStart)) ||
+          (startDate.isSameOrAfter(currentMonthEnd) && startDate.isSameOrBefore(moment(currentMonthEnd).endOf('week')))
+        ) {
+          if (currentWeek.length === 0 || startDate.isSameOrBefore(moment(endOfWeek))) {
+            currentWeek.push(workout);
+          } else {
+            weeks.push(currentWeek);
+            currentWeek = [workout];
+            weekCount++;
+          }
+        }
+      }
 
-// Push the last week
-if (currentWeek.length > 0) {
-  weeks.push(currentWeek);
-}
+      // Push the last week
+      if (currentWeek.length > 0) {
+        weeks.push(currentWeek);
+      }
 
 
       //Add week buttons to paginate through workout, based on number of workouts
@@ -228,13 +228,14 @@ if (currentWeek.length > 0) {
       var parentDiv = document.getElementById("weekParentDiv");
       
       for (var i = 0; i < numWeeks; i++) {
-          var newButton = weekButton.cloneNode(true);
-          newButton.innerText = `Week ${i+1}`;
-          // Apply styling based on completion and current week status
-          newButton.id = `week-${i+1}`;
+        var newButton = weekButton.cloneNode(true);
+        newButton.innerText = `Week ${i+1}`;
+        // Apply styling based on completion and current week status
+        newButton.id = `week-${i+1}`;
 
-          parentDiv.appendChild(newButton);
+        parentDiv.appendChild(newButton);
       }
+
       //Remove original placeholder button
       weekButton.remove();
 
@@ -335,12 +336,12 @@ if (currentWeek.length > 0) {
         days[day] = filteredWorkouts.concat(days[day]);
         //button.classList.add("day-button")
         button.addEventListener('click', (event) => {
+
           addWorkoutsToList(workoutList, workoutListWorkouts, day, days, weeklyTaskList, "day");
 
           $('#weekParentDiv .current-day-clicked').removeClass('current-day-clicked').addClass("current-day");
           $('#weekParentDiv .day-button-clicked').removeClass('day-button-clicked').addClass("day-button");
           $('#weekParentDiv .previous-day-clicked').removeClass('previous-day-clicked').addClass("previous-day");
-  
   
           //Check what the target class was:
           if(event.target.classList.contains("current-day")) {
@@ -361,9 +362,11 @@ if (currentWeek.length > 0) {
         document.getElementById('weekParentDiv').appendChild(button);
       });
 
+
+      /* this used to be for clicking daily
       var currentDate = moment().format('YYYY-MM-DD');
       if(document.getElementById(currentDate)) {
-        //document.getElementById(currentDate).click()
+        document.getElementById(currentDate).click()
         sessionStorage.setItem("currentDay", currentDate);
       } else {
         //Iterate backwards and find button
@@ -378,8 +381,8 @@ if (currentWeek.length > 0) {
               break; // Break out of the loop
           }
         }
-        
       }
+      */
       
     } else {
       document.getElementById("guideListParent").style.display = "none";
