@@ -4042,77 +4042,17 @@ async function main() {
         
         if(firstNameSignUp != "" && lastNameSignUp != "" && emailSignUp != "") {
 
-          for(var i = 1; i <= 20; i++) {
-            if(localStorage.getItem(`newClientName-${i}`) == undefined) {
-              localStorage.setItem(`newClientName-${i}`, firstNameSignUp + " " + lastNameSignUp);
-              localStorage.setItem(`newClientEmail-${i}`, emailSignUp);
-              break;
-            }
-          }
-          
-          event.target.style.display = "none";
-          document.getElementById("copyInviteLink").style.display = "flex";
-
-          //Add client name to list
-          var clientRow = document.querySelector("#clientList .w-dyn-item");
-          if(clientRow) {
-            clientRow = clientRow.cloneNode(true);
-          } else {
-            clientRow = document.querySelector("#userSummaryEmpty").cloneNode(true);
-            clientRow.style.display = 'grid';
-          }
-
-          clientRow.querySelector("#initials").innerText = firstNameSignUp[0]+lastNameSignUp[0];
-          clientRow.querySelector("#userSummaryName").innerText = firstNameSignUp + " " + lastNameSignUp;
-          clientRow.querySelector("#clientJoined").innerText = "";
-          clientRow.querySelector("#clientType").innerText = "";
-          clientRow.querySelector("#customWorkouts").innerText = "";
-          clientRow.querySelector("#customWorkouts").style.backgroundColor = "white";
-          clientRow.querySelector("#customProgram").innerText = "";
-          clientRow.querySelector("#customProgram").style.borderColor = "white";
-          clientRow.querySelector("#customProgram").style.backgroundColor = "white";
-          clientRow.querySelector("#status").innerText = "Pending";
-          clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26b85dced5a62e2e02_Pending.webp";
-          clientRow.onclick = null; // Remove the old event
-
-
-          clientRow.onclick = (event) => { 
-            //Hide user summary list
-            document.getElementById("userSummaryPage").style.display = "block";
-            if(!event.target.closest("#userOptionsLink") && event.target.id != "copyInviteLinkDropdown") {
-              alert("Please wait for your client to fill out the form before making a program"); 
-
-            }
-            document.getElementById("programPage").style.display = "none";
-            document.getElementById("programBuilder").style.display = "none";
-            document.getElementById("userDetailsPage").style.display = "none";
-
-
-            
-            return
+          var userObj = {
+            firstName: firstNameSignUp,
+            lastName: lastNameSignUp,
+            email: emailSignUp,
+            fcName: document.getElementById("gymFullName").innerText,
+            fcID: document.getElementById("gymID").innerText
           };
-
-          //Check if user list has items in it
-          if(document.querySelector("#clientList .w-dyn-item")) {
-
-            document.getElementById("clientList").appendChild(clientRow);
-
-          } else {
-            //If not then append to list wrapper
-            
-            //Insert cloned item in wrapper list
-            var listWrapper = document.querySelector(".clientlistwrapper");
-
-            // Add clonedExercise as the first child of wrapper
-            listWrapper.insertBefore(clientRow, listWrapper.firstChild);
-            //Hide empty state
-            document.querySelector(".userlistemptystate").style.display = "none";
-
-          }
-
-          //Append gym id to onboard form
-          const ptGymID = document.getElementById("gymID").innerText;
-          document.getElementById("copyInviteLink").href += `?pt=${ptGymID}`
+          
+          // Send details to Make
+          sendUserDetailsToMake(userObj);
+          event.target.innerText = "Creating...";
 
         } else {
           alert("Please fill in all user details");
@@ -6173,6 +6113,88 @@ async function main() {
 
     }
 
+    async function sendUserDetailsToMake(user) {
+      fetch("https://hook.us1.make.com/mxsqpd6fsvoywwasl1wmpp568pqb7bnc", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      }).then(res => {
+        if (res.ok) {
+          return res.text(); // or res.json() if the response is JSON
+        }
+        throw new Error('Something went wrong');
+      }).then((data) => {
+
+        //Hide and clear modal
+        document.getElementById("first-name-sign-up").value = "";
+        document.getElementById("last-name-sign-up").value = "";
+        document.getElementById("email-sign-up").value = "";
+        document.getElementById("shareSignUpLink").innerText = "Create Client";
+        document.getElementById("createUserModal").click();
+        
+        //Add client name to list
+        var clientRow = document.querySelector("#clientList .w-dyn-item");
+        if(clientRow) {
+          clientRow = clientRow.cloneNode(true);
+        } else {
+          clientRow = document.querySelector("#userSummaryEmpty").cloneNode(true);
+          clientRow.style.display = 'grid';
+        }
+
+        clientRow.querySelector("#initials").innerText = user["firstName"][0]+user["lastName"][0];
+        clientRow.querySelector("#userSummaryName").innerText = user["firstName"] + " " + user["lastName"];
+        clientRow.querySelector("#clientJoined").innerText = "";
+        clientRow.querySelector("#clientType").innerText = "1:1 Coaching";
+        clientRow.querySelector("#customWorkouts").innerText = "";
+        clientRow.querySelector("#customWorkouts").style.backgroundColor = "white";
+        clientRow.querySelector("#customProgram").innerText = "";
+        clientRow.querySelector("#customProgram").style.borderColor = "white";
+        clientRow.querySelector("#customProgram").style.backgroundColor = "white";
+        clientRow.querySelector("#status").innerText = "Active";
+        clientRow.querySelector("#summaryUserEmail").innerText = user["email"];
+        clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26a948539fdb22c969_Active.webp";
+
+        //Add in item ID
+        clientRow.querySelector("#summaryItemId").innerText = data;
+
+        //Clear all other fields
+        clientRow.querySelector("#summaryProgramStarts").innerText = "";
+        clientRow.querySelector("#summaryProgramEnds").innerText = "";
+        clientRow.querySelector("#summaryEventData").innerText = "";
+        clientRow.querySelector("#summaryProgramName").innerText = "";
+        clientRow.querySelector("#summaryProgramId").innerText = "";
+        clientRow.querySelector("#summaryFullEventData").innerText = "";
+
+        //Check if user list has items in it
+        if(document.querySelector("#clientList .w-dyn-item")) {
+
+          document.getElementById("clientList").appendChild(clientRow);
+
+        } else {
+          //If not then append to list wrapper
+          
+          //Insert cloned item in wrapper list
+          var listWrapper = document.querySelector(".clientlistwrapper");
+
+          // Add clonedExercise as the first child of wrapper
+          listWrapper.insertBefore(clientRow, listWrapper.firstChild);
+          //Hide empty state
+          document.querySelector(".userlistemptystate").style.display = "none";
+
+        }
+
+        const container = document.querySelector('#clientList');
+
+        container.scrollIntoView({behavior: "smooth", block: "end"});
+
+      }).catch(err => {
+
+        console.log(err)
+        // Handle any errors here
+        alert("Unable to create user, please try again")
+      });
+    }
+
 
     //Send workout object to make 
     async function sendWorkoutToMake(workout) {
@@ -6379,7 +6401,7 @@ async function main() {
         throw new Error("Something went wrong")
       })
       .then((data) => {
-        individualGuide
+
       })
       .catch((error) => {
         alert("Could not delete workout - as it exists in a current program");
