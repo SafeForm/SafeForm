@@ -6577,6 +6577,7 @@ async function main() {
       } 
 
       userProgram["thumbnailURL"] = document.getElementById("defaultThumbnail").innerText;
+      userProgram["fcName"] = document.getElementById("gymFullName").innerText;
 
       sendUserProgramToMake(userProgram, "create");
 
