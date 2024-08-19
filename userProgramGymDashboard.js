@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
@@ -1255,8 +1256,12 @@ async function main() {
 
           if(exerciseInfo.quantityUnit.toLowerCase() == "amrap") {
             //Hide reps input
+            exerciseInfoDiv.querySelector("#repsInput").value = "";
             exerciseInfoDiv.querySelector("#repsInput").style.display = "none";
             exerciseInfoDiv.querySelector("#repsInput").required = false;
+
+            //Change AMRAP width:
+            exerciseInfoDiv.querySelector("#quantityUnit").style.width = "90px";
           }
 
           //Add to exercise divs
@@ -4585,11 +4590,15 @@ async function main() {
       if(event.target.id == "quantityUnit") {
         if(event.target.value.toLowerCase() == "amrap" ) {
           //Hide reps input
+          event.target.closest("#exerciseInfo").querySelector("#repsInput").value = "";
           event.target.closest("#exerciseInfo").querySelector("#repsInput").style.display = "none";
-          event.target.closest("#exerciseInfo").querySelector("#repsInput").required = false;     
+          event.target.closest("#exerciseInfo").querySelector("#repsInput").required = false;
+          //Change AMRAP width:
+          event.target.closest("#exerciseInfo").querySelector("#quantityUnit").style.width = "90px";
         } else {
           event.target.closest("#exerciseInfo").querySelector("#repsInput").style.display = "flex";
           event.target.closest("#exerciseInfo").querySelector("#repsInput").required = true;  
+          event.target.closest("#exerciseInfo").querySelector("#quantityUnit").style.width = "65px";
         }
       }
 
