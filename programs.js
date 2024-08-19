@@ -119,7 +119,6 @@ function main() {
       button.addEventListener('click', (event) => {
 
         if(index == 0) {
-          //displayWorkouts(index, workoutList, workoutListWorkouts, workouts);
           addWorkoutsToList(workoutList, workoutListWorkouts, workouts);
 
           $('#weekParentDiv .w-button').removeClass('current-week').addClass("week-button");
@@ -182,14 +181,15 @@ function main() {
           isSameDay = true;
           // If the current div is not set or different from the new div date, create a new div
           if (!currentDiv || !currentDiv.dataset.date || currentDiv.dataset.date !== currentDay.format("YYYY-MM-DD")) {
+
             currentDiv = document.createElement('div');
-            currentDiv.style.borderRadius = '8px';
+            taskCounter = 0;
+
             currentDiv.style.marginBottom = '10px';
-            currentDiv.style.border = '2px solid #CBCBCB';
-            currentDiv.style.backgroundColor = "white";
+
             currentDiv.style.display = "flex";
             currentDiv.style.flexDirection = "column";
-            currentDiv.style.alignItems = "center";
+            currentDiv.style.alignItems = "flex-start";
             currentDiv.style.width = "100%";
             currentDiv.style.padding = "5px";
 
@@ -197,8 +197,10 @@ function main() {
             const daytext = document.createElement('div');
             daytext.innerText = `Day ${count}`;
             daytext.style.padding = "5px";
-            daytext.style.color = "black";
+            daytext.style.color = "#0C08D5";
+
             currentDiv.appendChild(daytext);
+            
             workoutList.appendChild(currentDiv);
             count += 1;
           } 
@@ -230,4 +232,11 @@ function main() {
       }
     }
   }
+
+
+  
+
 }
+
+
+
