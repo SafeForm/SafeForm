@@ -140,6 +140,11 @@ function main() {
     }
   }
 
+  if(localStorage.getItem("startedWorkout") == uniqueWorkoutID) {
+    document.getElementById("startWorkout").innerText = "Continue Workout";
+    //document.getElementById("startWorkout").click();
+  }
+
   if((fromChallenge || fromProgram) && currentProgram != undefined && currentProgram != null) {
     weekToFilter = "Week " + sessionStorage.getItem("currentWeekNumber");
 
@@ -796,10 +801,6 @@ function main() {
       
     };
 
-    if(localStorage.getItem("startedWorkout") == uniqueWorkoutID) {
-      document.getElementById("startWorkout").click();
-    }
-
     //Click listeners:
     document.addEventListener('click', async function(event) {
       if(event.target.closest(".user-page")) {
@@ -1417,6 +1418,8 @@ function main() {
   async function updateWorkoutDetails(exerciseID, exerciseName, workoutID, value) {
     MemberStack.onReady.then(async function(member) {  
 
+      document.getElementById("startWorkout").innerText = "Continue Workout";
+
       var metadata = await member.getMetaData();
 
       //First check using exercise ID as the key
@@ -1515,6 +1518,8 @@ function main() {
 
   async function updateExerciseDetails(exerciseID, exerciseName, inputValue, setNumber=null, type, inputArray) {
     MemberStack.onReady.then(async function(member) {  
+
+      document.getElementById("startWorkout").innerText = "Continue Workout";
 
       var metadata = await member.getMetaData();
 
