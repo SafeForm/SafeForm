@@ -17,6 +17,7 @@ async function main() {
   var workoutSortable = new Sortable(document.getElementById("workoutList"), {
     animation: 150,
     dragClass: "sortable-ghost",  // Class name for the dragging item
+    handle: "#navigationButtons", // Set navigationButtons as the drag handle
     onEnd: function (evt) {
       // Get all superset elements
       var supersetIcons = document.getElementById("workoutList").querySelectorAll(".supersetparent");
@@ -613,6 +614,7 @@ async function main() {
 
       supersetImage.classList.add("supersetimageopen");
       supersetImage.classList.remove("supersetimageclosed");
+
 
     }
     
