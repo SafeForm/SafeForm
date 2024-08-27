@@ -14,7 +14,6 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
-
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
@@ -6644,9 +6643,7 @@ async function main() {
         var fullTableData = [];
 
         for(table of tableArr) {
-
           fullTableData = fullTableData.concat(table.getData());
-
         }
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
@@ -7178,8 +7175,8 @@ async function main() {
                   quantityUnit: "",
                   notes: "",
                   workoutNumber: obj.workoutNumber,
-                  setNumber: currentWeekLength + i,
-                  results: "",
+                  //setNumber: currentWeekLength + i,
+                  //results: "",
                   uniqueWorkoutID: "",
                 };
                 workoutData.push(blankObj);
@@ -7327,10 +7324,12 @@ async function main() {
         dates.sort((a, b) => a - b);
         //Set calendar initial date
         if(programType == "userProgram") {
+          
           calendar.today();
         } else {
           calendar.gotoDate( dates[0] );
         }
+
         // Calculate the number of weeks between the first and last dates
         const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
         const firstDate = dates[0];
@@ -7969,7 +7968,7 @@ async function main() {
   
                       // Create an exercise object for each exercise
                       var exerciseObject = {
-                        "id": workoutName + workoutNameIndex[workoutName],
+                        //"id": workoutName + workoutNameIndex[workoutName],
                         "week": "Week " + week,
                         "workoutName": workoutName,
                         "workoutID": event.extendedProps.workoutID,
@@ -7981,9 +7980,9 @@ async function main() {
                         "exerciseRestSeconds": exercise.exerciseRestSeconds,
                         "quantityUnit": exercise.quantityUnit,
                         "notes": individualExercise.exerciseNotes,
-                        "workoutNumber": `workout ${i}`,
-                        "setNumber": l,
-                        "results": "",
+                        //"workoutNumber": `workout ${i}`,
+                        //"setNumber": l,
+                        //"results": "",
                         "startDate": event.start,
                         "guideID": individualExercise.guideID,
                         "uniqueWorkoutID": uniqueWorkoutID
