@@ -2903,7 +2903,7 @@ async function main() {
       if(sessionStorage.getItem('editChallenge') == "true") {
         challenge["programID"] = document.getElementById("challengeSummaryID").value;
       } 
-
+      
       challenge["extendedJSON"] = JSON.stringify(createExtendedProgram(JSON.parse(challenge.eventData)));
 
       sendChallengeToMake(challenge);
@@ -8027,12 +8027,17 @@ async function main() {
 
     function createExtendedProgram(programJSON) {
 
+      console.log(programJSON)
+
       for(const workout of programJSON) {
         if(workout.extendedProps.workoutID) {
           const workoutID = workout.extendedProps.workoutID;
           const workoutElem = getWorkoutElement(workoutID);
-          const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
-          workout.workoutJSON = JSON.parse(workoutJSON);
+          if(workoutElem) {
+            const workoutJSON = workoutElem.querySelector("#workoutJSON").innerText;
+            workout.workoutJSON = JSON.parse(workoutJSON);
+          }
+
         }
       }
 
