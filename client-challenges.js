@@ -401,11 +401,21 @@ function main() {
 
     function getWeekNumber(dateString, weeks) {
       const date = new Date(dateString);
+      let closestWeekIndex = -1;
+      let smallestDifference = Infinity;
+  
       for (let i = 0; i < weeks.length; i++) {
           const week = weeks[i];
           for (let j = 0; j < week.length; j++) {
               const event = week[j];
               const eventDate = new Date(event.start);
+  
+              const differenceInDays = Math.abs(date - eventDate);
+              if (differenceInDays < smallestDifference) {
+                  smallestDifference = differenceInDays;
+                  closestWeekIndex = i;
+              }
+  
               if (eventDate.getFullYear() === date.getFullYear() &&
                   eventDate.getMonth() === date.getMonth() &&
                   eventDate.getDate() === date.getDate()) {
@@ -413,9 +423,11 @@ function main() {
               }
           }
       }
-
-      return 1; // Date not found in the provided object
+  
+      // Return the closest week if the exact date is not found
+      return closestWeekIndex + 1;
   }
+  
 
     function isInSameWeek(date1, date2) {
       const firstDayOfWeek = new Date(date1);
