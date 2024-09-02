@@ -166,7 +166,7 @@ async function main() {
   addMoreThanFiveWorkouts();
 
   //Add pending users
-  addPendingUsers();
+  //addPendingUsers();
 
   addStatusToUsers();
 
