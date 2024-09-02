@@ -4032,8 +4032,8 @@ async function main() {
 
       } else if(event.target.id == "copyInviteLinkDropdown") {
 
-        const ptGymIDLink = document.getElementById("gymID").innerText;
-        navigator.clipboard.writeText(window.location.origin + `/onboarding-form?pt=${ptGymIDLink}`);
+        var userEmail = event.target.closest("#userSummary").querySelector("#summaryUserEmail").innerText;
+        navigator.clipboard.writeText(window.location.origin + `/client-sign-up?email=${userEmail}`);
         event.target.innerText = "Copied!";
 
       } else if(event.target.id == "shareSignUpLink") {
