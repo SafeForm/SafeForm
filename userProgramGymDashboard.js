@@ -2375,17 +2375,6 @@ async function main() {
       })(challengeList[i]);
     }
 
-    //Set onclicks for all tasks
-    var taskItems = document.querySelectorAll(".taskitem");
-    for(var i = 0; i < taskItems.length; i++) {
-      (function(task) {
-        task.onclick = () => {
-          prefillWorkoutTaskList(task, "task");
-        }
-      })(taskItems[i]);
-    }
-
-
     //Set onclicks for all workouts
     var mainWorkoutList = document.querySelectorAll(".workoutsummaryitem");
 
@@ -3324,6 +3313,10 @@ async function main() {
     //Listen for click events:
     document.addEventListener('click', function (event) {
 
+      if(event.target.closest("#taskItem")) {
+        prefillWorkoutTaskList(event.target.closest("#taskItem"), "task");
+      }
+
       if(event.target.id == "clearClientFilters") {
         resetFilters();
       }
@@ -3548,7 +3541,6 @@ async function main() {
           };
 
         } else {
-
           prefillWorkoutTaskList(workout, "workout");
         }
       }
@@ -4154,7 +4146,6 @@ async function main() {
           currentExercise.appendChild(nextExercise.removeChild(nextExercise.querySelector("#guideCopy")));
           nextExercise.appendChild(temp); 
         }
- 
 
       } else if(event.target.closest("#createTaskButton")) {
 
@@ -4172,6 +4163,7 @@ async function main() {
       } else if(event.target.closest("#submitTask")) {
 
         const taskForm = document.getElementById("taskForm");
+        document.getElementById("submitTask").innerText = "Creating...";
         if(taskForm.checkValidity()) {
           submitTaskForm();
         } else {
@@ -5406,8 +5398,9 @@ async function main() {
       if (!taskItem) return; // Exit if no task is selected
     
       // Update task name
-      taskItem.querySelector("#taskListName").innerText = document.getElementById("taskInputName").value;
-    
+      taskItem.querySelector("#taskName").innerText = document.getElementById("taskInputName").value;
+      
+      /*
       // Update task content link
       taskItem.querySelector("#taskListContentLink").innerText = document.getElementById("taskContentLink").value;
     
@@ -5434,6 +5427,7 @@ async function main() {
     
       // Remove the editedTask class
       taskItem.classList.remove("editedTask");
+      */
     
       // Reset the submit button text
       document.getElementById("submitTask").innerText = "Create";
@@ -5455,6 +5449,9 @@ async function main() {
 
       //Product thumbnail file name
       document.getElementById("uploadImage2").src = "https://assets-global.website-files.com/627e2ab6087a8112f74f4ec5/65504c5a73ed7d0d9ae8c2c6_Upload.webp";
+
+      //Reset button name
+      document.getElementById("submitTask").innerText = "Create";
 
       //Affiliate code / description
       document.getElementById("taskDescription").value = "";
@@ -6043,7 +6040,11 @@ async function main() {
           } else if(formID == "exerciseLibraryForm") {
             filtersTotalSize = res[i].filtersData[1].values.size;
           } else {
-            filtersTotalSize = res[i].filtersData[1].values.size + res[i].filtersData[2].values.size;
+            filtersTotalSize = res[i].filtersData[1].values.size;
+            if(res[i].filtersData[2]) {
+              filtersTotalSize += res[i].filtersData[2].values.size;
+            }
+            
           }
           filtersTotalSizes[formID] = filtersTotalSize;
         }
@@ -6066,8 +6067,9 @@ async function main() {
 
         //Set itemID text
         if(method == "create") {
-          taskElement.querySelector("#taskListItemID").innerText = data;
+          taskElement.querySelector("#taskItemID").innerText = data;
           sessionStorage.setItem("createTask", "false");
+          hideAndClearTaskModal();
         } 
 
       })
@@ -6084,7 +6086,7 @@ async function main() {
 
     function addNewTaskToList(formData) {
       // Find the first .exerciseguideitem element to clone
-      const templateItem = document.querySelector('.tasklistitem');
+      const templateItem = document.querySelector('.taskitem');
   
       if (!templateItem) {
           console.error('Template item not found');
@@ -6095,7 +6097,9 @@ async function main() {
       const newTaskItem = templateItem.cloneNode(true);
   
       // Fill in the gaps with the data from formData
-      newTaskItem.querySelector('#taskListName').innerText = formData.get('name');
+      newTaskItem.querySelector('#taskName').innerText = formData.get('name');
+
+      /*
       newTaskItem.querySelector('#taskListContentLink').innerText = formData.get('taskContentLink');
       newTaskItem.querySelector('#taskListDescription').innerText = formData.get('taskDescription');
   
@@ -6109,11 +6113,12 @@ async function main() {
       if (taskImage) {
           newTaskItem.querySelector('#taskListContentImage').innerHTML = taskImage.name;
       }
+          */
 
-      newTaskItem.querySelector('#taskListCreated').innerText = moment().format('MMMM D, YYYY');
+      newTaskItem.querySelector('#taskAttachment').innerText = moment().format('MMMM D, YYYY');
   
       // Add the new task item to the start of the exerciseLibraryList
-      const exerciseLibraryList = document.getElementById('taskList');
+      const exerciseLibraryList = document.getElementById('taskListModal');
       exerciseLibraryList.insertBefore(newTaskItem, exerciseLibraryList.firstChild);
 
       return newTaskItem;
@@ -7404,12 +7409,13 @@ async function main() {
         const events = [];
         
         // Extract and convert the "start" values into Date objects
-        const dates = eventsData.map(obj => obj.start);
-        
+        const dates = eventsData.map(obj => new Date(obj.start));
+
         // Sort the dates in ascending order
         dates.sort((a, b) => a - b);
+
         //Set calendar initial date
-        calendar.gotoDate( dates[0] );
+        calendar.gotoDate(dates[0]);
 
         addDatePickers();
 
@@ -8445,6 +8451,7 @@ async function main() {
       removeItem.addEventListener("click", function() {
         listElement.parentElement.remove();
       });
+
       listElement.querySelector(".exerciseheaderdiv").appendChild(removeItem);
       listElement.querySelector(".exerciseheaderdiv").style.justifyContent = "space-between";
 
@@ -8466,14 +8473,28 @@ async function main() {
 
         listElement.querySelector("#itemID").innerText = element.querySelector("#workoutIDProgram").innerText;
 
+        var workoutListItem = getWorkoutElement(element.querySelector("#workoutIDProgram").innerText);
+        var workoutListItemThumbnail = workoutListItem.querySelector("#exerciseThumbnailURL").innerText.split(",");
+        if(workoutListItemThumbnail.length > 0) {
+          listElement.querySelector(".exerciseThumbnail").src = workoutListItemThumbnail[0];
+        }
+
+        listElement.querySelector(".exerciseThumbnail").style.minWidth = "80px";
+       
+
       } else if(type == "task") {
         listElement.querySelector("#guideName").innerText = element.querySelector("#taskName").innerText;
         listElement.querySelector("#guideName").id = "taskName";
         listElement.querySelector("#itemID").innerText = element.querySelector("#taskItemID").innerText;
 
-        listElement.querySelector("#exerciseInfoRight").style.display = "none";
+        listElement.querySelector("#exerciseThumbnail").style.display = "none";
         listElement.id = "taskItem";
       }
+
+      listElement.querySelector(".exerciseheaderdiv").style.width = "100%";
+      listElement.querySelector(".exerciseheaderdiv").style.height = "35px";
+      listElement.querySelector(".exercisenameheader").style.display = "flex";
+      listElement.querySelector(".exercisenameheader").style.justifyContent = "center";
 
       workoutTaskList.appendChild(listItem);
 
