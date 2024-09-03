@@ -481,8 +481,7 @@ function main() {
           }
 
           // Check if the current workout and the next workout are on the same day
-          
-          if (workouts[i].extendedProps.weeklyTask != "true" && (currentDay.isSame(nextDay) || isSameDay)) {
+          if (workouts[i].extendedProps.weeklyTask != "true" || isSameDay) {
             isSameDay = true;
             // If the current div is not set or different from the new div date, create a new div
             if (!currentDiv || !currentDiv.dataset.date || currentDiv.dataset.date !== currentDay.format("YYYY-MM-DD")) {
@@ -727,13 +726,15 @@ function updateWeeklyTaskText(completedWeeklyTasks, numberOfWeeklyTasks) {
   document.getElementById("weeklyTaskText").innerText = `Weekly Tasks ${completedWeeklyTasks}/${numberOfWeeklyTasks}`;
 
   if(numberOfWeeklyTasks == 0) {
-    document.querySelector(".div-block-573").style.display = "none";
+    //document.querySelector(".div-block-573").style.display = "none";
   } else if(numberOfWeeklyTasks != 0 && completedWeeklyTasks == numberOfWeeklyTasks) {
     document.querySelector(".weekly-tasks").style.borderColor = "#6F6E6E";
     document.querySelector("#weeklyTaskText").style.color = "#6F6E6E";
+    document.querySelector(".div-block-573").style.display = "block";
   } else {
     document.querySelector(".weekly-tasks").style.borderColor = "#cbcbcb";
     document.querySelector("#weeklyTaskText").style.color = "";
+    document.querySelector(".div-block-573").style.display = "block";
   }
 }
 
