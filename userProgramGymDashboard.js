@@ -7616,12 +7616,12 @@ async function main() {
             },
             data: weekData,
             layout: "fitColumns", // Set the layout option to 'fitData'
-            groupBy: ["workoutNumber", "workoutName", "exercise"],
+            groupBy: ["wn", "workoutName", "exercise"],
             groupHeader: function (value, count, data, group) {
               if (group.getField() === "workoutName") {
                 return `<span style='font-family: Manrope; color: black; font-size: 16px; font-weight: 600;'>${value}</span>`;
 
-              } else if (group.getField() == "workoutNumber") {
+              } else if (group.getField() == "wn") {
                 return "";
               } else {
                 // Check if the "exercise" value is empty or null, and don't show the group if it is
@@ -7987,7 +7987,7 @@ async function main() {
                         "exerciseRestSeconds": exercise.exerciseRestSeconds,
                         "quantityUnit": exercise.quantityUnit,
                         "notes": individualExercise.exerciseNotes,
-                        //"workoutNumber": `workout ${i}`,
+                        "wn": `workout ${i}`,
                         //"setNumber": l,
                         //"results": "",
                         "startDate": event.start,
