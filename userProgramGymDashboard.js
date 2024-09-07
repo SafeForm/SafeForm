@@ -6166,6 +6166,7 @@ async function main() {
         clientRow.querySelector("#status").innerText = "Active";
         clientRow.querySelector("#summaryUserEmail").innerText = user["email"];
         clientRow.querySelector("#statusImg").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/653f6d26a948539fdb22c969_Active.webp";
+        clientRow.querySelector("#summaryAccountType").innerText = "customised";
 
         //Add in item ID
         clientRow.querySelector("#summaryItemId").innerText = data;
