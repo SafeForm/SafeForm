@@ -41,74 +41,6 @@ function main() {
 
     const weeks = [];
 
-    document.addEventListener('click', function (event) {
-
-      if (event.target.id == "dayView") {
-        if (event.target.classList.contains("dayweekbutton")) {
-          $('#weekParentDiv > a:not(.div-block-574 .w-button)').hide();
-          $('#weekParentDiv > button').show();
-          event.target.classList.remove("dayweekbutton");
-          event.target.classList.add("dayweekbuttonclicked");
-      
-          document.getElementById("scheduleText").innerText = "By Day";
-      
-          document.getElementById("weeklyView").click();
-      
-          let currentDay = sessionStorage.getItem("currentDay");
-          let dayButton = document.getElementById(currentDay);
-      
-          if (!dayButton) {
-            // Get all buttons in the weekParentDiv
-            let buttons = document.querySelectorAll("#weekParentDiv > button");
-      
-            // Convert NodeList to array and sort by date
-            let sortedButtons = Array.from(buttons).sort((a, b) => {
-              return new Date(a.id) - new Date(b.id);
-            });
-      
-            // Find the nearest future date
-            let today = new Date(currentDay);
-            for (let btn of sortedButtons) {
-              let btnDate = new Date(btn.id);
-              if (btnDate > today) {
-                dayButton = btn;
-                break;
-              }
-            }
-          }
-      
-          if (dayButton) {
-            dayButton.click();
-          }
-      
-          document.getElementById("weeklyView").classList.remove("dayweekbuttonclicked");
-          document.getElementById("weeklyView").classList.add("dayweekbutton");
-        }
-      }
-
-      if(event.target.id == "weeklyView") {
-
-        if(event.target.classList.contains("dayweekbutton")) {
-          $('#weekParentDiv > a:not(.div-block-574 .w-button)').show();
-          $('#weekParentDiv > button').hide();
-          event.target.classList.remove("dayweekbutton");
-          event.target.classList.add("dayweekbuttonclicked");
-
-          document.getElementById("scheduleText").innerText = "By Week";
-
-          var selectedWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
-          document.getElementById(`week-${selectedWeek}`).click();
-          
-          document.getElementById("dayView").click();
-    
-          document.getElementById("dayView").classList.remove("dayweekbuttonclicked");
-          document.getElementById("dayView").classList.add("dayweekbutton");
-        }
-
-      }
-
-    });
-
     var workoutList = document.querySelectorAll("#challengeWorkoutList .challengeitem");
 
     for(var i = 0; i < workoutList.length; i++) {
@@ -181,7 +113,6 @@ function main() {
       const currentMonthStart = moment().startOf('month');
       const currentMonthEnd = moment().endOf('month');
 
-      let weeks = [];
       let weekCount = 1;
 
       for (const workout of workouts) {
@@ -393,6 +324,77 @@ function main() {
       document.getElementById("guideListParent").style.display = "none";
       document.getElementById("workout-empty-state").style.display = "flex";
     }
+
+    document.addEventListener('click', function (event) {
+
+      if (event.target.id == "dayView") {
+        if (event.target.classList.contains("dayweekbutton")) {
+          $('#weekParentDiv > a:not(.div-block-574 .w-button)').hide();
+          $('#weekParentDiv > button').show();
+          event.target.classList.remove("dayweekbutton");
+          event.target.classList.add("dayweekbuttonclicked");
+      
+          document.getElementById("scheduleText").innerText = "By Day";
+      
+          document.getElementById("weeklyView").click();
+      
+          let currentDay = sessionStorage.getItem("currentDay");
+          let dayButton = document.getElementById(currentDay);
+      
+          if (!dayButton) {
+            // Get all buttons in the weekParentDiv
+            let buttons = document.querySelectorAll("#weekParentDiv > button");
+      
+            // Convert NodeList to array and sort by date
+            let sortedButtons = Array.from(buttons).sort((a, b) => {
+              return new Date(a.id) - new Date(b.id);
+            });
+      
+            // Find the nearest future date
+            let today = new Date(currentDay);
+            for (let btn of sortedButtons) {
+              let btnDate = new Date(btn.id);
+              if (btnDate > today) {
+                dayButton = btn;
+                break;
+              }
+            }
+          }
+      
+          if (dayButton) {
+            dayButton.click();
+          }
+      
+          document.getElementById("weeklyView").classList.remove("dayweekbuttonclicked");
+          document.getElementById("weeklyView").classList.add("dayweekbutton");
+        }
+      }
+
+      if(event.target.id == "weeklyView") {
+
+        if(event.target.classList.contains("dayweekbutton")) {
+          $('#weekParentDiv > a:not(.div-block-574 .w-button)').show();
+          $('#weekParentDiv > button').hide();
+          event.target.classList.remove("dayweekbutton");
+          event.target.classList.add("dayweekbuttonclicked");
+
+          document.getElementById("scheduleText").innerText = "By Week";
+
+          var selectedWeek = getWeekNumber(sessionStorage.getItem("currentDay"), weeks);
+          console.log(weeks)
+          console.log(sessionStorage.getItem("currentDay"))
+          console.log(selectedWeek)
+          document.getElementById(`week-${selectedWeek}`).click();
+          
+          document.getElementById("dayView").click();
+    
+          document.getElementById("dayView").classList.remove("dayweekbuttonclicked");
+          document.getElementById("dayView").classList.add("dayweekbutton");
+        }
+
+      }
+
+    });
 
 
     //Hide week buttons for now
