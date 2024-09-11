@@ -111,7 +111,6 @@ function main() {
     fromChallenge = true;
   }
 
-
   //Add inputs for each exercise based on number of sets
   const inputList = document.querySelectorAll("#inputList .w-dyn-item");
 
@@ -140,9 +139,8 @@ function main() {
     }
   }
 
-  if(localStorage.getItem("startedWorkout") == uniqueWorkoutID) {
+  if(uniqueWorkoutID && localStorage.getItem("startedWorkout") == uniqueWorkoutID) {
     document.getElementById("startWorkout").innerText = "Continue Workout";
-    //document.getElementById("startWorkout").click();
   }
 
   if((fromChallenge || fromProgram) && currentProgram != undefined && currentProgram != null) {
@@ -275,16 +273,42 @@ function main() {
       var exerciseFullName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
 
       var exerciseInformation = [];
-
-      if(!workoutInformation || fromChallenge) {
-
+      
+      if(!workoutInformation || workoutInformation.length == 0 || fromChallenge) {
         if(fromChallenge) {
-          const flattenedArray = [].concat(...workoutInformation[0].workoutJSON);
+          const formattedArray = [].concat(...workoutInformation[0].workoutJSON);
+          var flattenedArray = [];
+          formattedArray.forEach((exercise) => {
+            if(exercise.guideID) {
+              flattenedArray.push(exercise);
+            } else {
+              var subExerciseList = Object.values(exercise)[0];
+        
+              subExerciseList.forEach((subExercise) => {
+                flattenedArray.push(subExercise);
+              });
+            }
+          });
           exerciseInformation = flattenedArray.filter(item => item.guideID && item.guideID.includes(inputGuideID));
         } else {
           const newWorkoutInformation = JSON.parse(document.getElementById("workoutJSON").innerText);
           const flatWorkoutInformation = newWorkoutInformation.flat(); // Flatten the nested arrays
-          exerciseInformation = flatWorkoutInformation.filter(item => item.guideID && item.guideID.includes(inputGuideID));
+          flatWorkoutInformation.forEach((exercise) => {
+
+            //Check the format
+            if(exercise.guideID && exercise.guideID.includes(inputGuideID)) {
+              exerciseInformation.push(exercise)
+            } else if(!exercise.guideID) {
+
+              var exerciseInfo = Object.values(exercise)[0];
+              exerciseInfo.forEach((subExercise) => {
+                if(subExercise.guideID && subExercise.guideID.includes(inputGuideID)) {
+                  exerciseInformation.push(subExercise)
+                }
+              })
+            }
+
+          });
         }
 
         const newArray = [];
@@ -933,7 +957,19 @@ function main() {
 
   var workoutJSON = JSON.parse(document.getElementById("workoutJSON").innerText);
 
-  const flattenedArray = [].concat(...workoutJSON);
+  const formattedArray = [].concat(...workoutJSON);
+  var flattenedArray = [];
+  formattedArray.forEach((exercise) => {
+    if(exercise.guideID) {
+      flattenedArray.push(exercise);
+    } else {
+      var subExerciseList = Object.values(exercise)[0];
+
+      subExerciseList.forEach((subExercise) => {
+        flattenedArray.push(subExercise);
+      });
+    }
+  });
 
   exerciseList = document.querySelectorAll("#listOfExercises .w-dyn-item");
 
@@ -1010,7 +1046,12 @@ function main() {
   var listOfExercises = document.querySelectorAll("#listOfExercises .w-dyn-item");
   var inputListExercises = document.querySelectorAll("#inputList .w-dyn-item");
   workoutJSONObj.forEach((exercise, index) => {
-    
+    var exerciseGroupName = "";
+    if(!Array.isArray(exercise)) {
+      exerciseGroupName = Object.keys(exercise)[0]
+      exercise = Object.values(exercise)[0];
+    }
+
     if(exercise.length > 1) {
 
       // Create a new div with styling
@@ -1025,7 +1066,13 @@ function main() {
       newDiv.style.alignItems = "center";
       newDiv.style.boxShadow = "0 4px 4px 0px rgba(0, 0, 0, 0.25)";
       const supersetText = document.createElement('div');
-      supersetText.innerText = "Superset";
+      if(exerciseGroupName != "") {
+        supersetText.innerText = exerciseGroupName;
+      } else {
+        supersetText.innerText = "Superset";
+      }
+      
+      
       supersetText.classList.add("superset-text")
       
       //Add 'superset text to list'
