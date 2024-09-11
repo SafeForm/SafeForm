@@ -1116,7 +1116,7 @@ async function main() {
 
     }
 
-    function addExerciseToWorkoutList(copyOfGuide, exerciseInformation=null, prefill=null, thumbnail=null, svgPerson=null, programWorkout= false, jsonExercises=null, exerciseList=null) {
+    function addExerciseToWorkoutList(copyOfGuide, exerciseInformation=null, prefill=null, thumbnail=null, svgPerson=null, programWorkout= false, jsonExercises=null, exerciseList=null, exerciseGroupName="") {
       //Get current guide and add to workout list
       var workoutList = "";
       if(!programWorkout) {
@@ -1127,7 +1127,7 @@ async function main() {
 
       if(jsonExercises != null && exerciseList != null) {
         for(var i = 0; i < exerciseList.length; i++) {
-          createWorkoutExerciseElement(exerciseList[i][0], workoutList, exerciseInformation[i], prefill, exerciseList[i][1], exerciseList[i][2], programWorkout, i, jsonExercises[i]); 
+          createWorkoutExerciseElement(exerciseList[i][0], workoutList, exerciseInformation[i], prefill, exerciseList[i][1], exerciseList[i][2], programWorkout, i, jsonExercises[i], exerciseGroupName); 
         }
       } else {
         createWorkoutExerciseElement(copyOfGuide, workoutList, exerciseInformation, prefill, thumbnail, svgPerson, programWorkout); 
@@ -1136,7 +1136,7 @@ async function main() {
 
     }
 
-    function createWorkoutExerciseElement(copyOfGuide, workoutList, exerciseInformation, prefill, thumbnail, svgPerson, programWorkout, index=0, jsonExercises=null) {
+    function createWorkoutExerciseElement(copyOfGuide, workoutList, exerciseInformation, prefill, thumbnail, svgPerson, programWorkout, index=0, jsonExercises=null, exerciseGroupName="") {
 
       const workoutItemTemplate = workoutList.querySelector("ul > li:first-child");
       
@@ -1400,6 +1400,9 @@ async function main() {
       if(index == 1) {
         var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling;
         previousExercise.querySelector(".supersetparent img").click();
+
+        //Add in grouped exercise name
+        previousExercise.closest(".exercise-list-item-superset").querySelector("#supersetDropdown").value = exerciseGroupName;
       } else if(index > 1) {
         //For all others get last element in superset list and click superset image
         var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling.querySelector(".exercise-list-item-superset").lastChild;
@@ -1471,36 +1474,39 @@ async function main() {
     }
 
     function handleSupersetClick(event) {
+
       const supersetImage = event.target;
-
-      if(event.target.classList.contains("supersetimageopen")) {
-
+      var reset = false;
+    
+      if (event.target.classList.contains("supersetimageopen")) {
+    
         var supersetParent = supersetImage.closest('.exercise-list-item');
         var nextSibling = supersetParent.nextElementSibling;
-        const previousSibling = supersetParent.closest(".exercise-list-item-superset");
-
+        const previousSibling = supersetParent.previousElementSibling;
+        const grandParentSibling = supersetParent.closest(".exercise-list-item-superset");
+    
         supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
 
-        //Make sure not end of list and the next element isn't already in a superset
-        if(nextSibling != null && !nextSibling.querySelector(".exercise-list-item-superset")) {
+        // Make sure it's not the end of the list and the next element isn't already in a superset
+        if (nextSibling != null && !nextSibling.querySelector(".exercise-list-item-superset")) {
           nextSibling.querySelector("#removeFullExercise").style.display = "none";
-
+    
           // Create a new div with styling
           const newDiv = document.createElement('li');
           newDiv.classList.add('exercise-list-item-superset');
-          
+    
           newDiv.style.width = '100%';
           newDiv.style.marginTop = '10px';
           newDiv.style.display = "flex";
           newDiv.style.flexDirection = "column";
-          newDiv.style.alignItems = "center";
-
+          newDiv.style.alignItems = "flex-start";
+    
           // Create the .drag-item element
           const dragItem = document.createElement('img');
           dragItem.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/6688c08ca05b38cf0e64d623_drag.webp";
           dragItem.classList.add('drag-item');
           dragItem.style.marginLeft = "10px";
-
+    
           // Create a wrapper for newDiv and dragItem
           const wrapper = document.createElement('li');
           wrapper.style.display = 'flex';
@@ -1510,135 +1516,190 @@ async function main() {
           wrapper.style.border = '2px solid #CBCBCB';
           wrapper.classList.add("supersetWrapper");
           wrapper.style.borderRadius = '8px';
-
+    
+          // Clone the supersetDropdown element
+          const dropdownElement = document.getElementById('supersetDropdown');
+          if (dropdownElement) {
+            const clonedDropdown = dropdownElement.cloneNode(true);
+            clonedDropdown.style.display = "block";
+    
+            // Instead of inserting the cloned dropdown above the wrapper, insert it inside the newDiv
+            newDiv.appendChild(clonedDropdown);
+          }
+    
           // Append the drag item to the wrapper
-          if(event.target.closest("#workoutList")) {
+          if (event.target.closest("#workoutList")) {
             wrapper.appendChild(dragItem);
           }
-
+    
           // Append the new div to the wrapper
           wrapper.appendChild(newDiv);
-
+    
           // Insert the wrapper before the superset parent
           supersetParent.parentNode.insertBefore(wrapper, supersetParent);
-
+    
           // Append parent and next sibling elements to the new div
           newDiv.appendChild(supersetParent);
           if (nextSibling) {
             newDiv.appendChild(nextSibling);
           }
-
+    
           // Remove existing border styling from #guideCopy
           newDiv.querySelectorAll('.exercisegroup').forEach(guideCopy => {
             guideCopy.style.border = 'none';
             var exerciseItem = guideCopy.closest(".exercise-list-item");
-            if(exerciseItem.querySelector("#navigationButtons")) {
+            if (exerciseItem.querySelector("#navigationButtons")) {
               exerciseItem.querySelector("#navigationButtons").style.display = "none";
             }
             exerciseItem.style.width = "100%";
           });
-
+    
           const elements = newDiv.querySelectorAll(".supersetparent");
           elements.forEach(element => {
-            element.style.marginRight = "31px";
+            element.style.marginRight = "25px";
           });
+    
+          // New conditions for margin-top
+          if (!previousSibling) {
+            // If first in the list, set margin-top to 40px
+            wrapper.style.marginTop = "40px";
+          } else if (previousSibling && wrapper.querySelector(".supersetparent")) {
+            // If the previous sibling is another superset parent, set margin-top to 30px
+            wrapper.style.marginTop = "30px";
+          }
+    
+        } else if (nextSibling && nextSibling.querySelector(".exercise-list-item-superset")) {
 
-        } else if(nextSibling && nextSibling.querySelector(".exercise-list-item-superset")) {
-          //Now check if next element is in a superset
+          // Now check if the next element is in a superset
           supersetParent.querySelector(".exercisegroup").style.border = 'none';
-          supersetParent.querySelector(".supersetparent").style.marginRight = "31px";
-          nextSibling.querySelector(".supersetparent").style.marginRight = "31px";
+          supersetParent.querySelector(".supersetparent").style.marginRight = "25px";
+          nextSibling.querySelector(".supersetparent").style.marginRight = "25px";
           supersetParent.querySelector("#navigationButtons").style.display = 'none';
-          nextSibling.querySelector(".exercise-list-item-superset").insertBefore(supersetParent, nextSibling.querySelector(".exercise-list-item-superset").firstChild);
 
-        } else if(previousSibling && supersetParent) {
+          const nextSupersetItem = nextSibling.querySelector(".exercise-list-item-superset");
+          const supersetDropdown = nextSibling.querySelector("#supersetDropdown");
 
-          if(nextSibling == null) {
-            
-            nextSibling = supersetParent.closest(".exercise-list-item-superset");
-            nextSibling.querySelector(".supersetparent").style.marginRight = "31px";
-            if(nextSibling && nextSibling.parentElement && nextSibling.querySelector(".supersetWrapper")) {
+          // Insert supersetParent at the top of the next superset item
+          nextSupersetItem.insertBefore(supersetParent, nextSupersetItem.firstChild);
+
+          // Insert the supersetDropdown right after supersetParent
+          nextSupersetItem.insertBefore(supersetDropdown, nextSupersetItem.firstChild);
+
+          supersetParent.style.width = "100%";
+    
+        } else if (grandParentSibling && supersetParent) {
+    
+          if (nextSibling == null) {
+
+            nextSibling = grandParentSibling.parentElement.nextElementSibling;
+            nextSibling.querySelector(".supersetparent").style.marginRight = "25px";
+
+            if (nextSibling && nextSibling.classList.contains("supersetWrapper")) {
+              // Handling superset logic here
+              reset = true;
             } else {
-              //Now check if current element is in a superset
-              supersetParent = previousSibling.parentElement.nextElementSibling;
+
+              // Now check if the current element is in a superset
+              supersetParent = grandParentSibling.parentElement.nextElementSibling;
+
               supersetParent.style.width = "100%";
               supersetParent.querySelector(".exercisegroup").style.border = 'none';
-              if(supersetParent.querySelector("#navigationButtons")) {
+              if (supersetParent.querySelector("#navigationButtons")) {
                 supersetParent.querySelector("#navigationButtons").style.display = 'none';
               }
-
-              previousSibling.appendChild(supersetParent);
+    
+              grandParentSibling.appendChild(supersetParent);
             }
-          }
 
+          }
+    
+        }
+    
+        // Remove supersetimageopen class
+        supersetParent.querySelector(".supersetparent").style.marginRight = "25px";
+
+        if(!reset) {
+          supersetImage.classList.remove("supersetimageopen");
+          supersetImage.classList.add("supersetimageclosed");
+        } else {
+          supersetImage.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc7674f21dd849120ea_open_superset.webp"
         }
 
-        //Remove supersetimageopen class
-        supersetParent.querySelector(".supersetparent").style.marginRight = "31px";
-        supersetImage.classList.remove("supersetimageopen");
-        supersetImage.classList.add("supersetimageclosed");
-        if(supersetParent.querySelector("#removeFullExercise")) {
+        if (supersetParent.querySelector("#removeFullExercise")) {
           supersetParent.querySelector("#removeFullExercise").style.display = "none";
         }
-      
-        
-      } else {
 
+        reset = false;
+    
+      } else {
+    
         const supersetParent = supersetImage.closest('.exercise-list-item-superset').parentElement;
         var supersetItem = supersetImage.closest('.exercise-list-item');
         const workoutList = document.getElementById('workoutList'); // Assuming 'workoutList' is the ID of your list
-
-        supersetItem.style.width = "";
-        //Change superset image back  
+    
+        // Change superset image back  
         supersetImage.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc7674f21dd849120ea_open_superset.webp";
-      
+    
         // Get the exercises inside the superset parent
         const exercisesToRestore = Array.from(supersetParent.querySelectorAll('.exercise-list-item'));
-        if(exercisesToRestore.length == 2) {
-          supersetParent.querySelector(".drag-item").remove()
+        if (exercisesToRestore.length == 2) {
+          supersetParent.querySelector(".drag-item").remove();
+    
+          // **Remove the dropdown element**
+          const dropdownElement = supersetParent.previousElementSibling;
+          if (dropdownElement && dropdownElement.id === 'supersetDropdown') {
+            dropdownElement.remove();
+          }
+    
           // Remove borders from #guideCopy elements
           supersetParent.querySelectorAll('.exercisegroup').forEach(guideCopy => {
             guideCopy.style.border = '';
           });
-
+    
           exercisesToRestore.reverse();
           // Insert exercises back into the workout list
           exercisesToRestore.forEach(exercise => {
             exercise.style.width = "";
             exercise.querySelector("#navigationButtons").style.display = "";
             workoutList.insertBefore(exercise, supersetParent.nextSibling);
-            if(exercise.nextSibling != null) {
+            if (exercise.nextSibling != null) {
               exercise.querySelector(".supersetparent").style.display = "block";
               exercise.querySelector(".supersetparent").style.marginRight = "";
             }
-            
+    
           });
-          // Remove the superset parent div
+    
+          // **Remove the superset parent div**
           supersetParent.parentNode.removeChild(supersetParent);
+    
         } else {
-          //If at start of list
-          if(supersetParent.querySelector(".exercise-list-item-superset").firstChild == supersetItem) {
+          // Get the first and last exercise items, ignoring the dropdown
+          const firstExerciseItem = supersetParent.querySelector(".exercise-list-item-superset .exercise-list-item:not(#supersetDropdown)");
+          const lastExerciseItem = supersetParent.querySelector(".exercise-list-item-superset .exercise-list-item:not(#supersetDropdown):last-child");
+        
+          // If at the start of the list
+          if (firstExerciseItem === supersetItem) {
             workoutList.insertBefore(supersetItem, supersetParent);
+            supersetItem.style.width = '';
             supersetItem.querySelector(".exercisegroup").style.border = '';
-          } else if(supersetParent.querySelector(".exercise-list-item-superset").lastChild == supersetItem.nextElementSibling) {
-            //If at end of list
+          } 
+          // If at the end of the list
+          else if (lastExerciseItem === supersetItem.nextElementSibling) {
             supersetItem = supersetItem.nextElementSibling;
             supersetItem.querySelector(".exercisegroup").style.border = '';
             insertAfter(supersetItem, supersetParent);
             supersetItem.style.width = "";
-            
           }
+        
           supersetItem.querySelector(".supersetparent").style.marginRight = "";
           supersetItem.querySelector("#navigationButtons").style.display = "";
         }
-
+    
         supersetImage.classList.add("supersetimageopen");
         supersetImage.classList.remove("supersetimageclosed");
-
-
       }
-      
     }
+    
 
     function insertAfter(newNode, referenceNode) {
       referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
@@ -2943,6 +3004,7 @@ async function main() {
   
           var exerciseList = [];
           //Check if list element is superset
+
           if(workoutList[i].classList.contains("supersetWrapper")) {
 
             var supersetExerciseList = [];
@@ -2988,8 +3050,13 @@ async function main() {
               workoutExercise["workoutExerciseFullName"] = supersetExercises[k].querySelector("#workoutExercisename").innerText;
               supersetExerciseList.push(workoutExercise);
             }
-  
-            workout.listOfExercises.push(supersetExerciseList);
+
+            //Grab the text of the dropdown
+            var groupedExerciseOption = workoutList[i].querySelector("#supersetDropdown").value;
+            var groupedExerciseObj = {};
+            groupedExerciseObj[groupedExerciseOption] = supersetExerciseList;
+
+            workout.listOfExercises.push(groupedExerciseObj);
   
           } else {
             var exerciseSlug = workoutList[i].querySelector("#guideLinkInfo").href.split("/");
@@ -3034,7 +3101,7 @@ async function main() {
         //Make sure they have selected a duration and focus area
         if(!workout["length"].includes("Duration")) {
           document.getElementById("saveWorkout").value = "Please wait...";
-          sendWorkoutToMake(workout);      
+          sendWorkoutToMake(workout);
         }
       }
           
@@ -8562,15 +8629,32 @@ async function main() {
 
       // Iterate through workoutJSON to maintain the order
       workoutJSON.forEach(exercises => {
-        exercises.forEach(exercise => {
-          const guideID = exercise.guideID;
-          const matchingExercise = workout.exercises.find(item => item.exerciseGuideID === guideID);
-          if (matchingExercise) {
-            reorderedExercises.push(matchingExercise);
-          } else {
-            console.log("Couldnt find: ", guideID)
-          }
-        });
+
+        //Check if old method / or just 1 workout
+        if(Array.isArray(exercises)) {
+          exercises.forEach(exercise => {
+            const guideID = exercise.guideID;
+            const matchingExercise = workout.exercises.find(item => item.exerciseGuideID === guideID);
+            if (matchingExercise) {
+              reorderedExercises.push(matchingExercise);
+            } else {
+              console.log("Couldnt find: ", guideID)
+            }
+          });
+        } else {
+          //Is superset
+          Object.values(exercises).forEach(exerciseArray => {
+            exerciseArray.forEach(exercise => {
+              const guideID = exercise.guideID;
+              const matchingExercise = workout.exercises.find(item => item.exerciseGuideID === guideID);
+              if (matchingExercise) {
+                reorderedExercises.push(matchingExercise);
+              } else {
+                console.log("Couldnt find: ", guideID)
+              }
+            });
+          });
+        }
       });
 
       // Update workout.exercises with the reordered exercises
@@ -8583,10 +8667,15 @@ async function main() {
         var exerciseList = [];
         var incrementAmount = 1;
         var exerciseInfo = [];
+        var groupedExerciseName = Object.keys(workoutJSON[count])[0]; //Get value of grouped exercise
 
-        if(workoutJSON != "" && workoutJSON[count] && workoutJSON[count].length > 1 ) {
+        if(workoutJSON != "" && workoutJSON[count] && (workoutJSON[count].length > 1 || (!Array.isArray(workoutJSON[count]) && Object.values(workoutJSON[count])[0].length > 1))) {
 
           jsonExercises = workoutJSON[count];
+
+          if(!Array.isArray(jsonExercises)) {
+            jsonExercises = Object.values(workoutJSON[count])[0];
+          }
 
           for (let j = 0; j < jsonExercises.length; j++) {
             exerciseList.push(createGuideCopy(workout, i + j));
@@ -8609,9 +8698,8 @@ async function main() {
         }
 
         var [copyOfGuide, exerciseThumbnail, svgPersonDiv] = createGuideCopy(workout, i);
-
         if(incrementIndex) { //check if superset
-          addExerciseToWorkoutList(copyOfGuide, exerciseInfo, true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
+          addExerciseToWorkoutList(copyOfGuide, exerciseInfo, true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList, groupedExerciseName);
           i += incrementAmount; //increase i by superset size 
         } else {
           addExerciseToWorkoutList(copyOfGuide, exerciseInfo, true, exerciseThumbnail, svgPersonDiv, programWorkout, jsonExercises, exerciseList);
