@@ -1402,7 +1402,12 @@ async function main() {
         previousExercise.querySelector(".supersetparent img").click();
 
         //Add in grouped exercise name
-        previousExercise.closest(".exercise-list-item-superset").querySelector("#supersetDropdown").value = exerciseGroupName;
+        if(exerciseGroupName != 0) {
+          previousExercise.closest(".exercise-list-item-superset").querySelector("#supersetDropdown").value = exerciseGroupName;
+        } else {
+          previousExercise.closest(".exercise-list-item-superset").querySelector("#supersetDropdown").value = "Super Set"
+        }
+
       } else if(index > 1) {
         //For all others get last element in superset list and click superset image
         var previousExercise = workoutItem.closest(".exercise-list-item").previousSibling.querySelector(".exercise-list-item-superset").lastChild;
@@ -7991,7 +7996,6 @@ async function main() {
         var workoutNameIndex = {};
         for (var i = 0; i < program.events.length; i++) {
           var event = program.events[i];
-          
           // Calculate the week number based on the difference between event start and startWeek
           var week = moment(event.start).diff(startWeek, 'weeks') + 1;
           if(previousWeek != week) {
@@ -8012,7 +8016,12 @@ async function main() {
           if(workoutJSON) {
             for (var j = 0; j < workoutJSON.length; j++) {
               var exerciseData = workoutJSON[j];
-  
+
+              //Check if old method / or just 1 workout
+              if(!Array.isArray(exerciseData)) {
+                exerciseData = Object.values(exerciseData)[0];
+              }
+
               var isSuperset = false;
               if(exerciseData.length > 1) {
                 isSuperset = true;
@@ -8084,6 +8093,7 @@ async function main() {
 
         var index = 0;
         for(const workout of program.events) {
+
           const workoutID = workout.extendedProps.workoutID;
 
           const workoutElem = getWorkoutElement(workoutID);
@@ -8100,8 +8110,6 @@ async function main() {
     }
 
     function createExtendedProgram(programJSON) {
-
-      console.log(programJSON)
 
       for(const workout of programJSON) {
         if(workout.extendedProps.workoutID) {
