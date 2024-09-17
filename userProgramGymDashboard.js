@@ -165,9 +165,6 @@ async function main() {
   //Check if any workouts have more than 5 (CMS limit) exercises and add them if not
   addMoreThanFiveWorkouts();
 
-  //Add pending users
-  //addPendingUsers();
-
   addStatusToUsers();
 
   loadAndUpdateAllSummaries();
@@ -773,33 +770,53 @@ async function main() {
     var workoutCache = {};
   
     // Function to perform the asynchronous $.get request for a single workout
-    async function getWorkoutDetails(workoutSlug) {
+    async function getWorkoutDetails(workoutSlug, maxRetries = 3, delay = 1000) {
       // Check if the result is already in the cache
       if (workoutCache[workoutSlug]) {
         return workoutCache[workoutSlug];
       }
-  
-      var url = window.location.origin + '/guides/' + workoutSlug;
-      const data = await $.get(url);
-      var $page = $(data);
     
-      // Extract information from the retrieved page
-      var workoutDetails = {
-        workoutName: $page.find('#guideName').text(),
-        exerciseFullName: $page.find('#fullGuideName').text(),
-        exerciseGuideID: $page.find('#guideID').text(),
-        exerciseItemID: $page.find('#guideID').text(),
-        exerciseThumbnailURL: $page.find('#guideThumbnailURL').text(),
-        exerciseMuscles: $page.find('#exerciseMuscles').text(),
-        exerciseSets: "",
-        muscleHighlightImage: $page.find('#muscleHighlightImage').attr('src')
-      };
-  
-      // Store the result in the cache
-      workoutCache[workoutSlug] = workoutDetails;
-      
-      return workoutDetails;
+      // Function to delay retries
+      const delayPromise = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
+    
+      let attempt = 0;
+      while (attempt < maxRetries) {
+        try {
+          var url = window.location.origin + '/guides/' + workoutSlug;
+          const data = await $.get(url);
+          var $page = $(data);
+    
+          // Extract information from the retrieved page
+          var workoutDetails = {
+            workoutName: $page.find('#guideName').text(),
+            exerciseFullName: $page.find('#fullGuideName').text(),
+            exerciseGuideID: $page.find('#guideID').text(),
+            exerciseItemID: $page.find('#guideID').text(),
+            exerciseThumbnailURL: $page.find('#guideThumbnailURL').text(),
+            exerciseMuscles: $page.find('#exerciseMuscles').text(),
+            exerciseSets: "",
+            muscleHighlightImage: $page.find('#muscleHighlightImage').attr('src')
+          };
+    
+          // Store the result in the cache
+          workoutCache[workoutSlug] = workoutDetails;
+    
+          return workoutDetails;
+    
+        } catch (error) {
+          attempt++;
+    
+          // If the last attempt fails, throw the error
+          if (attempt >= maxRetries) {
+            throw new Error(`Failed to fetch workout details for ${workoutSlug} after ${maxRetries} attempts`);
+          }
+    
+          // Wait for a short period before retrying
+          await delayPromise(delay);
+        }
+      }
     }
+    
   
     // Step 1: Collect all unique slugs
     var uniqueSlugs = new Set();
@@ -876,64 +893,73 @@ async function main() {
         }
       }
     }
-  } 
+  }
 
   async function loadAndUpdateAllSummaries() {
     // Select all elements with class 'userSummary'
     var userSummaries = document.querySelectorAll('#userSummary');
+    
+    // Function to delay retries
+    const delayPromise = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
   
-    // Define a function to perform the loading and updating for a single user summary
-    function loadAndUpdateSummary(userSummary) {
+    // Define a function to perform the loading and updating for a single user summary, with retry logic
+    async function loadAndUpdateSummary(userSummary, maxRetries = 3, delay = 1000) {
       var summaryUserSlug = $(userSummary).find('#summaryUserSlug').text().trim();
       var summaryFullEventDataField = $(userSummary).find('#summaryFullEventData');
       var summaryEventDataField = $(userSummary).find('#summaryEventData');
-
       var summaryUserName = $(userSummary).find('#userSummaryName').text();
-
       var programURL = window.location.origin + '/user-programs/' + summaryUserSlug;
-      
+  
+      // Check if slug exists
       if (summaryUserSlug) {
-        // Use $.get to fetch the content of #fullEventData from the specified URL
-        var getRequest = $.get(programURL, function (data, status) {
-          if (status === 'success') {
-            // Find #fullEventData in the fetched content and update the field
+        let attempt = 0;
+        while (attempt < maxRetries) {
+          try {
+            const data = await $.get(programURL);
+  
+            // Find #fullEventData in the fetched content and update the fields
             var fullEventData = $(data).find('#programFullEventData').html();
             var summaryEventData = $(data).find('#programEventData').html();
             summaryFullEventDataField.html(fullEventData);
             summaryEventDataField.html(summaryEventData);
-
-          } else {
-            alert('Error loading program data for ' + summaryUserName);
+  
+            return; // Exit if the request is successful
+          } catch (error) {
+            attempt++;
+  
+            // If the last attempt fails, throw the error
+            if (attempt >= maxRetries) {
+              alert('Error loading program data for ' + summaryUserName);
+            }
+  
+            // Wait for a short period before retrying
+            await delayPromise(delay);
           }
-        });
-      
-        return getRequest;
+        }
       } else {
-        // Return a resolved promise
+        // Return a resolved promise if no slug is present
         return $.when();
       }
     }
     
-  
     // Create an array to store the load requests for each user summary
     var loadRequests = [];
-    
+  
     // Iterate over each user summary and initiate the loading process
     $.each(userSummaries, function (index, userSummary) {
-
-      if(userSummary.querySelector("#summaryEventData").innerText == "") {
+      if (userSummary.querySelector("#summaryEventData").innerText == "") {
         var loadRequest = loadAndUpdateSummary(userSummary);
         loadRequests.push(loadRequest);
       }
-
     });
-
+  
     // Use $.when to wait for all load requests to complete
     $.when.apply($, loadRequests).then(function () {
       // Any additional code to run after all requests have completed
       calculateWorkoutUrgencyDays();
     });
   }
+  
 
   function cloneAndAddElement(valueArr, elementToClone, containerElement, tagElement, newID, customID=null) {
 
@@ -8726,42 +8752,48 @@ async function main() {
       var copyOfGuide = document.querySelector("#individualGuide:not([addedToList]").cloneNode(true);
 
       copyOfGuide.setAttribute("addedToList", 'true');
-      copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
 
-      var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
-      //Check if there are multiple thumbails, randomly select one if so
-      if(thumbnailSplit.length > 1) {
-        var randomNumber = Math.random();
-        if(randomNumber < 0.5) {
-          copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[1];
+      if(workout.exercises[i]) {
+        copyOfGuide.querySelector("#guideName").innerText = workout.exercises[i].exerciseShortName;
+
+        var thumbnailSplit = workout.exercises[i].exerciseThumbnailURL.split(",");
+        //Check if there are multiple thumbails, randomly select one if so
+        if(thumbnailSplit.length > 1) {
+          var randomNumber = Math.random();
+          if(randomNumber < 0.5) {
+            copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[1];
+          } else {
+            copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[0];
+          }
         } else {
-          copyOfGuide.querySelector(".exerciseThumbnail").src = thumbnailSplit[0];
+          copyOfGuide.querySelector(".exerciseThumbnail").src = workout.exercises[i].exerciseThumbnailURL
         }
+        copyOfGuide.querySelector("#exerciseMuscleImage").src = workout.exercises[i].exerciseMuscleImage;
+  
+        //Change ID of exercise name
+        copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
+  
+        //Ensure proper guide ID is set
+        copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
+  
+        //Remove info button
+        copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
+  
+        //Update link
+        var workoutSlugs = workout.workoutIDs.split(', ');
+        copyOfGuide.querySelector("#guideLinkInfo").href = window.location.origin + '/guides/' + workoutSlugs[i];
+  
+        //Update scientific muscle 
+        copyOfGuide.querySelector("#scientificPrimaryMuscle").innerText = workout.exercises[i].exerciseMuscles;
+  
+        //Copy thumbnail and svg person into a separate div
+        var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
+        //var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
+        return [copyOfGuide, exerciseThumbnail, null];
       } else {
-        copyOfGuide.querySelector(".exerciseThumbnail").src = workout.exercises[i].exerciseThumbnailURL
+        return [];
       }
-      copyOfGuide.querySelector("#exerciseMuscleImage").src = workout.exercises[i].exerciseMuscleImage;
-
-      //Change ID of exercise name
-      copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
-
-      //Ensure proper guide ID is set
-      copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
-
-      //Remove info button
-      copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
-
-      //Update link
-      var workoutSlugs = workout.workoutIDs.split(', ');
-      copyOfGuide.querySelector("#guideLinkInfo").href = window.location.origin + '/guides/' + workoutSlugs[i];
-
-      //Update scientific muscle 
-      copyOfGuide.querySelector("#scientificPrimaryMuscle").innerText = workout.exercises[i].exerciseMuscles;
-
-      //Copy thumbnail and svg person into a separate div
-      var exerciseThumbnail = $(copyOfGuide).find("#exerciseThumbnail").detach();
-      //var svgPersonDiv = $(copyOfGuide).find("#exerciseInfoRight").detach();
-      return [copyOfGuide, exerciseThumbnail, null];
+      
     }
 
     //Given a row of a workout, extract all data points within each
