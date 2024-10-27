@@ -14,10 +14,27 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+  //Check off checklist:
+  checkOffChecklist();
+  
   //Make a sortable list:
   var sortable = new Sortable(document.getElementById("programWorkoutList"), {
     animation: 150,
     swapThreshold: 0.2, // Adjust this value as needed
+  });
+
+  Coloris({
+    swatches: [
+      '#FF6F61', // Soft red
+      '#FF9F1C', // Warm orange
+      '#FFC300', // Muted yellow
+      '#80C904', // Fresh green
+      '#2D9CDB', // Sky blue
+      '#5C6BC0', // Soft indigo
+      '#9C27B0', // Rich violet
+      '#F675A8', // Pinkish hue
+      '#DA70D6', // Orchid
+    ],
   });
 
   var workoutSortable = new Sortable(document.getElementById("workoutList"), {
@@ -133,7 +150,15 @@ async function main() {
 
   sessionStorage.setItem("createChallenge", 'false');
   sessionStorage.setItem("editChallenge", 'false');
-    
+  sessionStorage.setItem("selectProgramProduct", "false");
+  sessionStorage.setItem("createWorkoutFromModal", "false");
+  sessionStorage.setItem('editWorkout', 'false');
+  sessionStorage.setItem('createTask', 'false');
+  sessionStorage.setItem("createProductProgram", "false");
+  sessionStorage.setItem("programConfirmModal", "false");
+  sessionStorage.setItem("createProduct", "false");
+  sessionStorage.setItem("editProduct", "false");
+
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
   var guideToWorkoutObj = {};
@@ -171,6 +196,12 @@ async function main() {
 
   //Calculate the days until the clients program ends or weight inputs aren't complete
   calculateProgramUrgencyDays();
+
+  //Check if products exist:
+  if(!document.getElementById("productListEmptyState")) { 
+    populateSalesData();
+  }
+  
 
   fetchDataFromWebhook()
   .then(result => {
@@ -254,25 +285,28 @@ async function main() {
     //Show required button
     var destinationDiv = document.getElementById(destinationButton);
 
-    if(destinationButton == "dashboardPage") {
-      destinationDiv.querySelector(".homeimage").style.display = "none";
-      destinationDiv.querySelector(".naviconclicked").style.display = "block";
-    } else if(destinationButton == "equipmentPage") {
+   if(destinationButton == "equipmentPage") {
       destinationDiv.querySelector(".equipment").style.display = "none";
       destinationDiv.querySelector(".equipmentclicked").style.display = "block";
     } else if(destinationButton == "userPage" ) {
       destinationDiv.querySelector(".users").style.display = "none";
       destinationDiv.querySelector(".users-clicked").style.display = "block";
     } else if(destinationButton == "challengesPage" ) {
-      // destinationDiv.querySelector(".challenges").style.display = "none";
-      // destinationDiv.querySelector(".challenges-clicked").style.display = "block";
-    }else {
+      destinationDiv.querySelector(".challenges").style.display = "none";
+      destinationDiv.querySelector(".challenges-clicked").style.display = "block";
+    } else if(destinationButton == "taskPage") {
+
+    } else {
       destinationDiv.querySelector(".navicon").style.display = "none";
       destinationDiv.querySelector(".naviconclicked").style.display = "block";
     }
+
     //Colour div
-    destinationDiv.classList.add("clickednavbutton");
-    destinationDiv.style.backgroundColor = "#0C08D5";
+    if(destinationButton != "taskPage") {
+      destinationDiv.classList.add("clickednavbutton");
+      destinationDiv.style.backgroundColor = "#0C08D5";
+    }
+
   }
 
   function calculateWorkoutUrgencyDays() {
@@ -312,6 +346,99 @@ async function main() {
       })(userSummaryList[i]);
     }
   }
+
+  function checkOffChecklist() {
+    //Check if program exists:
+    if(document.getElementById("programListEmptyState")) {
+      document.getElementById("step1NotCompleted").style.display = "block";
+    } else {
+      document.getElementById("step1Completed").style.display = "block";
+      document.getElementById("step1NotCompleted").style.display = "none";
+      // var nextElem1 = document.getElementById("step1Completed").nextElementSibling;
+      // if (nextElem1) {
+      //   nextElem1.style.textDecoration = "line-through";
+      // }
+    }
+
+    //Check if products exists
+    if(document.getElementById("productListEmptyState")) {
+      document.getElementById("step2NotCompleted").style.display = "block";
+    } else {
+      document.getElementById("step2Completed").style.display = "block";
+      document.getElementById("step2NotCompleted").style.display = "none";
+      // var nextElem = document.getElementById("step2Completed").nextElementSibling;
+      // if (nextElem) {
+      //   nextElem.style.textDecoration = "line-through";
+      // }
+    }
+  }
+
+  async function populateSalesData() {
+    const fcID = document.getElementById("gymID").innerText; // Get the gymID value
+    const response = await fetch(`https://hook.us1.make.com/sypo7waw59aiwxpbvdp56pt54dka88hj?fcID=${fcID}`);
+    const result = await response.text();
+    const salesData = JSON.parse(result); // Parse the data from the webhook response
+  
+    // Parent div where we will add the cloned rows
+    const orderDiv = document.getElementById('orderDiv');
+  
+    // Hide first row of table:
+    document.getElementById('salesRowTemplate').style.display = "none";
+  
+    // Metrics to calculate
+    let totalRevenue = 0; // Total revenue from all sales
+    let revenuePast30Days = 0; // Revenue from sales in the past 30 days
+  
+    // Get the current date and time
+    const now = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(now.getDate() - 30); // Date 30 days ago
+  
+    // Iterate through each payment object in the data
+    salesData.data.forEach(payment => {
+      const amount = payment.amount / 100; // Convert amount from cents to dollars
+      const description = payment.description || 'No description'; // Fallback if no description
+      const customer = payment.customer;
+      const created = new Date(payment.created * 1000); // Convert epoch to JS date
+  
+      // Add to total revenue
+      totalRevenue += amount;
+  
+      // Check if the payment was made within the past 30 days
+      if (created >= thirtyDaysAgo) {
+        // Add to the revenue for the past 30 days
+        revenuePast30Days += amount;
+      }
+  
+      // Format the date as DD/MM/YYYY
+      const formattedDate = created.toLocaleDateString('en-AU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+  
+      // Clone the sales row template
+      const rowTemplate = document.getElementById('salesRowTemplate').cloneNode(true);
+      rowTemplate.style.display = 'grid'; // Make sure the cloned row is visible
+  
+      // Set the values in the respective cells
+      rowTemplate.querySelector('#salesRowAmount').textContent = `$${amount.toFixed(2)}`;
+      rowTemplate.querySelector('#salesRowProductDescription').textContent = description;
+      rowTemplate.querySelector('#salesRowCustomer').textContent = customer;
+      rowTemplate.querySelector('#salesRowDate').textContent = formattedDate;
+  
+      // Append the new row to the parent div
+      orderDiv.appendChild(rowTemplate);
+    });
+  
+    // Display the calculated metrics
+    document.getElementById("30DaysRevenue").innerText = `$${revenuePast30Days.toFixed(2)}`;
+    document.getElementById("totalRevenue").innerText = `$${totalRevenue.toFixed(2)}`;
+
+  }
+  
+  
+  
 
   function calculateProgramUrgencyDays() {
 
@@ -1339,7 +1466,6 @@ async function main() {
       if (sessionStorage.getItem("editWorkout") == "true") {
         saveWorkout.value = "Save Changes";
       } 
-
       //Hiding and showing move icons and break icon between exercises
       if(listLength == 1) {
         saveWorkout.style.display = "block";
@@ -1361,7 +1487,6 @@ async function main() {
         document.getElementById("firstExercisePlaceholder").style.display = "none";
 
       } else if(listLength == 3) {
-
         if(!programWorkout) {
           workoutItem.querySelector("#moveDown").style.display = "none";
           workoutItem.querySelector("#moveUp").style.display = "block";
@@ -1370,7 +1495,6 @@ async function main() {
           if(!workoutItem.previousSibling.classList.contains("exercise-list-item")) {
             var previousElement = workoutItem.previousSibling;
             previousElement.querySelectorAll("#moveDown")[1].style.display = "block";
-            workoutItem.querySelector(".supersetparent").style.display = "block";
             previousElement.querySelectorAll(".supersetparent")[1].style.display = "block";
           } else {
             workoutItem.previousSibling.querySelector("#moveDown").style.display = "block";
@@ -1852,7 +1976,12 @@ async function main() {
         }
 
       } else {
-        styleNavButtons("workoutsPage");
+        if(document.getElementById("dashboardBody").classList.contains("w-condition-invisible")) {
+          styleNavButtons("workoutsPage");
+        } else {
+          styleNavButtons("dashboardPage");
+        }
+        
       }
 
       const exerciseLibrary = document.getElementById("customExercisePage");
@@ -1861,26 +1990,28 @@ async function main() {
       const usersBody = document.getElementById("usersBody");
       const userDetailDiv = document.getElementById("userDetailsPage");
 
-      document.getElementById("workoutsPage").onclick = function() {
-        //Reset filters on workout summary page
-        settingsBody.style.display = "none";
-        settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-        exerciseLibrary.style.display = "none";
-        exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-        dashboardBody.style.display = "none";
-        dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+      document.getElementById("workoutsPage").onclick = function(event) {
 
-        // Check if there are any exercises in the list 
-        // If there is, prompt user to confirm removing list 
-        // If they confirm remove items from list and clear filters and hide exercise list
-        if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
-          checkAndClearProgram("workoutSummaryPage", "workoutsPage");
-        } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
-          checkAndClearChallenge("workoutSummaryPage", "workoutsPage");
-        } else {
-          checkAndClearWorkouts("workoutSummaryPage", "workoutsPage");
+        if(event.target.id != "tasksPageHover") {
+          //Reset filters on workout summary page
+          settingsBody.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          exerciseLibrary.style.display = "none";
+          exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          dashboardBody.style.display = "none";
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+
+          // Check if there are any exercises in the list 
+          // If there is, prompt user to confirm removing list 
+          // If they confirm remove items from list and clear filters and hide exercise list
+          if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
+            checkAndClearProgram("workoutSummaryPage", "workoutsPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("workoutSummaryPage", "workoutsPage");
+          } else {
+            checkAndClearWorkouts("workoutSummaryPage", "workoutsPage");
+          }
         }
-
       };
 
       if(equipmentStatus == "complete") {
@@ -1902,7 +2033,6 @@ async function main() {
           } else {
             checkAndClearWorkouts("customExercisePage", "equipmentPage");
           }
-          
         };
 
         document.getElementById("challengesPage").onclick = function() {
@@ -1921,6 +2051,28 @@ async function main() {
             checkAndClearChallenge("challengesBody", "challengesPage");
           } else {
             checkAndClearWorkouts("challengesBody", "challengesPage");
+          }
+          
+        };
+
+        document.getElementById("tasksPageHover").onclick = function(event) {
+          dashboardBody.style.display = "none";
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          settingsBody.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          exerciseLibrary.style.display = "none";
+          exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+
+          //Reset filters on workout or program summary page
+          if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram")== "true" || sessionStorage.getItem("createUserProgram") == "true") {
+            
+            checkAndClearProgram("taskPage", "workoutsPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("taskPage", "workoutsPage");
+          } else {
+
+            checkAndClearWorkouts("taskPage", "workoutsPage");
+
           }
           
         };
@@ -1944,6 +2096,26 @@ async function main() {
           
         };
 
+        document.getElementById("productsPage").onclick = function() {
+          dashboardBody.style.display = "none";
+          dashboardBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          exerciseLibrary.style.display = "none";
+          exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          settingsBody.style.display = "none";
+          settingsBody.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+          //Clear form
+          resetProductForm();
+
+          //Reset filters on workout summary page
+          if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram") == "true" || sessionStorage.getItem("createUserProgram") == "true") {
+            checkAndClearProgram("productPage", "productsPage");
+          } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
+            checkAndClearChallenge("productPage", "productsPage");
+          } else {
+            checkAndClearWorkouts("productPage", "productsPage");
+          }
+        };
+
         document.getElementById("dashboardPage").onclick = function() {
           exerciseLibrary.style.display = "none";
           exerciseLibrary.style.backgroundColor = 'rgba(0, 0, 0, 0)';
@@ -1952,11 +2124,11 @@ async function main() {
 
           //Reset filters on workout summary page
           if(sessionStorage.getItem("editProgram") == "true" || sessionStorage.getItem("createProgram") == "true" || sessionStorage.getItem("duplicateProgram") == "true" || sessionStorage.getItem("createUserProgram") == "true") {
-            checkAndClearProgram("dashboardBody", "dashbaordPage");
+            checkAndClearProgram("dashboardBody", "dashboardPage");
           } else if (sessionStorage.getItem("editChallenge") == "true" || sessionStorage.getItem("createChallenge") == "true") {
-            checkAndClearChallenge("dashboardBody", "dashbaordPage");
+            checkAndClearChallenge("dashboardBody", "dashboardPage");
           } else {
-            checkAndClearWorkouts("dashboardBody", "dashbaordPage");
+            checkAndClearWorkouts("dashboardBody", "dashboardPage");
           }
         };
 
@@ -2111,11 +2283,20 @@ async function main() {
         }
 
       },
+
       eventDidMount: function(info) {
 
         var eventEl = info.el;
 
         var eventElParent = eventEl.closest(".fc-daygrid-day-frame");
+
+        if(eventElParent.querySelector(".first-day-text")) {
+          eventElParent.querySelector(".first-day-text").remove()
+        }
+
+        if(eventElParent.querySelector(".second-day-text")) {
+          eventElParent.querySelector(".second-day-text").remove()
+        }
         
         if(info.event.extendedProps.weeklyTask || sessionStorage.getItem("weeklyTask") == "true") {
 
@@ -2326,16 +2507,17 @@ async function main() {
       eventContent: function(info) {
         var targetArea = info.event.extendedProps.targetArea;
         var duration = info.event.extendedProps.length;
-        
+
         var eventContentHTML = '<div class="fc-content">' +
             '<div class="fc-title">' + info.event.title + '</div>' +
-            '<div class="fc-details">' + (targetArea ? targetArea + '<br>' : "") /*+ duration */ + '</div>' +
+            '<div class="fc-details">' + (targetArea ? targetArea + '<br>' : "") + '</div>' +
             '</div>';
-    
+      
         return {
-            html: eventContentHTML,
+          html: eventContentHTML,
         };
       },
+      
 
       viewDidMount: function(view) {
         var index = 0;
@@ -2344,109 +2526,100 @@ async function main() {
             $(this).prepend("<div/>");
           } else {
             var rowIndex = $(this).index() + 1; // Get the index of the row and add 1 to make it 1-based
-
       
             // Get the day of the first day in the week
             var firstDay = $(this).find('[data-date]').first().attr('data-date');
             var startDate = new Date(firstDay);
-      
+            
             // Get the day of the last day in the week
             var lastDay = $(this).find('[data-date]').last().attr('data-date');
             var endDate = new Date(lastDay);
-      
+            
             // Format the start and end dates
             var formattedStartDate = startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
             var formattedEndDate = endDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-      
+            
             // Construct the week range string
             var weekRange = formattedStartDate + ' - ' + formattedEndDate;
-      
+            
             var copyButtonHtml = '<img class="copy-events-button" src="https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646ddea577e978678ad7eecb_copyButtonNew.webp" alt="Copy" title="Copy Week">';
             var deleteButtonHtml = '<img class="delete-events-button" src="https://uploads-ssl.webflow.com/622f1b68bc1e4510618e0b04/646c9d5cd44c1433f46e0a1e_deleteWeek.webp" alt="Delete" title="Delete Week">';
-      
+            
             var currentDate = new Date(); // Get the current date
             var isInWeekRange = currentDate >= startDate && currentDate <= endDate;
-      
+            
             var weekRangeHtml = '<div class="week-range' + (isInWeekRange ? ' current-week-range' : '') + '">' + weekRange + '</div>';
             var weekInfoHtml = '<div class="week-info">' + '<div>' + rowIndex + '</div>' + copyButtonHtml + deleteButtonHtml + '</div>';
             var buttonsContainerHtml = '<div class="buttons-container">' + weekRangeHtml + weekInfoHtml + '</div>';
             
-            //Create weekly task
+            // Create weekly task
             var eventCopy = $(this).find("[role=gridcell]")[0].cloneNode(true);
             eventCopy.style.display = "none";
-
+      
             eventCopy.onclick = function(e) {
 
-              //Ensure it is on tasks
+              // Ensure it is on tasks
               document.getElementById("showModalTasks").click();
-
               selectedDate = e.target.closest(".fc-day").getAttribute("data-date");
-
-              //Check if any events and click on them in the workout modal list
+      
+              // Check if any events and click on them in the workout modal list
               var allEvents = calendar.getEvents();
-              var dayEvents = allEvents.filter(function (event) {
+              var dayEvents = allEvents.filter(function(event) {
                 return event.extendedProps.weeklyTask && moment(event.start).isSame(moment(selectedDate), 'day'); // '[]' to include the start and end dates
               });
-
-              for(var i = 0; i < dayEvents.length; i++) {
-
+      
+              for (var i = 0; i < dayEvents.length; i++) {
                 var listID = "";
                 var itemID = "";
                 var itemSelector = "";
-                if(dayEvents[i].extendedProps.workoutID) {
+                if (dayEvents[i].extendedProps.workoutID) {
                   listID = "#workoutSummaryProgram";
                   itemID = dayEvents[i].extendedProps.workoutID;
                   itemSelector = "#workoutIDProgram";
-                } else if(dayEvents[i].extendedProps.taskID) {
+                } else if (dayEvents[i].extendedProps.taskID) {
                   listID = "#taskItem";
                   itemID = dayEvents[i].extendedProps.taskID;
                   itemSelector = "#taskItemID";
                 }
-
+      
                 clickModalListItem(listID, itemID, itemSelector);
               }
-
+      
               showModal("workoutsList");
-
               sessionStorage.setItem("weeklyTask", "true");
             };
-            
+      
             eventCopy.classList.add("weekly-task");
-            
-            if(sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
+      
+            if (sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
               $(this).prepend(eventCopy);
             }
-
-            $(this).prepend(buttonsContainerHtml);
-          
-          }
       
+            $(this).prepend(buttonsContainerHtml);
+      
+            // Add special text to the first two days of the calendar
+            var $firstDayCell = $(this).find(".fc-daygrid-day-top").eq(0); // First day (Monday)
+            var $secondDayCell = $(this).find(".fc-daygrid-day-top").eq(1); // Second day (Tuesday)
+            
+            // Add text for the first day
+            if (rowIndex == 1) {
+              $firstDayCell.append('<div class="first-day-text" style="font-family: Manrope; text-align: center;margin-top: 10px;">Click any day to add first workout</div>');
+            
+              // Add text for the second day with line breaks
+              $secondDayCell.append('<div class="second-day-text" style="font-family: Manrope;text-align: center;margin-top: 10px;">Blank day<br>=<br>Rest Day</div>');
+            }
+            
+
+          }
           index++;
         });
-      },
-      firstDay: 1, // Monday
-    });
+        },
+
+        firstDay: 1, // Monday
+        
+      });
     
     calendar.render();
-
-    //Get all program summaries and set onclicks
-    var programList = document.querySelectorAll("#programSummary");
-    for(let i = 0; i < programList.length; i++) {
-      (function(program) {
-        program.onclick = (event) => {
-          if(event.target.id != "addUserProgram" && event.target.id != "deleteProgram" && !event.target.id.includes("programOptions")) {
-            //Prefill program screen
-            prefillProgramBuilder(program);
-
-            //Set edit program flag
-            sessionStorage.setItem("editProgram", 'true');
-
-            hideOrShowGodModeSwitch();
-          }
-
-        }
-      })(programList[i]);
-    }
 
     //Get all challenge summaries and set onclicks
     var challengeList = document.querySelectorAll("#challengeSummary");
@@ -2478,6 +2651,16 @@ async function main() {
     for(var i = 0; i < programListModal.length; i++) {
       (function(programItem) {
         programItem.onclick = () => {
+
+          if(sessionStorage.getItem("selectProgramProduct") == "true") {
+
+            document.getElementById("selectProgramProduct").innerText = programItem.querySelector("#programModalName").innerText;
+            document.getElementById("productProgramID").innerText = programItem.querySelector("#programIDModal").innerText;
+
+            document.getElementById("modalWrapper").click();
+
+            return;
+          } 
 
           workoutIndexCount = [];
 
@@ -2670,7 +2853,7 @@ async function main() {
 
     // JavaScript function to prevent form submission on Enter key press
     document.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' && event.target.id != "richTextEditor") {
+      if (event.key === 'Enter' && (event.target.id != "richTextEditor" && event.target.id != "productDescription")) {
         event.preventDefault(); // Prevent form submission
       }
     });
@@ -2678,7 +2861,11 @@ async function main() {
     //Catching mouse over and out events for showing the thumbnail and svg person
     document.addEventListener('mouseover', function (event) {
 
-      if(event.target.closest("#guidePlaceHolder") && !event.target.closest("#modalWrapper")) {
+      if(event.target.closest("#workoutsPage")) {
+        document.getElementById("navPanel").style.display = "block";
+      }
+
+      if(event.target.closest("#guidePlaceHolder") && (event.target.closest("#workoutbuildersubpage"))) {
         //Dont show remove button if in superset
         if(event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise") && !event.target.closest(".exercise-list-item-superset")) {
           event.target.closest("#guidePlaceHolder").querySelector("#removeFullExercise").style.display = "block";
@@ -2693,7 +2880,7 @@ async function main() {
         event.target.closest(".exercise-details-parent").querySelector(".remove-set").style.display = "block";
       }
       
-      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') || event.target.closest(".add-event-button")) ) {
+      if((event.target.classList.contains('second-day-text') || event.target.classList.contains('first-day-text') || event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') ||event.target.classList.contains('fc-daygrid-day-top') || event.target.closest(".add-event-button")) ) {
 
         //Check if cell has an event
         var eventElement = event.target.closest(".fc-daygrid-day-frame");
@@ -2728,6 +2915,10 @@ async function main() {
 
     document.addEventListener('mouseout', function (event) {
 
+      if(!event.target.closest("#workoutsPage")) {
+        document.getElementById("navPanel").style.display = "none";
+      }
+
 
       if(event.target.closest(".exercise-details-parent") && event.target.closest("#workoutList")) {
         // Append the drag item to the wrapper
@@ -2741,7 +2932,8 @@ async function main() {
         } 
       }
 
-      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') || event.target.closest(".add-event-button"))) {
+      if((event.target.classList.contains('second-day-text') || event.target.classList.contains('first-day-text') || event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') ||  event.target.classList.contains('fc-daygrid-day-events') || event.target.closest(".add-event-button"))) {
+
         var hoveredRow = event.target.closest('[role="row"]');
         const hoveredDay = event.target.closest('.fc-daygrid-day-frame');
 
@@ -2759,6 +2951,9 @@ async function main() {
       }
 
     }, false);
+
+
+
 
     document.getElementById("createStaffForm").onsubmit = function(event) {
 
@@ -2850,7 +3045,6 @@ async function main() {
 
       addStaffMemberFromSettings = false;
 
-
       //Reset form
       event.target.reset();
 
@@ -2859,15 +3053,32 @@ async function main() {
     document.getElementById("saveProgram").addEventListener("click", function(event) {
       //List events from calendar
       var events = calendar.getEvents();
+      
       if(events.length == 0) {
         event.preventDefault();
         alert("Please add some workouts to the program before you submit it!");
       } else {
-        document.getElementById("saveProgram").click();
+        if(sessionStorage.getItem("createProgram") == "true") {
+          if(document.getElementById("fcAccountType").innerText.toLowerCase() == "self serve") {
+            document.getElementById("saveProgram").click();
+            sessionStorage.setItem("programConfirmModal", "false");
+            sessionStorage.setItem("createProductProgram", "true");
+          } else {
+            //Show modal
+            if(sessionStorage.getItem("programConfirmModal") != "true") {
+              event.preventDefault();
+              document.getElementById("createProductModal").style.display = "flex";
+            } else {
+              document.getElementById("saveProgram").click();
+            }
+          }
+        }
+
       }
     });
 
     document.getElementById("programForm").onsubmit = function() {
+
       var program = {};
       var programWorkoutsArr = [];
 
@@ -2915,7 +3126,7 @@ async function main() {
 
       if(sessionStorage.getItem('editProgram') == "true") {
         program["programID"] = document.getElementById("programSummaryID").value;
-      } 
+      }
 
       program["extendedJSON"] = JSON.stringify(createExtendedProgram(JSON.parse(program.eventData)));
 
@@ -2937,6 +3148,67 @@ async function main() {
         document.getElementById("saveChallenge").click();
       }
     });
+
+    document.getElementById("productForm").onsubmit = async function(event) {
+
+      event.preventDefault();
+
+      var previewThumbnailSrc = document.getElementById("previewThumbnail").src;
+      var profilePicSrc = document.getElementById("profilePicPreview").src;
+      
+      var imageData = isBase64Image(previewThumbnailSrc)
+        ? await processBase64Image(previewThumbnailSrc)
+        : { base64Data: '', fileFormat: '' };
+      
+      var profilePic = isBase64Image(profilePicSrc)
+        ? await processBase64Image(profilePicSrc)
+        : { base64Data: '', fileFormat: '' };
+
+      // Construct the product object
+      var stripePrice = parseInt(document.getElementById("productAmount").value) * 100;
+      var product = {
+        programName: document.getElementById("productName").value,
+        programID: document.getElementById("productProgramID").innerText,
+        programPrice: stripePrice,
+        formattedPrice: document.getElementById("productAmount").value,
+        product_interval: "One Time",
+        product_type: "program",
+        currency: document.getElementById("productCurrency").value,
+        image: imageData.base64Data,
+        imageType: imageData.fileFormat,
+        programDescription: document.getElementById("productDescription").innerHTML,
+        fcID: document.getElementById("gymID").innerText,
+        buttonColor: document.getElementById("button-color").value,
+        profilePic: profilePic.base64Data,
+        profilePicType: profilePic.fileFormat,
+        profileName: document.querySelector("#profileNamePreview").innerText,
+      };
+
+      //Call Stripe first
+      if(product.product_interval.toLowerCase() == "subscription") {
+        product["interval"] = "month",
+        product["interval_count"] = "1"
+      }
+
+      if(sessionStorage.getItem("editProduct") == "true") {
+        product["sales_page_id"] = document.getElementById("productSalesPageID").innerText;
+        product["product_id"] = document.getElementById("productID").innerText;
+        product["stripeProductID"] = document.getElementById("stripeProductID").innerText;
+        product["stripePaymentID"] = document.getElementById("stripePaymentID").innerText;
+      }
+
+      //Create stripe product first
+      var stripeObj = await sendProductToStripeMake(product, product.product_interval);
+
+      if (stripeObj) {
+        product["stripe_id"] = stripeObj["product_id"];
+        product["stripe_payment_link"] = stripeObj["payment_link_url"];
+        product["payment_link_id"] = stripeObj["payment_link_id"];
+      }
+
+      sendProductToMake(product);
+    
+    };
 
     document.getElementById("challengeForm").onsubmit = function() {
       var challenge = {};
@@ -3164,7 +3436,7 @@ async function main() {
       }
 
       //Check if in paste state and anywhere in the row is clicked
-      if((event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') || event.target.classList.contains('fc-daygrid-day-events')) && (isPasteState || isEventPasteState || addProgram)) {
+      if((event.target.classList.contains('second-day-text') || event.target.classList.contains('fc-daygrid-day-frame') || event.target.classList.contains('fc-details') || event.target.classList.contains('fc-daygrid-day-events')) && (isPasteState || isEventPasteState || addProgram)) {
         //Get entire row of paste button
         var weekRow = event.target.closest('[role="row"]');
         var dayCell = event.target.closest('.fc-daygrid-day-frame');
@@ -3411,6 +3683,190 @@ async function main() {
     //Listen for click events:
     document.addEventListener('click', function (event) {
 
+      if(event.target.closest("#productSummary")) {
+        if(event.target.id != "copyProductSummaryLink" && event.target.id != "copyProductLink" && event.target.id != "emailProductLink" && event.target.id != "previewProgram" && event.target.id != "unpublishProduct" && !event.target.closest("#programOptionsLink")) {
+
+          prefillProductForm(event.target.closest("#productSummary"));
+          
+        } else {
+          document.getElementById("copyProductSummaryLink").innerText = "Copy Link";
+          document.getElementById("emailProductLink").innerText = "Email Link";
+          document.getElementById("previewProgram").innerText = "Preview";
+        }
+      }
+
+      if(event.target.id == "copyProductSummaryLink") {
+        var salesPage = event.target.closest("#productSummary").querySelector("#productSummarySalesPage").innerText;
+        navigator.clipboard.writeText(salesPage);
+        event.target.innerText = "Copied!";
+      }
+
+      if(event.target.id == "emailProductLink") {
+        var fcEmail = document.getElementById("fcEmail").innerText;
+        var productLink = document.getElementById("productSummarySalesPage").href;
+        sendEmail(fcEmail, productLink, "sales-page");
+        event.target.innerText = "Sent!";
+      }
+
+      if(event.target.id == "previewProgram") {
+        var fcEmail = document.getElementById("fcEmail").innerText;
+        var programLink = document.getElementById("productSummaryProgramPreview").href;
+        sendEmail(fcEmail, programLink, "program");
+        event.target.innerText = "Sent!";
+      }
+
+      if(event.target.id == "unpublishProduct") {
+        event.target.closest("#productSummary").querySelector("#productSummaryStatus").innerText = "Unpublished";
+        var productID = event.target.closest("#productSummary").querySelector("#productSummaryID").innerText;
+        var salesPageID = event.target.closest("#productSummary").querySelector("#productSummarySalesID").innerText;
+        var productName = event.target.closest("#productSummary").querySelector("#productSummaryName").innerText;
+        unpublishProduct(productID, salesPageID, productName);
+      }
+
+      if(event.target.id == "programAndProduct") {
+        sessionStorage.setItem("createProductProgram", "true");
+        sessionStorage.setItem("programConfirmModal", "true");
+        document.getElementById("saveProgram").click();
+        event.target.innerText = "Creating...";
+      }
+
+      if(event.target.id == "onlyProduct") {
+        sessionStorage.setItem("programConfirmModal", "true");
+        document.getElementById("saveProgram").click();
+        event.target.innerText = "Creating...";
+      }
+
+      if(event.target.id == "cancelProduct") {
+        document.getElementById("createProductModal").style.display = "none";
+      }
+
+      if(event.target.id == "parentSubmitProduct") {
+        const productForm = document.getElementById("productForm");
+        const formValidity = productForm.checkValidity();
+        var imagesSet = true;
+
+        //If creating form check images
+        const thumbnailImage = document.getElementById("productThumbnail");
+        const profileImage = document.getElementById("trainerProfilePic");
+
+        if(sessionStorage.getItem("createProduct") == "true") {
+          if (thumbnailImage.files.length == 0) {
+            imagesSet = false;
+          } else if(profileImage.files.length == 0) {
+            imagesSet = false;
+          }
+        }
+
+        if(imagesSet && formValidity && document.getElementById("productProgramID").innerText != "programID") {
+          
+          if(sessionStorage.getItem("editProduct") == "true") {
+            event.target.innerText = "Saving..."
+          } else {
+            event.target.innerText = "Publishing..."
+          }
+          document.getElementById("submitProduct").click();
+          
+        } else {
+          if(!formValidity) {
+            // Select all elements with the 'required' attribute
+            const requiredElements = productForm.querySelectorAll('[required]');
+
+            // Convert NodeList to an array and reverse it
+            const reversedRequiredElements = Array.from(requiredElements).reverse();
+
+            // Iterate through reversed required elements
+            reversedRequiredElements.forEach(element => {
+              // Use reportValidity to show the validation message
+              element.reportValidity();
+            });
+
+          } else if(document.getElementById("productProgramID").innerText == "programID") {
+            alert("A program is required to create a product");
+          } else if (sessionStorage.getItem("createProduct") == "true" && thumbnailImage.files.length == 0) {
+            alert("A thumbail is required to create a product");
+          } else if(productDescription.innerHTML == "") {
+            alert("A description is required to create a product");
+          } else if(sessionStorage.getItem("createProduct") == "true" && profileImage.files.length == 0) {
+            alert("A profile image is required to create a product");
+          }
+          
+        }
+      }
+
+      if(event.target.id == "workoutsPageHover") {
+        document.getElementById("workoutsPage").click();
+        document.getElementById("workoutRadio").click();
+      }
+
+      if(event.target.id == "programPageHover") {
+        document.getElementById("workoutsPage").click();
+        document.getElementById("programRadio").click();
+      }
+
+      if(event.target.closest("#createProduct")) {
+        document.getElementById("productPage").style.display = "none";
+        document.getElementById("productsBuilderBody").style.display = "block";
+        sessionStorage.setItem("createProduct", "true");
+        document.querySelector(".clr-field").style.color = "#0003FF";
+        document.getElementById("button-color").value = "#0003FF";
+        
+      }
+
+      if(event.target.id == "productPageFromDashboard") {
+        document.getElementById("productsPage").click();
+        document.getElementById("createProduct").click();
+      }
+
+      if(event.target.closest("#programSummary")) {
+        if(event.target.id != "addUserProgram" && event.target.id != "deleteProgram" && !event.target.id.includes("programOptions")) {
+          //Prefill program screen
+          prefillProgramBuilder(event.target.closest("#programSummary"));
+
+          //Set edit program flag
+          sessionStorage.setItem("editProgram", 'true');
+
+          hideOrShowGodModeSwitch();
+        }
+      }
+
+      if(event.target.id == "createWorkoutFromModal") {
+        var workoutBuilderSubpage = document.getElementById("workoutbuildersubpage");
+        document.getElementById("workoutsList").style.display = "none";
+        document.getElementById("modalWrapper").appendChild(workoutBuilderSubpage);
+        document.querySelector(".workoutbuilderh3").style.display = "none";
+        sessionStorage.setItem("createWorkoutFromModal", "true");
+        sessionStorage.setItem('createWorkout', 'true');
+        document.getElementById("closeWorkoutBuilder").style.display = "block";
+      }
+      
+      if(event.target.id == "closeWorkoutBuilder") {
+
+        //Hide workout builder and put back in original place
+        var workoutBuilderSubpage = document.getElementById("workoutbuildersubpage");
+        document.getElementById("workoutBuilderPage").appendChild(workoutBuilderSubpage);
+        document.querySelector(".workoutbuilderh3").style.display = "";
+
+        //Show workout list again
+        document.getElementById("workoutsList").style.display = "flex";
+        sessionStorage.setItem("createWorkoutFromModal", "false");
+        sessionStorage.setItem('createWorkout', 'false');
+        document.getElementById("closeWorkoutBuilder").style.display = "none";
+
+        clearWorkoutExerciseList();
+        clearWorkoutListEntry();
+        resetFilters();
+
+      }
+
+      if(event.target.id == "selectProgramProduct") {
+        sessionStorage.setItem("selectProgramProduct", "true");
+        showModal("programList");
+        document.querySelector(".programplaceholderdiv").style.display = "none";
+        document.querySelector(".form-block-23").style.width = "100%";
+        document.querySelector(".form-block-23").style.borderRightStyle = "none";
+        
+      }
+
       if(event.target.closest("#taskItem")) {
         prefillWorkoutTaskList(event.target.closest("#taskItem"), "task");
       }
@@ -3595,6 +4051,8 @@ async function main() {
           
           //Get workout ID:
           var programWorkoutID = workout.querySelector("#workoutIDProgram").innerText;
+          
+          mainWorkoutList = document.querySelectorAll(".workoutsummaryitem")
 
           //List workout summary list and find matching workout id
           for(var j = 0; j < mainWorkoutList.length; j++) {
@@ -3924,6 +4382,9 @@ async function main() {
 
         clearProgramModalList();
         showModal("programList");
+        document.querySelector(".programplaceholderdiv").style.display = "flex";
+        document.querySelector(".form-block-23").style.width = "70%";
+        document.querySelector(".form-block-23").style.borderRightStyle = "solid";
 
       } else if(event.target.closest("#saveUserDetails")) {
 
@@ -4187,22 +4648,30 @@ async function main() {
           if(listLength == 2) {
             //Hide superset button
             if(firstElement) {
-              firstElement.querySelector(".supersetparent").style.display = "none";
-            }
-          }
-          
-          if(firstElement) {
-            if(firstElement.querySelector("#moveUp")) {
-              firstElement.querySelector("#moveUp").style.display = "none";
-            }	
-            if(listLength == 2 && firstElement.querySelector("#moveDown")) {
-              firstElement.querySelector("#moveDown").style.display = "none";
+
+              //Hide last superset icon if in superset
+              if(firstElement.closest(".supersetWrapper")) {
+
+                //Hide last superset icon in superset group
+                var lastElementInSuperset = firstElement.querySelector(".exercise-list-item-superset").lastElementChild;
+                lastElementInSuperset.querySelector(".supersetparent").style.display = "none";
+              } else {
+                firstElement.querySelector(".supersetparent").style.display = "none";
+              }
+              
             }
           }
 
           if(lastElement != firstElement && lastElement && lastElement.querySelector("#moveDown")) {
-              lastElement.querySelector("#moveDown").style.display = "none";
-              lastElement.querySelector(".supersetparent").style.display = "none";
+              //Hide last superset icon if in superset
+              if(lastElement.closest(".supersetWrapper")) {
+                var lastElementInSuperset = lastElement.querySelector(".exercise-list-item-superset").lastElementChild;
+                lastElementInSuperset.querySelector(".supersetparent").style.display = "none";
+              } else {
+                lastElement.querySelector("#moveDown").style.display = "none";
+                lastElement.querySelector(".supersetparent").style.display = "none";
+              }
+
           }
         }
 
@@ -4380,6 +4849,7 @@ async function main() {
         //Go to workout builder
         document.getElementById("workoutBuilderPage").style.display = "block";
         document.getElementById("workoutSummaryPage").style.display = "none";
+        document.querySelector(".workoutbuilderh3").style.display = "";
       } else if (event.target.closest("#createChallenge")) {
         //Remove all events first
         calendar.removeAllEvents();
@@ -4423,7 +4893,8 @@ async function main() {
         document.getElementById("saveChallenge").value = "Create";
         
       
-      } else if (event.target.id == "createProgram" || event.target.id == "createProgramImage" || event.target.id == "createProgramText") {
+      } else if (event.target.id == "createProgramFromDashboard" || event.target.id == "createProgram" || event.target.id == "createProgramImage" || event.target.id == "createProgramText") {
+
         //Remove all events first
         calendar.removeAllEvents();
 
@@ -4446,14 +4917,19 @@ async function main() {
         refreshCalendarLayout();
         document.getElementById("workoutSummaryDiv").style.display = "none";
         document.getElementById("programPage").style.display = "none";
+        document.getElementById("dashboardBody").style.display = "none";
 
         hideOrShowGodModeSwitch();
+
+        document.getElementById("saveProgram").value = "Create";
 
       } else if(event.target.id == "reset-filters" || event.target.id == "reset-filters-ipad" || event.target.id == "reset-filters-modal" || event.target.id == "reset-filters-program-modal" || event.target.id == "reset-filters-users" ) {
         resetGeneralFilters(true);
       } else if (event.target.id == "arrowImg" || event.target.id == "filterOn" || event.target.id == "filterButton" || event.target.id == "filtersText" || event.target.id == "filtersImage" ||
         event.target.id == "filterMenuChild" || event.target.classList.contains('filter-title') || event.target.classList.contains('filter-label') 
         || event.target.classList.contains('filter-checkbox') || event.target.classList.contains('clear-filter') || (event.target.tagName == "INPUT" &&  event.target.id != "workoutSearch" && !(event.target.id.includes("radio"))) || event.target.classList.contains('clear-container') || event.target.classList.contains('clear-filters')) {
+
+
         document.getElementById("filterMenu").style.display = "block";
 
       } else if(event.target.id == "exit-menu" ) {
@@ -4667,12 +5143,38 @@ async function main() {
       }
     }, false);
 
+    document.getElementById('productName').addEventListener('input', function() {
+      document.getElementById('previewName').textContent = this.value || 'Product name';
+      document.getElementById('productNameHeader').textContent = this.value || 'Product name';
+    });
+    
+    document.getElementById('productAmount').addEventListener('input', function() {
+      var currency = document.getElementById("productCurrency").value;
+      document.getElementById('previewPrice').textContent = this.value ? `$${this.value} ${currency}` : 'Price';
+    });
+    
+    document.getElementById('productDescription').addEventListener('input', function() {
+      document.getElementById('previewDescription').innerHTML = this.innerHTML || 'Description goes into greater depth of the product and what to expect/ set realistic expectations.';
+    });
+
     document.addEventListener('input', function(event) {
       if(event.target.id == "userNotes" || event.target.id == "userLimitations") {
         userInputsChanged = true;
       }
     });
 
+    document.getElementById('profileName').addEventListener('input', function() {
+      document.getElementById('profileNamePreview').textContent = this.value ? this.value : 'Profile Name';
+    });
+
+    document.getElementById('colorParent').addEventListener('input', function() {
+      document.querySelector('.text-block-341').style.backgroundColor = document.getElementById("button-color").value ? document.getElementById("button-color").value : '#0003FF';
+    });
+
+    document.addEventListener('coloris:pick', event => {
+      document.getElementById('profileNamePreview').backgroundColor = event.detail.color;
+    });
+    
     //Listen for change events:
     document.addEventListener('change', function (event) {
 
@@ -4918,6 +5420,14 @@ async function main() {
         document.getElementById("toolTipText").style.display = "block";
       }
 
+      if(event.target.closest("#productsPage")) {
+        if(!event.target.closest("#productsPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#productsPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
+        } else {
+          event.target.closest("#productsPage").style.backgroundColor = "#0C08D5";
+        }
+      }
+
       
       if(event.target.closest("#dashboardPage")) {
         if(!event.target.closest("#dashboardPage").classList.contains("clickednavbutton")) {
@@ -4986,6 +5496,14 @@ async function main() {
 
       if(event.target.id == "experienceTag" || event.target.id == "experience") {
         document.getElementById("toolTipText").style.display = "none";
+      }
+
+      if(event.target.closest("#productsPage")) {
+        if(!event.target.closest("#productsPage").classList.contains("clickednavbutton")) {
+          event.target.closest("#productsPage").style.backgroundColor = "";
+        } else {
+          event.target.closest("#productsPage").style.backgroundColor = "#0C08D5";
+        }
       }
 
       if(event.target.closest("#dashboardPage")) {
@@ -5954,6 +6472,8 @@ async function main() {
 
       
       if(hoveredDay) {
+
+
         var dayBackgroundColor = hoveredDay.closest(".fc-daygrid-day-frame").style.backgroundColor;
 
         var eventElParent = hoveredDay.closest(".fc-daygrid-day-frame");
@@ -5982,12 +6502,28 @@ async function main() {
           // Add the grey border with the specified width and color
           hoveredDay.style.border = '1px solid #6D6D6F';
           hoveredDay.querySelector('.add-event-button').style.display = "block";
+          if(hoveredDay.querySelector('.first-day-text')) {
+            hoveredDay.querySelector('.first-day-text').style.display = "none";
+          }
+
+          if( hoveredDay.querySelector('.second-day-text')) {
+            hoveredDay.querySelector('.second-day-text').style.display = "none";
+          }
+          
         } else {
           // Remove the border when toggleState is false
           hoveredDay.style.border = 'none';
           //Check if it has an exercise:
           if(!hoveredDay.querySelector(".fc-event")) {
             hoveredDay.querySelector('.add-event-button').style.display = "none";
+          }
+          
+          if(hoveredDay.querySelector('.first-day-text')) {
+            hoveredDay.querySelector('.first-day-text').style.display = "block";
+          }
+
+          if( hoveredDay.querySelector('.second-day-text')) {
+            hoveredDay.querySelector('.second-day-text').style.display = "block";
           }
           
         }
@@ -6138,9 +6674,11 @@ async function main() {
           } else if(formID == "exerciseLibraryForm") {
             filtersTotalSize = res[i].filtersData[1].values.size;
           } else {
-            filtersTotalSize = res[i].filtersData[1].values.size;
-            if(res[i].filtersData[2]) {
-              filtersTotalSize += res[i].filtersData[2].values.size;
+            if(res[i].filtersData.length > 1) {
+              filtersTotalSize = res[i].filtersData[1].values.size;
+              if(res[i].filtersData[2]) {
+                filtersTotalSize += res[i].filtersData[2].values.size;
+              }
             }
             
           }
@@ -6310,6 +6848,7 @@ async function main() {
 
     //Send workout object to make 
     async function sendWorkoutToMake(workout) {
+
       const editWorkout = sessionStorage.getItem('editWorkout');
       const duplicateWorkout = sessionStorage.getItem('duplicateWorkout');
       const createWorkout = sessionStorage.getItem('createWorkout');
@@ -6322,21 +6861,20 @@ async function main() {
           headers: {'Content-Type': 'application/json'}, 
           body: JSON.stringify(workout)
         }).then(res => {
-          //Set flag back
-          sessionStorage.setItem('editWorkout', 'false');
-          // Get the current URL without parameters
-          const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
-          // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=workoutSummaryPage`;
+          if (res.ok) {
+            return res.text();
+          }
+          throw new Error('Something went wrong');
+        }).then((data) => {
 
-          // Update the current URL to the new URL
-          window.location.href = newURL;
+          addOrUpdateWorkoutRow(data, workout, "update");
+            
         });
 
 
       } else if((duplicateWorkout == "true" || createWorkout == "true") && workout) {
-
+        
         fetch("https://hook.us1.make.com/irudmbj6taymsr1l856twzmrzqj6q2na", {
           method: "POST",
           headers: {'Content-Type': 'application/json'}, 
@@ -6348,17 +6886,8 @@ async function main() {
           throw new Error('Something went wrong');
         })
         .then((data) => {
-          
-          sessionStorage.setItem('duplicateWorkout', 'false');
-          sessionStorage.setItem('createWorkout', 'false');
-          // Get the current URL without parameters
-          const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
-          // Construct the new URL with the parameter
-          const newURL = `${baseURLWithoutParams}?showPage=workoutSummaryPage`;
-
-          // Update the current URL to the new URL
-          window.location.href = newURL;
+          addOrUpdateWorkoutRow(data, workout);
           
         })
         .catch((error) => {
@@ -6371,7 +6900,7 @@ async function main() {
           const newURL = `${baseURLWithoutParams}?showPage=workoutSummaryPage`;
 
           // Update the current URL to the new URL
-          window.location.href = newURL;
+          //window.location.href = newURL;
         });
         
       }
@@ -6519,6 +7048,245 @@ async function main() {
         alert("Could not delete workout - as it exists in a current program");
       });
 
+    }
+
+    function addOrUpdateProgramRow(data, program) {
+
+      var newProgramRow = document.querySelector(`div[programid="${data}"]`);
+      var modalProgramRow = document.querySelector(`div[programmodalid="${data}"]`);
+
+
+      //Clone:
+      if(sessionStorage.getItem("createProgram") == "true") {
+        newProgramRow = document.getElementById("programrowplaceholder").cloneNode(true);
+        modalProgramRow = document.getElementById("programPlaceholderParent").cloneNode(true);
+      }
+      
+      //Fill in template values
+      newProgramRow.querySelector("#programSummaryName").innerText = program["programName"];
+      newProgramRow.querySelector("#programSummaryDescription").innerText = program["programDescription"];
+      newProgramRow.querySelector("#programSummaryExperience").innerText = program["experience"];
+      newProgramRow.querySelector("#programSummaryGoal").innerText = program["programGoal"];
+      newProgramRow.querySelector("#programSummaryWeeks").innerText = program["numberOfWeeks"];
+      newProgramRow.querySelector("#eventData").innerText = program["eventData"];
+      newProgramRow.querySelector("#programLastEdited").innerText = moment().format('MMMM DD, YYYY');
+      newProgramRow.querySelector("#programID").innerText = data;
+
+      newProgramRow.querySelector("#programSummary").style.display = "grid";
+      
+      modalProgramRow.querySelector("#programModalName").innerText = program["programName"];
+      modalProgramRow.querySelector("#programModalDescription").innerText = program["programDescription"];
+      modalProgramRow.querySelector("#programExperienceModal").innerText = program["experience"];
+      modalProgramRow.querySelector("#programGoalModal").innerText = program["programGoal"];
+      modalProgramRow.querySelector("#programWeeks").innerText = program["numberOfWeeks"];
+      modalProgramRow.querySelector("#eventDataModal").innerText = program["eventData"];
+      modalProgramRow.querySelector("#programModalEdited").innerText = moment().format('MMMM DD, YYYY');
+      modalProgramRow.querySelector("#programIDModal").innerText = data;
+      modalProgramRow.querySelector("#programFullNameModal").innerText = program["programName"];
+      
+      modalProgramRow.querySelector("#programModalSummary").style.display = "grid";
+      
+      //Now add to list
+      if(sessionStorage.getItem("createProgram") == "true") {
+        document.getElementById("programListParent").appendChild(newProgramRow);
+        const programListParent = document.getElementById("programListParent");
+        programListParent.insertBefore(newProgramRow, programListParent.firstChild);
+  
+        document.getElementById("programListModalParent").appendChild(modalProgramRow);
+        const programListParentModal = document.getElementById("programListModalParent");
+        programListParentModal.insertBefore(modalProgramRow, programListParentModal.firstChild);
+      }
+
+      //Clean up:
+      if(document.getElementById("programListEmptyState")){
+        document.getElementById("programListEmptyState").style.display = "none";
+      }
+
+      if(document.getElementById("programModalEmpty")){
+        document.getElementById("programModalEmpty").style.display = "none";
+      }
+
+      document.getElementById("programBuilder").style.display = "none";
+      document.getElementById("createProductModal").style.display = "none";
+
+      if(sessionStorage.getItem("createProductProgram") == "true") {
+        prefillProductFormFromProgram(program["programName"], data);
+        sessionStorage.setItem("createProductProgram", "false");
+      } else {
+        document.getElementById("programPage").style.display = "block";
+      }
+
+      clearProgram();
+    }
+
+    function addOrUpdateWorkoutRow(data, workout, action="create") {
+
+
+      var parsedData = JSON.parse(data); // Parse the JSON data once
+      var newWorkoutID = parsedData["itemID"];
+      var newWorkoutSlug = parsedData["itemSlug"];
+    
+      var emptyState = false;
+      if(document.getElementById("workoutModalEmptyState")) {
+        emptyState = true;
+      }
+
+      //Populate modal list
+      var workoutListRow = document.querySelector(`div[workoutmodalid="${workout["workoutID"]}"]`);
+
+      //Populate main list
+      var mainWorkoutListRow = document.querySelector(`div[workoutid="${workout["workoutID"]}"]`);
+
+      if(action == "create" && !emptyState) { 
+        workoutListRow = document.querySelector(".workoutmodalitem").cloneNode(true);
+        mainWorkoutListRow = document.querySelector(".workoutsummaryitem").cloneNode(true);
+      } else if(action == "create") {
+        //Populate modal list
+        workoutListRow = document.getElementById("workoutSummaryProgram").cloneNode(true);
+
+        //Populate main list
+        mainWorkoutListRow = document.querySelector(".empty-workout-placeholder").cloneNode(true);
+      }
+
+      workoutListRow.setAttribute("workoutmodalid", newWorkoutID);
+      mainWorkoutListRow.setAttribute("workoutid", newWorkoutID);
+
+      workoutListRow.querySelector("#workoutSummaryNameProgram").innerText = workout.name;
+      workoutListRow.querySelector("#workoutSummaryDescriptionProgram").innerText = workout.description;
+
+      workoutListRow.querySelector("#workoutDifficultyProgram").innerText = "";
+      workoutListRow.querySelector("#workoutFocusAreaProgram").innerText = "";
+
+      workoutListRow.querySelector("#workoutIDProgram").innerText = newWorkoutID;
+
+      workoutListRow.querySelector("#workoutFullNameProgram").innerText = workout.name;
+      workoutListRow.querySelector("#workoutShortNameProgram").innerText = workout.name;
+      workoutListRow.querySelector("#workoutProgramJSON").innerText = workout.stringOfExercises;
+
+      workoutListRow.querySelector("#workoutDurationProgram").innerText = workout.length;
+
+      workoutListRow.style.display = "grid";
+
+      mainWorkoutListRow.querySelector("#workoutSummaryName").innerText = workout.name;
+      mainWorkoutListRow.querySelector("#workoutSummaryDescription").innerText = workout.description;
+
+      mainWorkoutListRow.querySelector("#workoutDuration").innerText = workout.length;
+      mainWorkoutListRow.querySelector("#workoutID").innerText = newWorkoutID;
+      
+      mainWorkoutListRow.querySelector("#workoutFullName").innerText = workout.name;
+      mainWorkoutListRow.querySelector("#workoutShortName").innerText = workout.name;
+      mainWorkoutListRow.querySelector("#workoutJSON").innerText = workout.stringOfExercises;
+
+      mainWorkoutListRow.querySelector("#workoutIDs").innerText = workout.exerciseSlugs; //comma separated list of guide slugs
+      mainWorkoutListRow.querySelector("#workoutMuscleGroups").innerText = workout.muscleGroups; //comma separated list of muscle groups
+
+      mainWorkoutListRow.querySelector("#workoutLink").href = `${window.location.origin}/workout-summary/${newWorkoutSlug}`;
+      mainWorkoutListRow.querySelector("#workoutLastEdited").innerText = moment().format('MMMM DD, YYYY');
+
+      if(!emptyState) {
+        // Need to remove old guides:
+        const oldGuides = Array.from(mainWorkoutListRow.querySelector("#newCollectionList").children);
+        oldGuides.forEach(oldGuide => {
+          oldGuide.remove();
+        });
+      }
+
+      workout.listOfExercises.forEach((exerciseGroup, outerIndex) => {
+        // Check if old method / or just 1 workout
+        if (Array.isArray(exerciseGroup)) {
+          // Iterate over exerciseGroup if it's an array
+          exerciseGroup.forEach((exercise, index) => {
+            // Handle DOM manipulation logic
+            handleExerciseElement(exercise, index, emptyState, mainWorkoutListRow, outerIndex);
+          });
+        } else {
+          // Is superset
+          Object.values(exerciseGroup).forEach(exerciseArray => {
+            exerciseArray.forEach((exercise, index) => {
+              // Handle DOM manipulation logic
+              handleExerciseElement(exercise, index, emptyState, mainWorkoutListRow, outerIndex);
+            });
+          });
+        }
+
+      });
+
+      mainWorkoutListRow.style.display = "grid";
+
+      // Check if empty state there
+      if(action == "create" && emptyState) {
+        const newDiv = document.createElement("div");
+        const newModalDiv = document.createElement("div");
+
+        // Add the class 'workoutsummaryitem' to the div
+        newDiv.classList.add("workoutsummaryitem");
+        newModalDiv.classList.add("workoutmodalitem");
+        // Append the mainWorkoutListRow to the new div
+        newDiv.appendChild(mainWorkoutListRow);
+        newModalDiv.appendChild(workoutListRow);
+        document.querySelector("#workoutModalEmptyState").style.display = "none";
+        document.querySelector("#workoutListEmptyState").style.display = "none";
+
+        // Insert the new div at the top of parentWorkoutList
+        const parentWorkoutList = document.querySelector("#parentWorkoutList");
+        parentWorkoutList.insertBefore(newDiv, parentWorkoutList.firstChild);
+
+        // Insert the newModalDiv at the top of workoutmodallist
+        const workoutModalList = document.querySelector(".workoutmodallist");
+        workoutModalList.insertBefore(newModalDiv, workoutModalList.firstChild);
+
+      } else if(action == "create") {
+        // Insert mainWorkoutListRow at the top of workoutSummaryList
+        const workoutSummaryList = document.querySelector("#workoutSummaryList");
+        workoutSummaryList.insertBefore(mainWorkoutListRow, workoutSummaryList.firstChild);
+        
+        // Insert workoutListRow at the top of workoutSummaryListProgram
+        const workoutSummaryListProgram = document.querySelector("#workoutSummaryListProgram");
+        workoutSummaryListProgram.insertBefore(workoutListRow, workoutSummaryListProgram.firstChild);
+      }
+
+      sessionStorage.setItem('duplicateWorkout', 'false');
+      sessionStorage.setItem('createWorkout', 'false');
+      clearWorkoutListEntry();
+      clearWorkoutExerciseList();
+
+      if(sessionStorage.getItem("createWorkoutFromModal") == "true") {
+        //Close modal workout builder and show modal workout list
+        document.getElementById("closeWorkoutBuilder").click();
+        
+      } else {
+        //Close normal workout builder and show workout list
+        document.getElementById("workoutsPageHover").click();
+      }
+
+      sessionStorage.setItem("createWorkoutFromModal", "false");
+
+    }
+
+    // Function to handle the creation and insertion of the exercise element
+    function handleExerciseElement(exercise, index, emptyState, mainWorkoutListRow, outerIndex) {
+      // Clone the template
+      var newExerciseElement = null;
+
+      if (!emptyState) {
+        newExerciseElement = document.querySelector(".empty-workout-placeholder").querySelector("#newGuideTemplate").cloneNode(true);
+      } else {
+        newExerciseElement = mainWorkoutListRow.querySelector("#newGuideTemplate").cloneNode(true);
+        if (outerIndex == 0 && index == 0) {
+          mainWorkoutListRow.querySelector("#newGuideTemplate").remove();
+        }
+      }
+
+      // Fill in the fields with data from the JSON
+      newExerciseElement.querySelector("#exerciseShortName").innerText = exercise.exerciseName;
+      newExerciseElement.querySelector("#exerciseItemID").innerText = exercise.workoutExerciseItemID;
+      newExerciseElement.querySelector("#exerciseFullName").innerText = exercise.workoutExerciseFullName;
+      newExerciseElement.querySelector("#exerciseGuideID").innerText = exercise.guideID;
+      newExerciseElement.querySelector("#exerciseThumbnailURL").innerText = "";
+      newExerciseElement.querySelector("#exerciseMuscleImage").innerText = "";
+
+      // Append the new element to the DOM
+      mainWorkoutListRow.querySelector("#newCollectionList").appendChild(newExerciseElement);
     }
 
     function addWorkoutListEntry(listOfGuideIDs) {
@@ -6878,6 +7646,119 @@ async function main() {
 
     }
 
+    function isBase64Image(src) {
+      return src.startsWith('data:image/');
+    }
+    
+    // Main function to process base64 image
+    function processBase64Image(base64String) {
+      return new Promise((resolve, reject) => {
+        // Split the base64 string into metadata and data parts
+        const [metadata, base64Data] = base64String.split(',');
+
+        // Extract the file format from the metadata
+        const formatMatch = metadata.match(/data:image\/([a-zA-Z0-9]+);base64/);
+        const fileFormat = formatMatch ? formatMatch[1] : null;
+
+        // Calculate the padding (number of '=' characters)
+        const padding = (base64Data.match(/=+$/) || [''])[0].length;
+
+        // Calculate the size in bytes
+        const base64Length = base64Data.length;
+        const sizeInBytes = (base64Length * 3) / 4 - padding;
+
+        // Convert size from bytes to megabytes
+        const sizeInMB = sizeInBytes / (1024 * 1024);
+
+        // Check if the size exceeds 2MB
+        const isUnder1MB = sizeInMB <= 2;
+
+        if (isUnder1MB) {
+          // Return the original image if it's under 1MB
+          resolve({
+            fileFormat,
+            base64Data,
+            sizeInBytes,
+            sizeInMB,
+            isUnder1MB
+          });
+        } else {
+          // Call the resizeImage function if the image is too large
+          resizeImage(base64String, fileFormat)
+            .then(resizedResult => {
+              resolve(resizedResult);
+            })
+            .catch(err => reject(err));
+        }
+      });
+    }
+
+    // Function to resize the image with high-quality downscaling and cropping to fit
+    function resizeImage(base64String, fileFormat, targetWidth = 650, targetHeight = 650) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = base64String;
+
+        img.onload = () => {
+          // Calculate aspect ratio of the image and the target
+          const aspectRatio = img.width / img.height;
+          const targetAspectRatio = targetWidth / targetHeight;
+
+          let newWidth, newHeight;
+
+          // Determine the new width and height to fit the target size while maintaining aspect ratio
+          if (aspectRatio > targetAspectRatio) {
+            // Image is wider than target, so scale based on height
+            newHeight = targetHeight;
+            newWidth = targetHeight * aspectRatio;
+          } else {
+            // Image is taller or equal aspect ratio, so scale based on width
+            newWidth = targetWidth;
+            newHeight = targetWidth / aspectRatio;
+          }
+
+          // Create a temporary canvas for resizing
+          const canvas = document.createElement('canvas');
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+
+          const ctx = canvas.getContext('2d');
+
+          // Enable high-quality scaling
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          // Calculate cropping offsets
+          const offsetX = (newWidth - targetWidth) / 2;
+          const offsetY = (newHeight - targetHeight) / 2;
+
+          // Draw the resized and cropped image to the canvas
+          ctx.drawImage(img, -offsetX, -offsetY, newWidth, newHeight);
+
+          // Convert the canvas back to base64
+          const resizedBase64String = canvas.toDataURL(`image/${fileFormat}`, 0.9); // Adjust quality if needed
+          const [resizedMetadata, resizedBase64Data] = resizedBase64String.split(',');
+
+          const resizedBase64Length = resizedBase64Data.length;
+          const resizedSizeInBytes = (resizedBase64Length * 3) / 4 - (resizedBase64Data.match(/=+$/) || [''])[0].length;
+          const resizedSizeInMB = resizedSizeInBytes / (1024 * 1024);
+
+          resolve({
+            fileFormat,
+            base64Data: resizedBase64Data,
+            sizeInBytes: resizedSizeInBytes,
+            sizeInMB: resizedSizeInMB,
+            isUnder1MB: resizedSizeInMB <= 1
+          });
+        };
+
+        img.onerror = (err) => reject(err);
+      });
+    }
+
+
+
+
     function getProgramBreakers() {
       
       const weekRows = [];
@@ -7000,6 +7881,131 @@ async function main() {
 
     } 
 
+    async function sendProductToStripeMake(product, product_interval) {
+      // Determine the endpoint based on the product_interval
+      var url = product_interval === 'subscription' 
+        ? 'https://hook.us1.make.com/p9g2g5tss16stye69t0dk8lnsi02ioa1' 
+        : 'https://hook.us1.make.com/esv6abag1v58i6i8giwjkvlzelzybjhe';
+
+      if(sessionStorage.getItem("editProduct") == "true") {
+        url = "https://hook.us1.make.com/iu7nsoikxx65lpi1llr9pc7m8wsatplr";
+      }
+      
+      try {
+        // Make the POST request with the product object
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(product)
+        });
+        
+         // Check if the response was successful
+        if (response.ok) {
+          const data = await response.json();
+          return data; // Return the response data
+        } else {
+          console.error('Failed to send product:', response.status, response.statusText);
+          return null; // Return null if the request failed
+        }
+      } catch (error) {
+        // Handle errors that occur during fetch
+        console.error('Error occurred while sending product:', error);
+      }
+    }
+    
+
+    // Function to send product object to the endpoint
+    async function sendProductToMake(product) {
+
+      var webhookURL = 'https://hook.us1.make.com/jyf3qwk6qs80qp4iq6dz8trelwc91wd1';
+      if(sessionStorage.getItem("editProduct") == "true") {
+        webhookURL = "https://hook.us1.make.com/4nuxqtpkwvraxunbpgfdwbjjtu3xlo9a";
+      }
+      fetch(webhookURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(product)
+      })
+      .then(response => response.json())
+      .then(data => {
+
+        //TO-DO, Add in checks if exists
+        var productID = data["platformItemID"];
+        var salesPageSlug = data["landingPageSlug"];
+        var salesPageID = data["landingPageItemID"];
+        var salesPageLink = `https://benefiit.me/sales-pages/${salesPageSlug}`;
+        var price = product["programPrice"] / 100;
+        var currency = product["currency"];
+        var newProduct = false;
+
+        //Find product row
+        var newProductRow = document.querySelector(`div[productid="${productID}"]`);
+
+        if(!newProductRow || document.getElementById("productListEmptyState")) {
+          //Clone node
+          newProductRow = document.getElementById("productrowplaceholder").cloneNode(true);
+          newProduct = true;
+        }
+
+        //Fill in template values
+        newProductRow.querySelector("#productSummaryName").innerText = product["programName"];
+        newProductRow.querySelector("#productSummaryDescription").innerHTML = product["programDescription"];
+        newProductRow.querySelector("#productSummaryPrice").innerText = `$${price} ${currency}`;
+        newProductRow.querySelector("#productSummaryStatus").innerText = "Published";
+        newProductRow.querySelector("#productSummaryLastEdited").innerText = moment().format('MMMM DD, YYYY');
+        newProductRow.querySelector("#productSummaryProgramID").innerText = product["programID"];
+        newProductRow.querySelector("#productSummaryProgramName").innerText = product["programName"];
+        newProductRow.querySelector("#productSummaryBtnColor").innerText = product["buttonColor"];
+        newProductRow.querySelector("#productSummaryID").innerText = productID;
+        newProductRow.querySelector("#productSummarySalesID").innerText = salesPageID;
+
+        var foundProgramRow = document.querySelector(`div[programid="${product["programID"]}"]`);
+        newProductRow.querySelector("#productSummaryWeeks").innerText = foundProgramRow.querySelector("#programSummaryWeeks").innerText;
+        
+        if(product["imageType"] != "") {
+          newProductRow.querySelector("#productSummaryThumbnail").src = `https://d3l49f0ei2ot3v.cloudfront.net/PNGs/${product["programID"]}.${product["imageType"]}`;
+        }
+
+        //Fill in profile elements
+        document.getElementById("gymFullName").innerText = product["profileName"];
+        
+        if(product["profilePicType"] != "") {
+          document.getElementById("defaultThumbnail").innerText = `https://d3l49f0ei2ot3v.cloudfront.net/PNGs/${product["fcID"]}.${product["profilePicType"]}`;
+        }
+
+        //Fill in all other fields
+        newProductRow.querySelector("#productSummary").style.display = "grid";
+        //Set product id attribute
+        newProductRow.setAttribute("productid", productID);
+
+        //Check if empty state
+        if(newProduct) {
+
+          if(document.getElementById("productListEmptyState")) {
+            document.getElementById("productListEmptyState").style.display = "none";
+          }
+          
+          //Now add to list
+          const productListParent = document.getElementById("productListParent");
+          productListParent.appendChild(newProductRow); // Append it first
+          productListParent.insertBefore(newProductRow, productListParent.firstChild); // Then insert before the first child
+        }
+
+        //Clear form
+        resetProductForm();
+        document.getElementById("productsBuilderBody").style.display = "none";
+        document.getElementById("productPage").style.display = "block";
+
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
+
     async function sendProgramToMake(program) {
 
       if(sessionStorage.getItem("editProgram") == "true") {
@@ -7011,6 +8017,7 @@ async function main() {
     } 
 
     function sendProgramRequestToMake(destination, program) {
+      
       fetch(destination, {
         method: "POST",
         headers: {'Content-Type': 'application/json'}, 
@@ -7023,18 +8030,12 @@ async function main() {
       })
       .then((data) => {
 
-        alert("Program Created Successfully!");
+        addOrUpdateProgramRow(data, program);
+
         //Reset program builder flags
         sessionStorage.setItem("editProgram", "false");
         sessionStorage.setItem("createProgram", "false");
-        // Get the current URL without parameters
-        const baseURLWithoutParams = window.location.origin + window.location.pathname;
 
-        // Construct the new URL with the parameter
-        const newURL = `${baseURLWithoutParams}?showPage=programSummary`;
-
-        // Update the current URL to the new URL
-        window.location.href = newURL;
       })
       .catch((error) => {
         console.log(error);
@@ -7046,8 +8047,131 @@ async function main() {
         const newURL = `${baseURLWithoutParams}?showPage=programSummary`;
 
         // Update the current URL to the new URL
-        window.location.href = newURL;
+        //window.location.href = newURL;
       });
+    }
+
+    function prefillProductForm(productSummary) {
+      // Fill in the product name
+      document.getElementById("productName").value = productSummary.querySelector("#productSummaryName").innerText;
+      document.getElementById("previewName").innerText = productSummary.querySelector("#productSummaryName").innerText;
+      document.getElementById("productNameHeader").innerText = productSummary.querySelector("#productSummaryName").innerText;
+      
+      // Fill in the product ID
+      document.getElementById("productProgramID").innerText = productSummary.querySelector("#productSummaryProgramID").innerText;
+    
+      // Fill in the price (ensure it's properly formatted)
+      const priceText = productSummary.querySelector("#productSummaryPrice").innerText;
+      document.getElementById("previewPrice").innerText = productSummary.querySelector("#productSummaryPrice").innerText
+      
+      const price = priceText.match(/\d+(\.\d{2})?/)[0]; // Extract numeric value
+      document.getElementById("productAmount").value = price;
+    
+      // Set the currency (you could extract it from the price text if needed)
+      const currency = priceText.split(' ').pop(); // Extracts the currency (last part of the string)
+      document.getElementById("productCurrency").value = currency;
+    
+      // Fill in the product description
+      const description = productSummary.querySelector("#productSummaryDescription").innerHTML;
+      document.getElementById("productDescription").innerHTML = description;
+      document.getElementById("previewDescription").innerHTML = description;
+    
+      // Fill in the button color
+      const buttonColor = productSummary.querySelector("#productSummaryBtnColor").innerText;
+      document.querySelector(".clr-field").style.color = buttonColor;
+      document.getElementById("button-color").value = buttonColor;
+      document.querySelector('.text-block-341').style.backgroundColor = buttonColor;
+    
+      // Fill in the image data
+      const imageURL = productSummary.querySelector("#productSummaryThumbnail").src;
+      document.getElementById("customProductImage").src = imageURL; 
+      document.getElementById("previewThumbnail").src = imageURL;
+      document.getElementById("customProductImage").style.borderRadius = "8px";
+      document.getElementById("previewThumbnail").style.borderRadius = "8px";
+      document.querySelector("#customProductImage").style.objectFit = "cover";
+      document.querySelector("#previewThumbnail").style.objectFit = "cover";
+    
+      // Fill in the profile details (assuming profilePic and profileName are available)
+      document.querySelector("#profilePicPreview").src = document.getElementById("defaultThumbnail").innerText;
+      document.querySelector("#customProfilePic").src = document.getElementById("defaultThumbnail").innerText;
+      document.querySelector("#customProfilePic").style.borderRadius = "8px";
+      document.querySelector("#profilePicPreview").style.borderRadius = "8px";
+      document.querySelector("#profilePicPreview").style.objectFit = "cover";
+      document.querySelector("#customProfilePic").style.objectFit = "cover";
+      
+      document.querySelector("#profileNamePreview").innerText = document.getElementById("gymFullName").innerText;
+      document.querySelector("#profileName").value = document.getElementById("gymFullName").innerText;
+
+      
+      document.getElementById("stripeProductID").innerText = productSummary.querySelector("#productStripeProductID").innerText;
+      document.getElementById("stripePaymentID").innerText = productSummary.querySelector("#productStripePaymentID").innerText;
+
+      // fill in other details if needed, like salesID, etc.
+      const salesID = productSummary.querySelector("#productSummarySalesID").innerText;
+      document.getElementById("productSalesPageID").innerText = salesID;
+
+      document.getElementById("productID").innerText = productSummary.querySelector("#productSummaryID").innerText;
+
+      //Program button text:
+      document.getElementById("selectProgramProduct").innerText = productSummary.querySelector("#productSummaryProgramName").innerText;
+      //Program ID:
+      document.getElementById("productProgramID").innerText = productSummary.querySelector("#productSummaryProgramID").innerText;
+
+      //Close listing page
+      document.getElementById("productPage").style.display = "none";
+      //Show product form page
+      document.getElementById("productsBuilderBody").style.display = "block";
+      //Set flag
+      sessionStorage.setItem("editProduct", "true");
+
+      document.getElementById("parentSubmitProduct").innerText = "Save Changes";
+
+      
+    }
+    
+
+    function prefillProductFormFromProgram(programName, programID) {
+      document.getElementById("productPage").style.display = "block";
+      document.getElementById("createProduct").click();
+
+      //Fill in name and click button
+      document.getElementById("productName").value = programName;
+      document.getElementById("selectProgramProduct").innerText = programName;
+      document.getElementById("productProgramID").innerText = programID;
+
+    }
+
+    function resetProductForm() {
+
+      //Fields in the form
+      document.getElementById("productDescription").innerHTML = "";
+      document.getElementById("productNameHeader").innerText = "Product Name";
+      document.getElementById("selectProgramProduct").innerText = "Select Program";
+      document.getElementById("productProgramID").innerHTML = "programID";
+      document.getElementById("customProductImage").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/66f293141eae3fcb348cbab3_Group%208835.webp";
+      document.getElementById("customProductImage").style.borderRadius = "0px";
+      document.getElementById("customProfilePic").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/67078bda5779fbd1e7668c90_Group%20512708%20(1).avif";
+      document.getElementById("customProfilePic").style.borderRadius = "0px";
+      document.getElementById("colorParent").querySelector(".clr-field").color = "";
+      document.getElementById("parentSubmitProduct").innerText = "Publish";
+      
+      //The preview div:
+      document.getElementById("previewThumbnail").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/66f293f2911a0d2ba8adcf53_Group%20512698.avif";
+      document.getElementById("previewThumbnail").style.borderRadius = "0px";
+      document.getElementById("profilePicPreview").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/670790eda8b038123aeb2f22_Rectangle%204537.avif";
+      document.getElementById("profilePicPreview").style.borderRadius = "0px";
+      document.getElementById("profileNamePreview").innerText = "Profile Name";
+      document.getElementById("previewName").innerText = "Product Name";
+      document.getElementById("previewPrice").innerText = "Price";
+      document.getElementById("previewDescription").innerHTML = "Description goes into greater depth of the product and what to expect/ set realistic expectations.";
+      
+      //Reset remainder of input fields
+      document.getElementById("productForm").reset();
+      sessionStorage.setItem("createProduct", "false");
+      sessionStorage.setItem("editProduct", "false");
+      document.getElementById("submitProduct").removeAttribute("disabled");
+
+
     }
 
     function sendChallengeToMake(challenge) {
@@ -7337,14 +8461,18 @@ async function main() {
 
       // Convert the Start Date strings to Date objects
       var eventsData = "";
-      //Check if user training plan is empty
 
       document.getElementById("workout-task-select").style.display = "none";
       document.getElementById("showModalWorkouts").click();
 
+      //Update submit button:
+      document.getElementById("saveProgram").value = "Update";
+
+      //Check if user training plan is empty
       if(userTrainingPlan.length == 0) {
         const summaryEventData = program.querySelector("#summaryEventData");
         const eventDataElement = program.querySelector("#eventData");
+
         if(programType == "userProgram" || programType == "userProgramInitial") {
           if(summaryEventData && summaryEventData.innerText != "") {
             eventsData = JSON.parse(summaryEventData.innerText);
@@ -7406,6 +8534,7 @@ async function main() {
           });
         } else {
           eventsData.forEach((event, index) => {
+
             const startDate = new Date(event.start);
             events.push({
               title: event.title,
@@ -7428,8 +8557,7 @@ async function main() {
         dates.sort((a, b) => a - b);
         //Set calendar initial date
         if(programType == "userProgram") {
-          
-          calendar.today();
+          calendar.gotoDate( dates[0] );
         } else {
           calendar.gotoDate( dates[0] );
         }
@@ -7608,6 +8736,58 @@ async function main() {
       table.deselectRow();
 
     }
+
+    function unpublishProduct(productID, salesPageID, productName) {
+      const webhookUrl = "https://hook.us1.make.com/d6ap2mc74ywd2wj5d55027myjajxw03a";
+      
+      const data = {
+        productID: productID,
+        salesPageID: salesPageID,
+        productName: productName
+      };
+    
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Product unpublished successfully:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
+    
+
+    function sendEmail(email, link, linkType) {
+      const webhookUrl = "https://hook.us1.make.com/xk91wkouxdzb7n6qchyji5srnu321fgm";
+      
+      const data = {
+        email: email,
+        link: link,
+        linkType: linkType
+      };
+    
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
+    
 
     function fillProgramTable(tabledata, reset=false) {
 
@@ -8322,7 +9502,7 @@ async function main() {
     }
 
     function updateCalendar(events=null, source="default") {
-      
+
       //Remove all current events:
       calendar.removeAllEvents();
 
@@ -8822,7 +10002,7 @@ async function main() {
   
       var exercises = [];
       const workoutListElements = selectedWorkout.querySelector("#newCollectionList").children;
-      
+
       for(var i = 0; i < workoutListElements.length; i++) {
         const workoutDetails = workoutListElements[i];
         var exercise = {};
@@ -8897,7 +10077,6 @@ async function main() {
 
         //Navigate to selected page
         document.getElementById("dontSave").onclick = function() {
-        
           //Reset user training plan:
           userTrainingPlan = [];
 
@@ -8939,7 +10118,7 @@ async function main() {
             document.getElementById("userDetailsPage").style.display = "none";
           }
 
-          document.getElementById(destinationScreen).style.display = "block";
+          document.getElementById(destinationScreen).style.setProperty("display", "block", "important");
 
           if(destinationScreen == "userInfoDetails") {
 
@@ -8963,6 +10142,9 @@ async function main() {
         document.getElementById("programBuilder").style.display = "none";
         document.getElementById("programPage").style.display = "none";
         document.getElementById("challengesBody").style.display = "none";
+        document.getElementById("taskPage").style.display = "none";
+        document.getElementById("productPage").style.display = "none";
+        document.getElementById("productsBuilderBody").style.display = "none";
         document.getElementById("challengeBuilderInfo").style.display = "none";
         
         //Re-show add week button
@@ -8980,7 +10162,7 @@ async function main() {
         }
 
         
-        document.getElementById(destinationScreen).style.display = "block";
+        document.getElementById(destinationScreen).style.setProperty("display", "block", "important");
 
         if(destinationScreen == "userInfoDetails") {
           document.getElementById(destinationScreen).style.display = "flex";
@@ -9030,7 +10212,6 @@ async function main() {
 
         //Navigate to selected page
         document.getElementById("dontSave").onclick = function() {
-          
           //Remove training plan header
           document.getElementById("trainingPlanName").style.display = "none";
 
@@ -9041,9 +10222,10 @@ async function main() {
 
           //Close modal
           document.getElementById("confirmCloseBuilder").style.display = "none";
+
           //Hide and clear program builder or program summary
           document.getElementById("programBuilder").style.display = "none";
-          document.getElementById("programPage").style.display = "none";
+          //document.getElementById("programPage").style.display = "none";
 
           //Clear session storage
           sessionStorage.setItem('editProgram', 'false');
@@ -9053,10 +10235,6 @@ async function main() {
 
           //Clear program entries
           clearProgram();
-
-          document.getElementById("workoutRadio").click();
-          //Click workout radio button
-          checkProgramWorkoutCheckBox();
 
           document.getElementById("summaryRadioButton").click();
           //Click summary radio button
@@ -9075,7 +10253,7 @@ async function main() {
             document.getElementById("userDetailsPage").style.display = "none";
           }
 
-          document.getElementById(destinationScreen).style.display = "block";
+          document.getElementById(destinationScreen).style.setProperty("display", "block", "important");
 
           if(destinationScreen == "userInfoDetails") {
 
@@ -9084,11 +10262,12 @@ async function main() {
           }
           
           if(secondaryDestination != null) {
-
             document.getElementById(secondaryDestination).style.display = "block";
           }
 
           styleNavButtons(destinationButton)
+
+          document.getElementById("programRadio").click();
 
         }
 
@@ -9100,6 +10279,9 @@ async function main() {
         document.getElementById("programBuilder").style.display = "none";
         document.getElementById("programPage").style.display = "none";
         document.getElementById("challengesBody").style.display = "none";
+        document.getElementById("taskPage").style.display = "none";
+        document.getElementById("productPage").style.display = "none";
+        document.getElementById("productsBuilderBody").style.display = "none";
 
         document.getElementById("workoutRadio").click();
         //Click workout radio button
@@ -9121,7 +10303,7 @@ async function main() {
         }
 
         
-        document.getElementById(destinationScreen).style.display = "block";
+        document.getElementById(destinationScreen).style.setProperty("display", "block", "important");
 
         if(destinationScreen == "userInfoDetails") {
           document.getElementById(destinationScreen).style.display = "flex";
@@ -9163,6 +10345,8 @@ async function main() {
 
     function clearProgram() {
 
+      userTrainingPlan = [];
+
       //Clear title
       document.getElementById("programName").value = "";
 
@@ -9183,6 +10367,9 @@ async function main() {
 
       //Clear events
       calendar.removeAllEvents();
+
+      resetFilters();
+      document.getElementById("saveProgram").removeAttribute("disabled");
 
     }
 
@@ -9230,19 +10417,17 @@ async function main() {
         closeBuilderModal.style.flexDirection = "column";
         closeBuilderModal.style.justifyContent = "center";
         closeBuilderModal.style.alignItems = "center";
-        //Show modal:
-        closeBuilderModal.display = "block";
   
         //Navigate to selected page
         document.getElementById("dontSave").onclick = function() {
-
           //Close modal
           document.getElementById("confirmCloseBuilder").style.display = "none";
           //Hide and clear workout builder
           document.getElementById("workoutBuilderPage").style.display = "none";
           document.getElementById("workoutSummaryPage").style.display = "none";
 
-          document.getElementById(destinationScreen).style.display = "block";
+          document.getElementById(destinationScreen).style.setProperty("display", "block", "important");
+
           //Clear session storage
           sessionStorage.setItem('editWorkout', 'false');
           sessionStorage.setItem('duplicateWorkout', 'false');
@@ -9269,12 +10454,16 @@ async function main() {
         if(document.getElementById("userDetailsPage").style.display == "block") {
           saveUserDetails();
         }
+        
         workoutBuilderPage.style.display = "none";
         document.getElementById("workoutSummaryPage").style.display = "none";
         document.getElementById("usersBody").style.display = "none";
+        document.getElementById("taskPage").style.display = "none";
+        document.getElementById("productPage").style.display = "none";
         document.getElementById("userDetailsPage").style.display = "none";
         document.getElementById("challengesBody").style.display = "none";
-        document.getElementById(destinationScreen).style.display = "block";
+        document.getElementById("productsBuilderBody").style.display = "none";
+        document.getElementById(destinationScreen).style.setProperty("display", "block", "important");
 
         if(secondaryDestination != null) {
           document.getElementById(secondaryDestination).style.display = "block";
@@ -9284,9 +10473,7 @@ async function main() {
         sessionStorage.setItem('editWorkout', 'false');
         sessionStorage.setItem('duplicateWorkout', 'false');
         sessionStorage.setItem('createWorkout', 'false');
-
         styleNavButtons(destinationButton);
-  
         //Clear workout to guide list mapping
         clearWorkoutListEntry();
 
@@ -9299,6 +10486,9 @@ async function main() {
       document.getElementById("ajaxContent").style.display = "block";
       //Clear filters
       resetFilters();
+
+      document.getElementById("workoutBuilderForm").reset();
+      
     }
 
     function clearProgramModalList() {
