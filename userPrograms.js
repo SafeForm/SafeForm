@@ -17,7 +17,6 @@ function main() {
   var workoutList = document.querySelectorAll(".workoutprogramitem");
   var currentDayNumber = "";
   var oneOnOneWeek = 0;
-  var thisWeek = 
 
   localStorage.setItem("currentTrainingPlan", window.location)
 
@@ -140,10 +139,6 @@ function main() {
     parentDiv.appendChild(newButton);
   }
 
-  for (var i = 0; i < FileList.length; i++) {
-    console.log("Hellow workld")
-  }
-
   //Remove original placeholder button
   weekButton.remove();
 
@@ -264,8 +259,8 @@ function main() {
 
     //Get account type
     var programType = document.getElementById("programType").innerText;
-
-    if(programType && (programType == "personalised" || programType == "customised")) {
+    console.log(programType)
+    if(programType && (programType == "personalised")) {
       //Leave as is - meaning current date week will be selected
     } else {
       //Ensure the current week at the users pace is selected
@@ -288,6 +283,7 @@ function main() {
       }
 
       button.addEventListener('click', (event) => {
+
         displayWorkouts(index, workoutList, workoutListWorkouts, weeks);
 
         $('#weekParentDiv .current-week-clicked').removeClass('current-week-clicked').addClass("current-week");
