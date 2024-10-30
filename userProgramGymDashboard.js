@@ -165,7 +165,7 @@ async function main() {
 
   //List to keep track of users training plan (list of programs added to their schedule)
   //Structure is each element in list is an object of the structure {"programID": "value", "programName": "value", "events": "value"}
- var userTrainingPlan = [];
+  var userTrainingPlan = [];
 
   //Populate gym name text box value
   document.getElementById("gymNameTextBox").value = document.getElementById("gymFullName").innerText;
@@ -3129,7 +3129,7 @@ async function main() {
       }
 
       program["extendedJSON"] = JSON.stringify(createExtendedProgram(JSON.parse(program.eventData)));
-
+      
       sendProgramToMake(program);
 
     }
@@ -3440,7 +3440,6 @@ async function main() {
         //Get entire row of paste button
         var weekRow = event.target.closest('[role="row"]');
         var dayCell = event.target.closest('.fc-daygrid-day-frame');
-
         if(isPasteState || addProgram) {
           
           if (weekRow) {
@@ -3670,8 +3669,6 @@ async function main() {
 
         toggleRowPasteStateCSS(weekRow, false);
         toggleDayPasteStateCSS(dayCell, false);
-
-        
       } else {
         isPasteState = false;
         isEventPasteState = false;
@@ -3683,34 +3680,82 @@ async function main() {
     //Listen for click events:
     document.addEventListener('click', function (event) {
 
+      if(event.target.id == "skipProgramPreview") {
+        document.getElementById("productsBuilderBody").style.display = "none";
+        document.getElementById("productPage").style.display = "block";
+
+        document.getElementById("shareProductModal").style.display = "none";
+
+        //Clear form
+        resetProductForm(); //Add in to reset form as well
+      }
+
+      if(event.target.id == "emailProgramPreview") {
+
+        var fcEmail = document.getElementById("fcEmail").innerText;
+        var programLink = document.getElementById("programPreviewLink").innerText;
+        sendEmail(fcEmail, programLink, "program");
+
+        //Change modal
+        document.getElementById("shareProductHeader").innerText = "Check your emails 📩";
+        document.getElementById("shareProductSubText").innerText = "Once you’re all happy with the program, copy your product link and share it!";
+
+        //Hide email button
+        event.target.style.display = "none";
+
+        //Change classes of copy button
+        document.getElementById("copyProgramPreview").classList.add("email-program-button");
+        document.getElementById("copyProgramPreview").classList.remove("copy-program-button");
+
+        document.getElementById("copyProgramPreview").style.width = "100%";
+
+      }
+
+      if (event.target.id == "copyProgramPreview") {
+
+        //Get program link
+        var programLink = document.getElementById("programPreviewLink").innerText;
+        navigator.clipboard.writeText(programLink);
+
+        const copiedPopup = document.getElementById("copiedPopup");
+      
+        // Show the element
+        copiedPopup.style.display = "block";
+      
+        // Hide the element after 1.5 seconds
+        setTimeout(() => {
+          copiedPopup.style.display = "none";
+        }, 1500); // 1500 milliseconds = 1.5 seconds
+      }
+
       if(event.target.closest("#productSummary")) {
         if(event.target.id != "copyProductSummaryLink" && event.target.id != "copyProductLink" && event.target.id != "emailProductLink" && event.target.id != "previewProgram" && event.target.id != "unpublishProduct" && !event.target.closest("#programOptionsLink")) {
 
           prefillProductForm(event.target.closest("#productSummary"));
           
         } else {
-          document.getElementById("copyProductSummaryLink").innerText = "Copy Link";
-          document.getElementById("emailProductLink").innerText = "Email Link";
-          document.getElementById("previewProgram").innerText = "Preview";
+          event.target.closest("#productSummary").querySelector("#copyProductSummaryLink").innerText = "Copy Link";
+          event.target.closest("#productSummary").querySelector("#emailProductLink").innerText = "Email Link";
+          event.target.closest("#productSummary").querySelector("#previewProgram").innerText = "Preview";
         }
       }
 
       if(event.target.id == "copyProductSummaryLink") {
-        var salesPage = event.target.closest("#productSummary").querySelector("#productSummarySalesPage").innerText;
+        var salesPage = event.target.closest("#productSummary").querySelector("#productSummarySalesPage").href;
         navigator.clipboard.writeText(salesPage);
         event.target.innerText = "Copied!";
       }
 
       if(event.target.id == "emailProductLink") {
         var fcEmail = document.getElementById("fcEmail").innerText;
-        var productLink = document.getElementById("productSummarySalesPage").href;
+        var productLink = event.target.closest("#productSummary").querySelector("#productSummarySalesPage").href;
         sendEmail(fcEmail, productLink, "sales-page");
         event.target.innerText = "Sent!";
       }
 
       if(event.target.id == "previewProgram") {
         var fcEmail = document.getElementById("fcEmail").innerText;
-        var programLink = document.getElementById("productSummaryProgramPreview").href;
+        var programLink = event.target.closest("#productSummary").querySelector("#productSummaryProgramPreview").href;
         sendEmail(fcEmail, programLink, "program");
         event.target.innerText = "Sent!";
       }
@@ -4472,7 +4517,6 @@ async function main() {
         } else {
           updateCalendarWeeks();
         }
-        
 
       } else if( event.target.id == "copyWorkoutImg") {
 
@@ -7580,7 +7624,7 @@ async function main() {
       // Second loop to remove objects with empty events attributes
       for (let i = userTrainingPlan.length - 1; i >= 0; i--) {
         const obj = userTrainingPlan[i];
-        if (obj.events.length === 0 || (new Date() > moment(obj.endWeek).toDate())) {
+        if (obj.events.length === 0) {
           userTrainingPlan.splice(i, 1);
         }
       }
@@ -7616,8 +7660,6 @@ async function main() {
   
         }
       }
-
-      
     }
 
     function addProgramNameBreaker(weekRow, programBreakerName) {
@@ -7965,6 +8007,8 @@ async function main() {
 
         var foundProgramRow = document.querySelector(`div[programid="${product["programID"]}"]`);
         newProductRow.querySelector("#productSummaryWeeks").innerText = foundProgramRow.querySelector("#programSummaryWeeks").innerText;
+
+        document.getElementById("programPreviewLink").innerText = foundProgramRow.querySelector("#programSummaryLink").href;
         
         if(product["imageType"] != "") {
           newProductRow.querySelector("#productSummaryThumbnail").src = `https://d3l49f0ei2ot3v.cloudfront.net/PNGs/${product["programID"]}.${product["imageType"]}`;
@@ -7995,10 +8039,8 @@ async function main() {
           productListParent.insertBefore(newProductRow, productListParent.firstChild); // Then insert before the first child
         }
 
-        //Clear form
-        resetProductForm();
-        document.getElementById("productsBuilderBody").style.display = "none";
-        document.getElementById("productPage").style.display = "block";
+        //Show modal:
+        document.getElementById("shareProductModal").style.display = "flex";
 
       })
       .catch((error) => {
@@ -8171,6 +8213,15 @@ async function main() {
       sessionStorage.setItem("editProduct", "false");
       document.getElementById("submitProduct").removeAttribute("disabled");
 
+      //Reset modal:
+      document.getElementById("shareProductHeader").innerText = "Do you want to preview your product before sharing?";
+      document.getElementById("shareProductSubText").innerText = "See what your program looks like when somebody has just purchased.";
+
+      //Change classes of copy button
+      document.getElementById("copyProgramPreview").classList.remove("email-program-button");
+      document.getElementById("copyProgramPreview").classList.add("copy-program-button");
+
+      document.getElementById("copyProgramPreview").style.width = "";
 
     }
 
@@ -8259,6 +8310,7 @@ async function main() {
         console.log("populating god mode");
         
         getUserTrainingPlan();
+
         var fullTableData = null;
         // Get table data version of this
         const updatedProgram = addFullWorkoutsToProgram(userTrainingPlan);
@@ -8464,10 +8516,9 @@ async function main() {
 
       document.getElementById("workout-task-select").style.display = "none";
       document.getElementById("showModalWorkouts").click();
-
+      getUserTrainingPlan();
       //Update submit button:
       document.getElementById("saveProgram").value = "Update";
-
       //Check if user training plan is empty
       if(userTrainingPlan.length == 0) {
         const summaryEventData = program.querySelector("#summaryEventData");
@@ -8482,7 +8533,9 @@ async function main() {
             eventsData = JSON.parse(program.querySelector("#eventData").innerText);
           }
         }
+
         userTrainingPlan = [...eventsData];
+
       } else {
         eventsData = [...userTrainingPlan];
       }
