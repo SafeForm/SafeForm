@@ -14,37 +14,48 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+  MemberStack.onReady.then(async function (member) {
+  
+    // Function to check member page and redirect if not set
+    async function checkMemberPage() {
+      
+      var membershipId = member.id;
 
-  document.getElementById('fc-sign-up').addEventListener('click', async function(event) {
+      try {
+        const response = await fetch("https://hook.us1.make.com/ydj7ilofvdjdrcrvys8h9jo3df4yb9vv", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            memberID: membershipId,
+          }),
+        });
 
-    var fc = {};
-    fc["email"] = document.getElementById("email").value;
-    
-    sendFCToMake(fc);
-  
-  });
-  
-  async function sendFCToMake(fc) {
-    try {
-      const response = await fetch("https://hook.us1.make.com/zt36ux3jg2xv15xvyo09l3qhtu3gxev6", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(fc)
-      });
-  
-      if (response.ok) {
-        console.log("Data sent successfully.");
-      } else {
-        console.log("Error sending data:", response.statusText);
+        const responseData = await response.text();
+
+        // If the response is not empty, redirect the user to the page
+        if (responseData.trim().toLowerCase() != 'accepted') {
+
+          localStorage.removeItem("memberstack");
+          window.location.href = window.location.origin + `/gym-dashboard/${responseData}`;
+
+        } else {
+          console.log("Empty member page");
+        }
+      } catch (error) {
+        // Handle any errors that occurred during the fetch
+        console.error('Error checking member page:', error);
       }
-    } catch (error) {
-      console.log("Error:", error);
     }
-  }
-  
 
+    if(member.loggedIn) {
+      // Check for member page every 3 seconds
+      const intervalId = setInterval(checkMemberPage, 3000);
+    } else {
+      console.log("Checking")
+    }
+    
 
-
+  });
 }
