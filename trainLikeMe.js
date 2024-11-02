@@ -718,7 +718,7 @@ async function main() {
       svgPerson.style.display = 'none';
       setTimeout(() => {
         guideList.style.display = 'block';
-      }, 120); // 50ms delay
+      }, 150); // 50ms delay
       clickExerciseText.style.display = 'block';
       backButton.style.display = 'block';
       searchBar.style.borderColor = "#6D6D6F";
@@ -1253,7 +1253,7 @@ async function main() {
 
         setTimeout(() => {
           guideList.style.display = 'block';
-        }, 120); // 50ms delay
+        }, 150); // 50ms delay
 
         clickExerciseText.style.display = 'block';
         backButton.style.display = 'block';
