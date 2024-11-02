@@ -96,6 +96,12 @@ async function main() {
   var currentCopiedWorkout = "";
   var globalWeightUnit = "";
 
+
+  //Ensure mobile workout name isnt required on laptop
+  if(window.innerWidth > 991) {
+    document.getElementById("mobileWorkoutName").removeAttribute("required");
+  }
+
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
   var guideToWorkoutObj = {};
@@ -253,15 +259,6 @@ async function main() {
 
         exerciseInfoDiv.style.paddingTop = "5px";
 
-        exerciseInfoDiv.querySelector("#removeExercise").onclick = (event) => {
-
-          //Check that there is one left
-          if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length >= 2) {
-            event.target.closest("#exerciseInfo").remove();
-          }
-          
-        }
-
         lastSetRepInput.after(exerciseInfoDiv);
       }
       workoutItem.querySelector("#exerciseNotes").value = jsonExercises.exerciseNotes;
@@ -298,7 +295,7 @@ async function main() {
 
     //Hiding and showing move icons and break icon between exercises
     if(listLength == 1) {
-      saveWorkout.style.display = "block";
+      //saveWorkout.style.display = "block";
       document.getElementById("firstExercisePlaceholder").style.display = "none";
       workoutItem.querySelector(".supersetparent").style.display = "none";
 
@@ -444,12 +441,13 @@ async function main() {
     lastExerciseInfo.querySelector("#removeExercise").onclick = (event) => {
       //Check that there is one left
       if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length > 2) {
-        event.target.closest("#exerciseInfo").remove();
       } else {
         //Check after removal
         event.target.closest("#setRepInfoParent").querySelector("#removeSetMobile").style.display = "none";
-        event.target.closest("#setRepInfoParent").querySelector("#removeExerciseMobile").style.display = "block";
-        event.target.closest("#exerciseInfo").remove();
+        //Check if mobile:
+        if(window.innerWidth < 992) {
+          event.target.closest("#setRepInfoParent").querySelector("#removeExerciseMobile").style.display = "block";
+        }
       }
     }
 
@@ -464,9 +462,26 @@ async function main() {
       var supersetParent = supersetImage.closest('.exercise-list-item');
       var nextSibling = supersetParent.nextElementSibling;
       const previousSibling = supersetParent.closest(".exercise-list-item-superset");
+      var parentPreviousSibling = null;
+      var nextSuperset = null;
+      
+      if(previousSibling) {
+        parentPreviousSibling = previousSibling.closest(".supersetWrapper");
+        if(parentPreviousSibling) {
+          nextSuperset = parentPreviousSibling.nextElementSibling;
+        }
+      }
 
-      supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
 
+      if(!nextSuperset) {
+        supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
+      } else if(nextSuperset && !nextSuperset.classList.contains("supersetWrapper")) {
+        supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
+      }
+
+        
+
+      
       //Make sure not end of list and the next element isn't already in a superset
       if(nextSibling != null && !nextSibling.querySelector(".exercise-list-item-superset")) {
         nextSibling.querySelector("#removeFullExercise").style.display = "none";
@@ -491,7 +506,12 @@ async function main() {
         const wrapper = document.createElement('li');
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';
-        wrapper.style.width = '100%';
+        if(window.innerWidth <= 991) {
+          wrapper.style.width = '100%';
+        } else {
+          wrapper.style.width = '90%';
+        }
+        
         wrapper.style.backgroundColor = 'white';
         wrapper.style.border = '2px solid #CBCBCB';
         wrapper.classList.add("supersetWrapper");
@@ -526,14 +546,14 @@ async function main() {
 
         const elements = newDiv.querySelectorAll(".supersetparent");
         elements.forEach(element => {
-          element.style.marginRight = "31px";
+          element.style.marginRight = "22px";
         });
 
       } else if(nextSibling && nextSibling.querySelector(".exercise-list-item-superset")) {
         //Now check if next element is in a superset
         supersetParent.querySelector(".exercisegroup").style.border = 'none';
-        supersetParent.querySelector(".supersetparent").style.marginRight = "31px";
-        nextSibling.querySelector(".supersetparent").style.marginRight = "31px";
+        supersetParent.querySelector(".supersetparent").style.marginRight = "22px";
+        nextSibling.querySelector(".supersetparent").style.marginRight = "22px";
         supersetParent.querySelector("#navigationButtons").style.display = 'none';
         nextSibling.querySelector(".exercise-list-item-superset").insertBefore(supersetParent, nextSibling.querySelector(".exercise-list-item-superset").firstChild);
 
@@ -542,16 +562,26 @@ async function main() {
         if(nextSibling == null) {
           
           nextSibling = supersetParent.closest(".exercise-list-item-superset");
-          nextSibling.querySelector(".supersetparent").style.marginRight = "31px";
+          nextSibling.querySelector(".supersetparent").style.marginRight = "22px";
           if(nextSibling && nextSibling.parentElement && nextSibling.querySelector(".supersetWrapper")) {
           } else {
             //Now check if current element is in a superset
-            supersetParent = previousSibling.parentElement.nextElementSibling;
-            supersetParent.style.width = "100%";
-            supersetParent.querySelector(".exercisegroup").style.border = 'none';
-            if(supersetParent.querySelector("#navigationButtons")) {
-              supersetParent.querySelector("#navigationButtons").style.display = 'none';
+            if(!nextSuperset) {
+              supersetParent = previousSibling.parentElement.nextElementSibling;
+              supersetParent.style.width = "100%";
+              supersetParent.querySelector(".exercisegroup").style.border = 'none';
+              if(supersetParent.querySelector("#navigationButtons")) {
+                supersetParent.querySelector("#navigationButtons").style.display = 'none';
+              }
+            } else if(nextSuperset && !nextSuperset.classList.contains("supersetWrapper")) {
+              supersetParent = previousSibling.parentElement.nextElementSibling;
+              supersetParent.style.width = "100%";
+              supersetParent.querySelector(".exercisegroup").style.border = 'none';
+              if(supersetParent.querySelector("#navigationButtons")) {
+                supersetParent.querySelector("#navigationButtons").style.display = 'none';
+              }
             }
+
 
             previousSibling.appendChild(supersetParent);
           }
@@ -559,14 +589,26 @@ async function main() {
 
       }
 
-      //Remove supersetimageopen class
-      supersetParent.querySelector(".supersetparent").style.marginRight = "31px";
-      supersetImage.classList.remove("supersetimageopen");
-      supersetImage.classList.add("supersetimageclosed");
-      if(supersetParent.querySelector("#removeFullExercise")) {
-        supersetParent.querySelector("#removeFullExercise").style.display = "none";
-      }
+
+      if(!nextSuperset) {
+        //Remove supersetimageopen class
+        supersetParent.querySelector(".supersetparent").style.marginRight = "22px";
+        supersetImage.classList.remove("supersetimageopen");
+        supersetImage.classList.add("supersetimageclosed");
+        if(supersetParent.querySelector("#removeFullExercise")) {
+          supersetParent.querySelector("#removeFullExercise").style.display = "none";
+        }
     
+      } else if(nextSuperset && !nextSuperset.classList.contains("supersetWrapper")) {
+        //Remove supersetimageopen class
+        supersetParent.querySelector(".supersetparent").style.marginRight = "22px";
+        supersetImage.classList.remove("supersetimageopen");
+        supersetImage.classList.add("supersetimageclosed");
+        if(supersetParent.querySelector("#removeFullExercise")) {
+          supersetParent.querySelector("#removeFullExercise").style.display = "none";
+        }
+      }
+
       
     } else {
 
@@ -646,12 +688,12 @@ async function main() {
     }
 
     // Change the border color
-    guideExercise.style.borderColor = "#6D6D6F";
+    guideExercise.style.borderColor = "#CBCBCB";
     document.getElementById("workoutInput").style.color = "black";
 
     // Set a timeout to revert the border color after 0.5 seconds (500 milliseconds)
     setTimeout(function() {
-        guideExercise.style.borderColor = ""; // Revert to the original color
+        guideExercise.style.borderColor = "#6D6D6F";
         document.getElementById("workoutInput").style.color = "";
     }, 100);
 
@@ -674,7 +716,9 @@ async function main() {
   searchBox.oninput = function() {
     if(searchBox.value != "") {
       svgPerson.style.display = 'none';
-      guideList.style.display = 'block';
+      setTimeout(() => {
+        guideList.style.display = 'block';
+      }, 120); // 50ms delay
       clickExerciseText.style.display = 'block';
       backButton.style.display = 'block';
       searchBar.style.borderColor = "#6D6D6F";
@@ -701,7 +745,7 @@ async function main() {
       
     }
 
-    if(event.target.closest(".exercise-details-parent") && event.target.closest("#workoutList")) {
+    if(window.innerWidth > 991 && event.target.closest(".exercise-details-parent") && event.target.closest("#workoutList")) {
 
       event.target.closest(".exercise-details-parent").querySelector(".remove-set").style.display = "block";
     }
@@ -726,7 +770,7 @@ async function main() {
   document.getElementById("submitWorkoutBuilderForm").onclick = function(event) {
 
     var workoutBuilderForm = document.getElementById("workoutBuilderForm");
-    
+
     //Ensure all fields are filled in
     if (workoutBuilderForm.checkValidity()) {
 
@@ -946,6 +990,7 @@ async function main() {
 
         //Disable workout link
         document.getElementById("workoutLink").disabled = true;
+
         
       })
       .catch((error) => {
@@ -1053,7 +1098,49 @@ async function main() {
 
   //Listen for click events specifically for in paste state when clicking on cells
   //Otherwise if in paste state and not clicked on a day cancel paste state
+  //Click listener
   document.addEventListener('click', function(event) {
+
+    if(event.target.id == "saveWorkout") {
+      event.preventDefault();
+
+      const workoutListForm = document.getElementById("workoutListForm");
+
+      // Select all elements with the 'required' attribute
+      const requiredElements = workoutListForm.querySelectorAll('[required]');
+      
+      // Convert NodeList to an array and reverse it
+      const reversedRequiredElements = Array.from(requiredElements).reverse();
+
+      // Iterate through reversed required elements
+      reversedRequiredElements.forEach(element => {
+        // Use reportValidity to show the validation message
+        element.reportValidity();
+      });
+      
+      // Check overall form validity
+      const formValidity = workoutListForm.checkValidity();
+      if (formValidity) {
+        // The entire form is valid, submit other workout form
+        document.getElementById("submitWorkoutBuilderForm").click();
+      } 
+      
+    }
+
+    if(event.target.id == "tlmModal" || event.target.id == "closeModal") {
+      document.getElementById("tlmModal").style.display = "none";
+      document.getElementById("saveWorkout").value = "Share Workout";
+    }
+
+    if(event.target.id == "removeExercise") {
+      //Check that there is one left
+      if(event.target.closest("#setRepInfoParent")) {
+        if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length >= 2) {
+          event.target.closest("#exerciseInfo").remove();
+        }
+        
+      }
+    }
 
     if(event.target.id == "sendEmail") {
 
@@ -1104,6 +1191,8 @@ async function main() {
 
       //Make sure when info button is clicked the exercise isnt added to the list
       if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
+        event.target.closest("#individualGuide").style.borderColor = "rgb(109, 109, 111)";
+
         var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
         
         //Remove info button
@@ -1161,7 +1250,11 @@ async function main() {
 
         // hide SVG man:
         svgPerson.style.display = 'none';
-        guideList.style.display = 'block';
+
+        setTimeout(() => {
+          guideList.style.display = 'block';
+        }, 120); // 50ms delay
+
         clickExerciseText.style.display = 'block';
         backButton.style.display = 'block';
 
@@ -1170,34 +1263,6 @@ async function main() {
       }
       //Reset storage filter for next click
       sessionStorage.setItem("muscleFilter", "");
-      
-    }
-
-    if(event.target.id == "saveWorkout") {
-
-      event.preventDefault();
-
-      const workoutListForm = document.getElementById("workoutListForm");
-
-      // Select all elements with the 'required' attribute
-      const requiredElements = workoutListForm.querySelectorAll('[required]');
-      
-      // Convert NodeList to an array and reverse it
-      const reversedRequiredElements = Array.from(requiredElements).reverse();
-
-      // Iterate through reversed required elements
-      reversedRequiredElements.forEach(element => {
-        // Use reportValidity to show the validation message
-        element.reportValidity();
-      });
-      
-      // Check overall form validity
-      const formValidity = workoutListForm.checkValidity();
-      
-      if (formValidity) {
-        // The entire form is valid, submit other workout form
-        document.getElementById("submitWorkoutBuilderForm").click();
-      } 
       
     }
 
@@ -1227,8 +1292,11 @@ async function main() {
         handleAddSet(event.target);
       }
 
-      event.target.closest("#setRepInfoParent").querySelector("#removeSetMobile").style.display = "block";
-      event.target.closest("#setRepInfoParent").querySelector("#removeExerciseMobile").style.display = "none";
+      if(event.target.id == "addSetMobile") {
+        event.target.closest("#setRepInfoParent").querySelector("#removeSetMobile").style.display = "block";
+        event.target.closest("#setRepInfoParent").querySelector("#removeExerciseMobile").style.display = "none";
+      }
+
 
     }
 
@@ -1320,8 +1388,6 @@ async function main() {
       }
     }
 
-
-
     if(event.target.id == "measureInput") {
 
       if(event.target.value.toLowerCase() == "rpe" || event.target.value.toLowerCase() == "rir") {
@@ -1351,6 +1417,28 @@ async function main() {
         event.target.closest("#exerciseInfo").querySelector("#repsInput").required = true; 
           
       }
+
+      //Check if changed to lbs
+      if(event.target.value.toLowerCase() == "lbs") {
+
+        const measureInputs = document.querySelectorAll('#measureInput');
+
+        measureInputs.forEach(input => {
+          if (input.value.toLowerCase() === 'kg') {
+            input.value = 'Lbs';
+          }
+        });
+
+      } else if(event.target.value.toLowerCase() == "kg") {
+        const measureInputs = document.querySelectorAll('#measureInput');
+
+        measureInputs.forEach(input => {
+          if (input.value.toLowerCase() === 'lbs') {
+            input.value = 'Kg';
+          }
+        });
+      }
+
     }
 
     if (event.target.type) {
