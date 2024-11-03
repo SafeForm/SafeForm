@@ -295,8 +295,9 @@ async function main() {
 
     //Hiding and showing move icons and break icon between exercises
     if(listLength == 1) {
-      //saveWorkout.style.display = "block";
+      saveWorkout.style.display = "block";
       document.getElementById("firstExercisePlaceholder").style.display = "none";
+      document.getElementById("workoutList").style.display = "flex";
       workoutItem.querySelector(".supersetparent").style.display = "none";
 
     } else if(listLength == 2) {
@@ -1096,6 +1097,19 @@ async function main() {
     document.getElementById('workoutName').value = this.value;
   });
 
+  // Select the input element by its class or ID
+  const workoutInput = document.querySelector('#mobileWorkoutName');
+
+  // Add an event listener for focus
+  workoutInput.addEventListener('focus', () => {
+    workoutInput.placeholder = ''; // Remove the placeholder on focus
+  });
+
+  // Add an event listener for blur (when the input loses focus)
+  workoutInput.addEventListener('blur', () => {
+    workoutInput.placeholder = 'Workout Name'; // Restore the placeholder when focus is lost
+  });
+
   //Listen for click events specifically for in paste state when clicking on cells
   //Otherwise if in paste state and not clicked on a day cancel paste state
   //Click listener
@@ -1310,7 +1324,7 @@ async function main() {
       
       if (listLength == 1) {
         document.getElementById("firstExercisePlaceholder").style.display = "block";
-
+        document.getElementById("workoutList").style.display = "none";
         //Hide workout button if there is only one exercise in list
         saveWorkout.style.display = "none";
         
