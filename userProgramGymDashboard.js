@@ -4976,7 +4976,7 @@ async function main() {
 
         hideOrShowGodModeSwitch();
 
-        document.getElementById("saveProgram").value = "Create";
+        document.getElementById("saveProgram").value = "Create Program";
 
       } else if(event.target.id == "reset-filters" || event.target.id == "reset-filters-ipad" || event.target.id == "reset-filters-modal" || event.target.id == "reset-filters-program-modal" || event.target.id == "reset-filters-users" ) {
         resetGeneralFilters(true);
