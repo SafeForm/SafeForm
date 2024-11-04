@@ -2924,7 +2924,6 @@ async function main() {
 
     document.addEventListener('mouseout', function (event) {
 
-      console.log(event.target.closest("#workoutsPage"))
       if(!event.target.closest("#workoutsPage")) {
         document.getElementById("navPanel").style.display = "none";
       }
