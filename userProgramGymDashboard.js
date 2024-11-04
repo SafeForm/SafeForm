@@ -119,6 +119,7 @@ async function main() {
     "Hips":"Hips"
   };  
 
+  
   //Flag for checking if radio button was human clicked or programmatic
   var isProgrammaticClick = false;
   var isPasteState = false;
@@ -296,6 +297,12 @@ async function main() {
       destinationDiv.querySelector(".challenges-clicked").style.display = "block";
     } else if(destinationButton == "taskPage") {
 
+    } else if(destinationButton == "productsPage") {
+      destinationDiv.querySelector(".products").style.display = "none";
+      destinationDiv.querySelector(".productsclicked").style.display = "block";
+    } else if(destinationButton == "settingsPage") {
+      destinationDiv.querySelector(".settingsbutton").style.display = "none";
+      destinationDiv.querySelector(".settingsbuttonclicked").style.display = "block";
     } else {
       destinationDiv.querySelector(".navicon").style.display = "none";
       destinationDiv.querySelector(".naviconclicked").style.display = "block";
@@ -304,7 +311,7 @@ async function main() {
     //Colour div
     if(destinationButton != "taskPage") {
       destinationDiv.classList.add("clickednavbutton");
-      destinationDiv.style.backgroundColor = "#0C08D5";
+      destinationDiv.style.backgroundColor = "#0003ff";
     }
 
   }
@@ -2778,7 +2785,7 @@ async function main() {
               },
               start: desiredDate,
               allDay: true
-            };    
+            };
           }
           if(sessionStorage.getItem("weeklyTask") == "true") {
             newEvent.extendedProps["weeklyTask"] = "true";
@@ -2830,7 +2837,7 @@ async function main() {
     }
 
     const svgPerson = document.getElementById("ajaxContent");
-    const guideList = document.getElementById("guideListParent");
+    const guideList = document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)");
     const clickExerciseText = document.getElementById("clickExerciseText");
     const backButton = document.getElementById("clearText");
     
@@ -2839,7 +2846,9 @@ async function main() {
     searchBox.oninput = function() {
       if(searchBox.value != "") {
         svgPerson.style.display = 'none';
-        guideList.style.display = 'block';
+        setTimeout(() => {
+          guideList.style.display = 'block';
+        }, 150); // 50ms delay
         clickExerciseText.style.display = 'block';
         backButton.style.display = 'block';
       } else {
@@ -2915,6 +2924,7 @@ async function main() {
 
     document.addEventListener('mouseout', function (event) {
 
+      console.log(event.target.closest("#workoutsPage"))
       if(!event.target.closest("#workoutsPage")) {
         document.getElementById("navPanel").style.display = "none";
       }
@@ -3874,7 +3884,7 @@ async function main() {
         }
       }
 
-      if(event.target.id == "createWorkoutFromModal") {
+      if(event.target.closest("#createWorkoutFromModal")) {
         var workoutBuilderSubpage = document.getElementById("workoutbuildersubpage");
         document.getElementById("workoutsList").style.display = "none";
         document.getElementById("modalWrapper").appendChild(workoutBuilderSubpage);
@@ -4398,7 +4408,9 @@ async function main() {
 
           // hide SVG man:
           svgPerson.style.display = 'none';
-          guideList.style.display = 'block';
+          setTimeout(() => {
+            guideList.style.display = 'block';
+          }, 150); // 50ms delay
           clickExerciseText.style.display = 'block';
           backButton.style.display = 'block';
 
@@ -4623,7 +4635,7 @@ async function main() {
         navigator.clipboard.writeText(event.target.href);
         event.target.innerText = "Copied!";
         event.target.style.color = "#ffffff";
-        event.target.style.backgroundColor = "#0c08d5";
+        event.target.style.backgroundColor = "#0003FF";
 
       } else if(event.target.id == "copyInviteLinkDropdown") {
 
@@ -5320,7 +5332,7 @@ async function main() {
         if(!isAnyRadioButtonChecked) {
           //Colour the 'all filter'
           allFilterStyle.color = "white";
-          allFilterStyle.backgroundColor = "#0C08D5";
+          allFilterStyle.backgroundColor = "#0003FF";
           allFilterStyle.border = "0px";
           allFilterStyle.borderRadius = "8px";
           
@@ -5345,7 +5357,7 @@ async function main() {
         if(!isAnyRadioButtonChecked) {
           //Colour the 'all filter'
           allFilterStyle.color = "white";
-          allFilterStyle.backgroundColor = "#0C08D5";
+          allFilterStyle.backgroundColor = "#0003FF";
           allFilterStyle.border = "0px";
           allFilterStyle.borderRadius = "8px";
           
@@ -5370,7 +5382,7 @@ async function main() {
         if(!isAnyRadioButtonChecked) {
           //Colour the 'all filter'
           allFilterStyle.color = "white";
-          allFilterStyle.backgroundColor = "#0C08D5";
+          allFilterStyle.backgroundColor = "#0003FF";
           allFilterStyle.border = "0px";
           allFilterStyle.borderRadius = "8px";
           
@@ -5455,10 +5467,6 @@ async function main() {
     }, false);
 
     document.addEventListener("mouseover",function (event) {
-
-      if(event.target.closest("#workoutsPage") || event.target.closest("#navPanel")) {
-        //document.getElementById("navPanel").style.display = "flex";
-      }
       
       if(event.target.id == "experienceTag" || event.target.id == "experience") {
         document.getElementById("toolTipText").style.display = "block";
@@ -5468,7 +5476,7 @@ async function main() {
         if(!event.target.closest("#productsPage").classList.contains("clickednavbutton")) {
           event.target.closest("#productsPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#productsPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#productsPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5477,7 +5485,7 @@ async function main() {
         if(!event.target.closest("#dashboardPage").classList.contains("clickednavbutton")) {
           event.target.closest("#dashboardPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#dashboardPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#dashboardPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5485,7 +5493,7 @@ async function main() {
         if(!event.target.closest("#equipmentPage").classList.contains("clickednavbutton")) {
           event.target.closest("#equipmentPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#equipmentPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#equipmentPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5493,7 +5501,7 @@ async function main() {
         if(!event.target.closest("#challengesPage").classList.contains("clickednavbutton")) {
           event.target.closest("#challengesPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#challengesPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#challengesPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5501,7 +5509,7 @@ async function main() {
         if(!event.target.closest("#workoutsPage").classList.contains("clickednavbutton")) {
           event.target.closest("#workoutsPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#workoutsPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#workoutsPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5509,7 +5517,7 @@ async function main() {
         if(!event.target.closest("#userPage").classList.contains("clickednavbutton")) {
           event.target.closest("#userPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#userPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#userPage").style.backgroundColor = "#0003FF";
         }
       }
       
@@ -5518,7 +5526,7 @@ async function main() {
         if(!event.target.closest("#settingsPage").classList.contains("clickednavbutton")) {
           event.target.closest("#settingsPage").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#settingsPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#settingsPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5526,17 +5534,13 @@ async function main() {
         if(!event.target.closest("#helpDiv").classList.contains("clickednavbutton")) {
           event.target.closest("#helpDiv").style.backgroundColor = "rgba(102, 106, 112, 0.55)";
         } else {
-          event.target.closest("#helpDiv").style.backgroundColor = "#0C08D5";
+          event.target.closest("#helpDiv").style.backgroundColor = "#0003FF";
         }
       }
       
     }, false);
 
     document.addEventListener("mouseout",function (event) {
-
-      if(event.target.closest(".navbar")) {
-        //document.getElementById("navPanel").style.display = "none";
-      }
 
       if(event.target.id == "experienceTag" || event.target.id == "experience") {
         document.getElementById("toolTipText").style.display = "none";
@@ -5546,7 +5550,7 @@ async function main() {
         if(!event.target.closest("#productsPage").classList.contains("clickednavbutton")) {
           event.target.closest("#productsPage").style.backgroundColor = "";
         } else {
-          event.target.closest("#productsPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#productsPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5554,7 +5558,7 @@ async function main() {
         if(!event.target.closest("#dashboardPage").classList.contains("clickednavbutton")) {
           event.target.closest("#dashboardPage").style.backgroundColor = "";
         } else {
-          event.target.closest("#dashboardPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#dashboardPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5562,7 +5566,7 @@ async function main() {
         if(!event.target.closest("#equipmentPage").classList.contains("clickednavbutton")) {
           event.target.closest("#equipmentPage").style.backgroundColor = "";
         } else {
-          event.target.closest("#equipmentPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#equipmentPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5570,7 +5574,7 @@ async function main() {
         if(!event.target.closest("#workoutsPage").classList.contains("clickednavbutton")) {
           event.target.closest("#workoutsPage").style.backgroundColor = "";
         } else {
-          event.target.closest("#workoutsPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#workoutsPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5578,7 +5582,7 @@ async function main() {
         if(!event.target.closest("#challengesPage").classList.contains("clickednavbutton")) {
           event.target.closest("#challengesPage").style.backgroundColor = "";
         } else {
-          event.target.closest("#challengesPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#challengesPage").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -5586,21 +5590,21 @@ async function main() {
         if(!event.target.closest("#userPage").classList.contains("clickednavbutton")) {
           event.target.closest("#userPage").style.backgroundColor = "";
         } else {
-          event.target.closest("#userPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#userPage").style.backgroundColor = "#0003FF";
         }
       }
       if(event.target.closest("#settingsPage")) {
         if(!event.target.closest("#settingsPage").classList.contains("clickednavbutton")) {
           event.target.closest("#settingsPage").style.backgroundColor = "";
         } else {
-          event.target.closest("#settingsPage").style.backgroundColor = "#0C08D5";
+          event.target.closest("#settingsPage").style.backgroundColor = "#0003FF";
         }
       }
       if(event.target.closest("#helpDiv")) {
         if(!event.target.closest("#helpDiv").classList.contains("clickednavbutton")) {
           event.target.closest("#helpDiv").style.backgroundColor = "";
         } else {
-          event.target.closest("#helpDiv").style.backgroundColor = "#0C08D5";
+          event.target.closest("#helpDiv").style.backgroundColor = "#0003FF";
         }
       }
 
@@ -6621,7 +6625,7 @@ async function main() {
       const checkedRadioInput = document.querySelector('input[type="radio"][name="summaryTraining"]:checked');
       const checkedSpanElement = checkedRadioInput.nextElementSibling;
       
-      checkedSpanElement.style.backgroundColor = '#0C08D5';
+      checkedSpanElement.style.backgroundColor = '#0003FF';
       checkedSpanElement.style.border = '0px';
       checkedSpanElement.style.borderRadius = '8px';
       checkedSpanElement.style.color = '#FFFFFF';
@@ -7379,7 +7383,7 @@ async function main() {
           text: `${link}?utm_campaign=${gymName}`,
           width: 300, //default 128
           height: 300,
-          colorDark : "#0C08D5",
+          colorDark : "#0003FF",
           colorLight : "#FFFFFF",
           correctLevel : QRCode.CorrectLevel.L
         });
@@ -7390,7 +7394,7 @@ async function main() {
           text: `${link}`,
           width: 250, //default 128
           height: 250,
-          colorDark : "#0C08D5",
+          colorDark : "#0003FF",
           colorLight : "#FFFFFF",
           correctLevel : QRCode.CorrectLevel.L
         });
@@ -9130,7 +9134,7 @@ async function main() {
                     var weekColumnValue = parentColumn.getElement().querySelector(".tabulator-col-title");
 
                     if(weekColumnValue.innerText == currentWeek) {
-                      weekColumnValue.style.color = '#0C08D5';
+                      weekColumnValue.style.color = '#0003FF';
                       var weekTable = parentColumn.getElement().closest('.week-table');
                       const weekTableOffset = weekTable.offsetLeft;
                       const parentTableOffset = document.querySelector("#programSheet");
@@ -10431,7 +10435,7 @@ async function main() {
       const checkedRadioInput = document.querySelector('input[type="radio"][name="workoutProgram"]:checked');
       const checkedSpanElement = checkedRadioInput.nextElementSibling;
       
-      checkedSpanElement.style.backgroundColor = '#0C08D5';
+      checkedSpanElement.style.backgroundColor = '#0003FF';
       checkedSpanElement.style.border = '0px';
       checkedSpanElement.style.borderRadius = '8px';
       checkedSpanElement.style.color = '#FFFFFF';
