@@ -305,6 +305,7 @@ async function main() {
         workoutItem.querySelector("#moveUp").style.display = "block";
         workoutItem.querySelector("#moveDown").style.display = "none";
       }
+      document.getElementById("workoutList").style.display = "flex";
 
       if(!programWorkout && !workoutItem.previousSibling.classList.contains("exercise-list-item")) {
         workoutItem.querySelector(".supersetparent").style.display = "block";
@@ -315,7 +316,7 @@ async function main() {
       document.getElementById("firstExercisePlaceholder").style.display = "none";
 
     } else if(listLength == 3) {
-
+      document.getElementById("workoutList").style.display = "flex";
       if(!programWorkout) {
         workoutItem.querySelector("#moveDown").style.display = "none";
         workoutItem.querySelector("#moveUp").style.display = "block";
@@ -334,6 +335,7 @@ async function main() {
       saveWorkout.style.display = "block";
 
     } else if(listLength > 3) {
+      document.getElementById("workoutList").style.display = "flex";
       if(!programWorkout) {
 
         workoutItem.querySelector(".supersetparent").style.display = "block";
