@@ -6936,6 +6936,7 @@ async function main() {
         .then((data) => {
 
           addOrUpdateWorkoutRow(data, workout);
+          document.getElementById("saveWorkout").value = "Create Workout";
           
         })
         .catch((error) => {
