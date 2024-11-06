@@ -8184,7 +8184,7 @@ async function main() {
       document.getElementById("createProduct").click();
 
       //Fill in name and click button
-      document.getElementById("productNameHeader").value = programName;
+      document.getElementById("productNameHeader").innerText = programName;
       document.getElementById("productName").value = programName;
       document.getElementById("selectProgramProduct").innerText = programName;
       document.getElementById("productProgramID").innerText = programID;
