@@ -275,6 +275,7 @@ function main() {
       var exerciseInformation = [];
       
       if(!workoutInformation || workoutInformation.length == 0 || fromChallenge) {
+
         if(fromChallenge) {
           const formattedArray = [].concat(...workoutInformation[0].workoutJSON);
           var flattenedArray = [];
@@ -323,8 +324,8 @@ function main() {
             "reps": exercise.reps,
             "load": exercise.measure,
             "loadAmount": exercise.loadAmount,
-            "exerciseRestMinutes": exercise.exerciseRestMinutes,
-            "exerciseRestSeconds": exercise.exerciseRestSeconds,
+            "exerciseRestMinutes": exercise.exerciseRestMinutes === "" ? "0" : exercise.exerciseRestMinutes,
+            "exerciseRestSeconds": exercise.exerciseRestSeconds === "" ? '0' : exercise.exerciseRestSeconds,
             "quantityUnit": exercise.quantityUnit,
             "notes": exerciseInformation[exerciseInformationIndex].exerciseNotes,
             "setNumber": index,
