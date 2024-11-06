@@ -6916,6 +6916,7 @@ async function main() {
         }).then((data) => {
 
           addOrUpdateWorkoutRow(data, workout, "update");
+          document.getElementById("saveWorkout").value = "Create Workout";
             
         });
 
@@ -8182,6 +8183,7 @@ async function main() {
       document.getElementById("createProduct").click();
 
       //Fill in name and click button
+      document.getElementById("productNameHeader").value = programName;
       document.getElementById("productName").value = programName;
       document.getElementById("selectProgramProduct").innerText = programName;
       document.getElementById("productProgramID").innerText = programID;
