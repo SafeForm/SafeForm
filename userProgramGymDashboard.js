@@ -7107,6 +7107,8 @@ async function main() {
       if(sessionStorage.getItem("createProgram") == "true") {
         newProgramRow = document.getElementById("programrowplaceholder").cloneNode(true);
         modalProgramRow = document.getElementById("programPlaceholderParent").cloneNode(true);
+        newProgramRow.setAttribute("programid", data);
+        modalProgramRow.setAttribute("programmodalid", data);
       }
       
       //Fill in template values
