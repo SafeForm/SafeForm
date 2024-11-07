@@ -37,8 +37,6 @@ function main() {
     },
   });
 
-  showInstructions();
-
   //Loop through all list items and assign href to each workout
   const programWorkoutList = document.getElementById("programWorkoutList").children;
 
@@ -259,7 +257,7 @@ function main() {
 
     //Get account type
     var programType = document.getElementById("programType").innerText;
-    console.log(programType)
+
     if(programType && (programType == "personalised")) {
       //Leave as is - meaning current date week will be selected
     } else {
@@ -648,5 +646,3 @@ function main() {
   }
 
 }
-
-
