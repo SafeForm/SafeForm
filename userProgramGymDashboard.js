@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
-
   //Check off checklist:
   checkOffChecklist();
   
@@ -8612,8 +8611,14 @@ async function main() {
     
             }
             obj.events.forEach(event => {
-              const startDate = new Date(event.start);
+              // Parse event.start in local timezone
+              const startDateString = event.start; // e.g., "2024-11-05"
 
+              // Split the string into year, month, and day
+              const [startYear, startMonth, startDay] = startDateString.split("-").map(Number);
+
+              // Create the date object in the local timezone
+              const startDate = new Date(startYear, startMonth - 1, startDay); // Local timezone
               var extendedProps = {
                 length: event.extendedProps.length,
                 targetArea: event.extendedProps.targetArea,
@@ -8635,8 +8640,14 @@ async function main() {
           });
         } else {
           eventsData.forEach((event, index) => {
+            // Parse event.start in local timezone
+            const startDateString = event.start; // e.g., "2024-11-05"
 
-            const startDate = new Date(event.start);
+            // Split the string into year, month, and day
+            const [startYear, startMonth, startDay] = startDateString.split("-").map(Number);
+
+            // Create the date object in the local timezone
+            const startDate = new Date(startYear, startMonth - 1, startDay); // Local timezone
             events.push({
               title: event.title,
               extendedProps: {
