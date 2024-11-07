@@ -3517,46 +3517,6 @@ async function main() {
 
               var programClash = false;
 
-              //Iterate through each existing program and check if there will be a clash with the new program
-              for(const program of userTrainingPlan) {
-                // Parse programStartWeek
-                const programStartDateString = program.startWeek; // "2024-11-04" format
-                const [startYear, startMonth, startDay] = programStartDateString.split("-").map(Number);
-                const programStartWeek = new Date(startYear, startMonth - 1, startDay); // Local timezone
-
-                // Parse programEndWeek
-                const programEndDateString = program.endWeek; // "2024-11-10" format
-                const [endYear, endMonth, endDay] = programEndDateString.split("-").map(Number);
-                const programEndWeek = new Date(endYear, endMonth - 1, endDay); // Local timezone
-
-                var weeksBetween = Math.floor((programEndWeek - programStartWeek) / millisecondsPerWeek);
-                
-                if (lastWorkout.getTime() > startTime.getTime()) {
-                  var difference = Math.floor((lastWorkout.getTime() - startTime.getTime()) / millisecondsPerWeek);
-                  lastWorkout.setDate(lastWorkout.getDate() - ((difference * 7)));
-                } else if (lastWorkout.getTime() < startTime.getTime() ) {
-                  var difference = Math.ceil((startTime.getTime() - lastWorkout.getTime()) / millisecondsPerWeek);
-                  lastWorkout.setDate(lastWorkout.getDate() + ((difference * 7)));
-                }
-
-                if (firstWorkout.getTime() > startTime.getTime()) {
-                  var difference = Math.floor((firstWorkout.getTime() - startTime.getTime()) / millisecondsPerWeek);
-                  firstWorkout.setDate(firstWorkout.getDate() - ((difference * 7)));
-                } else if (firstWorkout.getTime() < startTime.getTime() ) {
-                  var difference = Math.ceil((startTime.getTime() - firstWorkout.getTime()) / millisecondsPerWeek);
-                  firstWorkout.setDate(firstWorkout.getDate() + ((difference * 7)));
-                }
-
-                lastWorkout.setDate(lastWorkout.getDate() + ((weeksBetween * 7)));
-
-                programClash = (lastWorkout >= programStartWeek && lastWorkout <= programEndWeek || firstWorkout >= programStartWeek && firstWorkout <= programEndWeek);
-
-                if(programClash) {
-                  break;
-                }
-              
-              }
-
               if(isPasteState || !programClash ) {
 
                 sortedCopiedEvents.forEach(function(event, index, events) {
