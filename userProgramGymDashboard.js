@@ -1601,6 +1601,13 @@ async function main() {
           removeButtons[i].style.display = "none";
         }
 
+        const formElements = workoutItem.querySelectorAll('select, input');
+
+        // Disable each form element
+        formElements.forEach(element => {
+          element.disabled = true;
+        });
+
       }
       
     }
@@ -2223,16 +2230,20 @@ async function main() {
         styleStartAndEndDates(startChallenge, endChallenge);
 
         if((sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true")) {
-          document.getElementById("workoutTaskPlaceholderText").innerHTML = "<strong>Start by selecting a workout or task</strong>";
+
           document.getElementById("workoutTaskPlaceholderText").innerHTML = "<strong>Start by selecting a workout or task</strong>";
           document.getElementById("selectProgramWorkout").innerText = "Create Day";
           document.getElementById("selectWorkoutHeader").style.display = "none";
+          document.querySelectorAll("#selectWorkoutHeader")[1].style.display = "none";
+          document.getElementById("workout-task-select").style.display = "flex";
           
-          if(!(startChallenge && endChallenge)) {
+          
+          if( (sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") && !(startChallenge && endChallenge)) {
           
             return
   
           }
+
         } else {
           document.getElementById("workoutTaskPlaceholderText").innerHTML = "<strong>Start by selecting a workout</strong>";
           document.getElementById("selectProgramWorkout").innerText = "Select Workout";
@@ -2724,6 +2735,8 @@ async function main() {
 
       if(sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
 
+        sortable.option("disabled", false);
+
         desiredDate = selectedDate;
 
         if(sessionStorage.getItem("weeklyTask") == "false") {
@@ -2787,6 +2800,7 @@ async function main() {
               allDay: true
             };
           }
+
           if(sessionStorage.getItem("weeklyTask") == "true") {
             newEvent.extendedProps["weeklyTask"] = "true";
           }
@@ -2796,6 +2810,7 @@ async function main() {
         }
 
       } else {
+        sortable.option("disabled", true);
         addEventToCalendar();
       }
 
@@ -2838,7 +2853,6 @@ async function main() {
 
     const svgPerson = document.getElementById("ajaxContent");
     const guideList = document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)");
-    const clickExerciseText = document.getElementById("clickExerciseText");
     const backButton = document.getElementById("clearText");
     
     //If search box changes, show list and hide svg man:
@@ -2849,12 +2863,10 @@ async function main() {
         setTimeout(() => {
           guideList.style.display = 'block';
         }, 150); // 50ms delay
-        clickExerciseText.style.display = 'block';
         backButton.style.display = 'block';
       } else {
         svgPerson.style.display = 'block';
         guideList.style.display = 'none';
-        clickExerciseText.style.display = 'none';
         backButton.style.display = 'none';
         resetFilters(true);
       }
@@ -3090,6 +3102,7 @@ async function main() {
 
       var program = {};
       var programWorkoutsArr = [];
+      var programTasksArr = [];
 
       //List events from calendar
       var events = calendar.getEvents();
@@ -3105,15 +3118,21 @@ async function main() {
         if (event.extendedProps.workoutID === "") {
           event.remove();
         } else {
-          programWorkoutsArr.push(event.extendedProps.workoutID);
+          //Check if workout
+          if(event.extendedProps.workoutID) {
+            programWorkoutsArr.push(event.extendedProps.workoutID);
+          } else if (event.extendedProps.taskID) {
+            //Check if tasks
+            programTasksArr.push(event.extendedProps.taskID);
+          }
         }
       }
 
       // Calculate number of weeks between start of first event and end of last event
       var numWeeks = Math.ceil((events[events.length-1].start.getTime() - events[0].start.getTime()) / (1000 * 60 * 60 * 24 * 7));
 
-      programWorkoutsArr = programWorkoutsArr.reverse();
       program["workouts"] = programWorkoutsArr;
+      program["tasks"] = programTasksArr;
 
       program["eventData"] = JSON.stringify(events);
 
@@ -3468,8 +3487,9 @@ async function main() {
               var numProgramWeeks = document.getElementById("selectedProgramWeeks").innerText;
 
               //Get start time of entire week
-              var startTime = new Date(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
-
+              var dateString = weekRow.querySelector('[role="gridcell"]').getAttribute("data-date");
+              const [year, month, day] = dateString.split("-").map(Number);
+              var startTime = new Date(year, month - 1, day); // Creates date in local timezone at midnight
               // Calculate the start and end dates of the week of interest
               var endOfWeek = new Date(startTime.getTime() + (7 * 24 * 60 * 60 * 1000));
 
@@ -3485,14 +3505,29 @@ async function main() {
                 return dateA.diff(dateB);
               });
 
-              var lastWorkout = new Date(sortedCopiedEvents[sortedCopiedEvents.length - 1].start);
-              var firstWorkout = new Date(sortedCopiedEvents[0].start);
+              // Parse lastWorkout
+              const lastWorkoutDateString = sortedCopiedEvents[sortedCopiedEvents.length - 1].start; // "2024-11-05"
+              const [lastYear, lastMonth, lastDay] = lastWorkoutDateString.split("-").map(Number);
+              var lastWorkout = new Date(lastYear, lastMonth - 1, lastDay); // Local timezone
+
+              // Parse firstWorkout
+              const firstWorkoutDateString = sortedCopiedEvents[0].start; // "2024-11-04"
+              const [firstYear, firstMonth, firstDay] = firstWorkoutDateString.split("-").map(Number);
+              var firstWorkout = new Date(firstYear, firstMonth - 1, firstDay); // Local timezone
+
               var programClash = false;
 
               //Iterate through each existing program and check if there will be a clash with the new program
               for(const program of userTrainingPlan) {
-                const programStartWeek = new Date(program.startWeek);
-                const programEndWeek = new Date(program.endWeek);
+                // Parse programStartWeek
+                const programStartDateString = program.startWeek; // "2024-11-04" format
+                const [startYear, startMonth, startDay] = programStartDateString.split("-").map(Number);
+                const programStartWeek = new Date(startYear, startMonth - 1, startDay); // Local timezone
+
+                // Parse programEndWeek
+                const programEndDateString = program.endWeek; // "2024-11-10" format
+                const [endYear, endMonth, endDay] = programEndDateString.split("-").map(Number);
+                const programEndWeek = new Date(endYear, endMonth - 1, endDay); // Local timezone
 
                 var weeksBetween = Math.floor((programEndWeek - programStartWeek) / millisecondsPerWeek);
                 
@@ -3526,15 +3561,26 @@ async function main() {
 
                 sortedCopiedEvents.forEach(function(event, index, events) {
 
-                  event.start = new Date(event.start); 
-  
-                  currentEndOfWeek = new Date (getEndOfWeek(event.start));
-  
-                  if(index < events.length - 1) {
-                    if(new Date(events[index + 1].start).getTime() > currentEndOfWeek.getTime()) {
-                      incrementWeeks = true;
-                    }
+                // Parse event.start in local timezone
+                const eventStartString = event.start; // Assuming "2024-11-05" format
+                const [eventYear, eventMonth, eventDay] = eventStartString.split("-").map(Number);
+                event.start = new Date(eventYear, eventMonth - 1, eventDay); // Local timezone
+
+                // Parse currentEndOfWeek in local timezone, assuming `getEndOfWeek` returns a date string
+                const endOfWeekString = getEndOfWeek(event.start); // Expected format "2024-11-10"
+                const [endYear, endMonth, endDay] = endOfWeekString.split("-").map(Number);
+                currentEndOfWeek = new Date(endYear, endMonth - 1, endDay); // Local timezone
+
+                // Inside the condition, parse `events[index + 1].start` in the same way
+                if (index < events.length - 1) {
+                  const nextEventStartString = events[index + 1].start; // Assuming "2024-11-06" format
+                  const [nextYear, nextMonth, nextDay] = nextEventStartString.split("-").map(Number);
+                  const nextEventStart = new Date(nextYear, nextMonth - 1, nextDay); // Local timezone
+
+                  if (nextEventStart.getTime() > currentEndOfWeek.getTime()) {
+                    incrementWeeks = true;
                   }
+                }
                   
                   startTime.setHours(0, 0, 0, 0);
   
@@ -3642,7 +3688,12 @@ async function main() {
         } else {
 
           var copiedEvent = JSON.parse(sessionStorage.getItem('copiedEvent'));
-          var clickedDate = new Date(dayCell.parentElement.getAttribute("data-date"));
+          // Get the date string from the attribute
+          const clickedDateString = dayCell.parentElement.getAttribute("data-date"); // e.g., "2024-11-04"
+
+          // Parse the date string
+          const [year, month, day] = clickedDateString.split("-").map(Number);
+          const clickedDate = new Date(year, month - 1, day); // Local timezone
 
           if (copiedEvent && clickedDate) {
             // Create a new event objects with the copied event details
@@ -3664,7 +3715,7 @@ async function main() {
                 allDay: event.allDay,
                 extendedProps: event.extendedProps
               };
-  
+
               // Add the new event to the calendar
               calendar.addEvent(newEvent);
               
@@ -3886,6 +3937,10 @@ async function main() {
       if(event.target.closest("#createWorkoutFromModal")) {
         var workoutBuilderSubpage = document.getElementById("workoutbuildersubpage");
         document.getElementById("workoutsList").style.display = "none";
+        workoutBuilderSubpage.style.width = "80%";
+        workoutBuilderSubpage.style.height = "90%";
+        workoutBuilderSubpage.style.paddingLeft = "0";
+        workoutBuilderSubpage.style.paddingRight = "0";
         document.getElementById("modalWrapper").appendChild(workoutBuilderSubpage);
         document.querySelector(".workoutbuilderh3").style.display = "none";
         sessionStorage.setItem("createWorkoutFromModal", "true");
@@ -3893,7 +3948,7 @@ async function main() {
         document.getElementById("closeWorkoutBuilder").style.display = "block";
       }
       
-      if(event.target.id == "closeWorkoutBuilder") {
+      if(event.target.id == "closeWorkoutBuilder" || event.target.id == "modalWrapper") {
 
         //Hide workout builder and put back in original place
         var workoutBuilderSubpage = document.getElementById("workoutbuildersubpage");
@@ -3906,6 +3961,12 @@ async function main() {
         sessionStorage.setItem('createWorkout', 'false');
         document.getElementById("closeWorkoutBuilder").style.display = "none";
 
+        workoutBuilderSubpage.style.width = "";
+        workoutBuilderSubpage.style.height = "";
+        workoutBuilderSubpage.style.paddingLeft = "";
+        workoutBuilderSubpage.style.paddingRight = "";
+
+        document.getElementById("modalWrapper").click();
         clearWorkoutExerciseList();
         clearWorkoutListEntry();
         resetFilters();
@@ -3921,7 +3982,7 @@ async function main() {
         
       }
 
-      if(event.target.closest("#taskItem")) {
+      if(event.target.closest("#taskItem") && event.target.id != "removeItem") {
         prefillWorkoutTaskList(event.target.closest("#taskItem"), "task");
       }
 
@@ -4097,8 +4158,10 @@ async function main() {
       if(event.target.closest("#workoutSummaryProgram")) {
 
         var workout = event.target.closest("#workoutSummaryProgram");
-
+        //prefillWorkoutTaskList(workout, "workout");
         if(sessionStorage.getItem("createChallenge") != "true" && sessionStorage.getItem("editChallenge") != "true") {
+
+          sortable.option("disabled", true);
           
           //Remove if any workouts exist
           clearWorkoutExerciseList(true);
@@ -4131,12 +4194,12 @@ async function main() {
               workoutProgramSummary.style.flexDirection = "column";
               workoutProgramSummary.style.justifyContent = "center";
               workoutProgramSummary.style.alignItems = "center";
-  
             }
           }
 
-          //Create event and add to calendar
-          desiredDate = new Date(selectedDate);
+          let [year, month, day] = selectedDate.split('-').map(Number);
+          let desiredDate = new Date(year, month - 1, day); // Month is 0-indexed in JS
+          desiredDate.setHours(0, 0, 0, 0); // Set time to midnight local time
     
           // Create a new event object with the desired date
           newEvent = {
@@ -4151,8 +4214,10 @@ async function main() {
           };
 
         } else {
+          sortable.option("disabled", false);
           prefillWorkoutTaskList(workout, "workout");
         }
+
       }
 
       if(event.target.id == "showModalWorkouts") {
@@ -4173,7 +4238,7 @@ async function main() {
       if(event.target.id == "showModalTasks") {
         document.getElementById("taskModalForm").style.display = "flex";
         document.getElementById("workoutModalForm").style.display = "none";
-
+        
         if(!event.target.classList.contains("workouttaskbtnclicked")) {
           event.target.classList.add("workouttaskbtnclicked");
           event.target.classList.remove("workouttaskbtn");
@@ -4292,20 +4357,14 @@ async function main() {
         // Get the start date of the week
         var weekStart = moment(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
         // Calculate the end date of the week by adding 7 days
-        var weekEnd = weekStart.clone().add(7, 'days');
-        
-        // Adjust for timezone offset (assuming it's in hours, e.g., +10 for Sydney)
-        var timezoneOffset = 11; // Adjust this to match your timezone offset
-        
-        weekStart.subtract(timezoneOffset, 'hours');
-        weekEnd.subtract(timezoneOffset, 'hours');
-        
+        var weekEnd = weekStart.clone().add(6, 'days');
+
         // List all events, then filter for events within the week
         var allEvents = calendar.getEvents();
         var weekEvents = allEvents.filter(function (event) {
           return !event.extendedProps.weeklyTask && moment(event.start).isBetween(weekStart, weekEnd, null, '[]'); // '[]' to include the start and end dates
         });
-
+        
         // Store the week events in session storage
         sessionStorage.setItem('copiedEvents', JSON.stringify(weekEvents));
         
@@ -4318,13 +4377,7 @@ async function main() {
         var weekStart = moment(weekRow.querySelector('[role="gridcell"]').getAttribute("data-date"));
 
         // Calculate the end date of the week by adding 7 days
-        var weekEnd = weekStart.clone().add(7, 'days');
-      
-        // Adjust for timezone offset (assuming it's in hours, e.g., +10 for Sydney)
-        var timezoneOffset = 11; // Adjust this to match your timezone offset
-      
-        weekStart.subtract(timezoneOffset, 'hours');
-        weekEnd.subtract(timezoneOffset, 'hours');
+        var weekEnd = weekStart.clone().add(6, 'days');
       
         // List all events, then filter for events within the week
         var allEvents = calendar.getEvents();
@@ -4410,7 +4463,6 @@ async function main() {
           setTimeout(() => {
             guideList.style.display = 'block';
           }, 150); // 50ms delay
-          clickExerciseText.style.display = 'block';
           backButton.style.display = 'block';
 
           document.getElementById("exerciseSearch").value = muscleMapping[muscleFilter];
@@ -4548,7 +4600,7 @@ async function main() {
         if(document.querySelector(".qr-code img") != null) {
           document.querySelector(".qr-code img").remove();
         }
-
+        sortable.option("disabled", false);
         sessionStorage.setItem("weeklyTask", "false");
         
         document.getElementById("linkCopiedText").style.display = "none";
@@ -4619,7 +4671,6 @@ async function main() {
       } else if(event.target.closest("#clearText")) {
         svgPerson.style.display = 'block';
         guideList.style.display = 'none';
-        clickExerciseText.style.display = 'none';
         backButton.style.display = 'none';
         resetFilters();
 
@@ -4949,6 +5000,10 @@ async function main() {
         
       
       } else if (event.target.id == "createProgramFromDashboard" || event.target.id == "createProgram" || event.target.id == "createProgramImage" || event.target.id == "createProgramText") {
+
+        if(event.target.id == "createProgramFromDashboard") {
+          document.getElementById("programPageHover").click();
+        }
 
         //Remove all events first
         calendar.removeAllEvents();
@@ -6057,8 +6112,14 @@ async function main() {
     
 
     function updateSelectedTask() {
-      var taskItem = document.querySelector(".editedTask");
-      if (!taskItem) return; // Exit if no task is selected
+
+      var taskID = document.getElementById("taskID").value;
+
+      //Populate modal list
+      var taskItem = document.querySelector(`div[modalTaskRow="${taskID}"]`);
+
+      //Populate main list
+      var mainWorkoutListRow = document.querySelector(`div[mainTaskRow="${taskID}"]`);
     
       // Update task name
       taskItem.querySelector("#taskName").innerText = document.getElementById("taskInputName").value;
@@ -7090,7 +7151,7 @@ async function main() {
         }
         throw new Error("Something went wrong")
       })
-      .then((data) => {
+      .then((data) => { 
 
       })
       .catch((error) => {
@@ -7103,7 +7164,6 @@ async function main() {
 
       var newProgramRow = document.querySelector(`div[programid="${data}"]`);
       var modalProgramRow = document.querySelector(`div[programmodalid="${data}"]`);
-
 
       //Clone:
       if(sessionStorage.getItem("createProgram") == "true") {
@@ -7160,14 +7220,17 @@ async function main() {
       document.getElementById("programBuilder").style.display = "none";
       document.getElementById("createProductModal").style.display = "none";
 
+      clearProgram();
+
       if(sessionStorage.getItem("createProductProgram") == "true") {
+        document.getElementById("productsPage").click();
         prefillProductFormFromProgram(program["programName"], data);
         sessionStorage.setItem("createProductProgram", "false");
       } else {
         document.getElementById("programPage").style.display = "block";
       }
 
-      clearProgram();
+
     }
 
     function addOrUpdateWorkoutRow(data, workout, action="create") {
@@ -7483,12 +7546,20 @@ async function main() {
 
         // List of webflow workout IDs
         var userProgramWorkouts = [];
+        var userProgramTasks = [];
         // List of webflow workout IDs
         // Loop through the events and log their titles to the console
         for (var i = 0; i < userTrainingPlan[0].events.length; i++) {
-          userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
+          if(userTrainingPlan[0].events[i].extendedProps.workoutID) {
+            userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
+          } else {
+            userProgramTasks.push(userTrainingPlan[0].events[i].extendedProps.taskID);
+          }
+          
         }
+
         userProgram["workoutList"] = userProgramWorkouts;
+        userProgram["taskList"] = userProgramTasks;
       } else {
         userProgram["endDate"] = moment(new Date).format("YYYY-MM-DD");
       }
@@ -7535,7 +7606,6 @@ async function main() {
       // Event data
       userProgram["events"] = JSON.stringify(userTrainingPlan);
 
-
       if(userTrainingPlan.length > 0) {
         const firstDate = userTrainingPlan[0].startWeek;
         const lastDate = userTrainingPlan[0].endWeek;
@@ -7550,12 +7620,20 @@ async function main() {
 
         // List of webflow workout IDs
         var userProgramWorkouts = [];
+        var userProgramTasks = [];
+        
         // List of webflow workout IDs
         // Loop through the events and log their titles to the console
         for (var i = 0; i < userTrainingPlan[0].events.length; i++) {
-          userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
+          if(userTrainingPlan[0].events[i].extendedProps.workoutID) {
+            userProgramWorkouts.push(userTrainingPlan[0].events[i].extendedProps.workoutID);
+          } else {
+            userProgramTasks.push(userTrainingPlan[0].events[i].extendedProps.taskID);
+          }
+          
         }
         userProgram["workoutList"] = userProgramWorkouts;
+        userProgram["taskList"] = userProgramTasks;
       } else {
         userProgram["endDate"] = moment(new Date).format("YYYY-MM-DD");
       }
@@ -7677,6 +7755,7 @@ async function main() {
       newRow.style.textAlign = "center";
       newRow.classList.add("program-breaker-div");
       newRow.style.height = "18px";
+      newRow.style.display = "none";
       var newCell = document.createElement('td');
       newCell.setAttribute('colspan', '8');
       newCell.style.textAlign = 'center'; // Center-align the cell contents
@@ -7686,6 +7765,7 @@ async function main() {
       textDiv.classList.add("program-breaker");
       textDiv.textContent = programBreakerName;
       textDiv.style.paddingBottom = "10px";
+      textDiv.style.display = "none";
     
       newCell.appendChild(textDiv); // Append the div to the cell
     
@@ -9793,6 +9873,14 @@ async function main() {
       // Event listener for onclick
       removeItem.addEventListener("click", function() {
         listElement.parentElement.remove();
+        var workoutProgramPlaceholder = document.getElementById("selectWorkoutPlaceholder");
+        if(workoutTaskList.children.length == 1) {
+          document.getElementById("workoutProgramSummary").style.display = "none";
+          workoutProgramPlaceholder.style.display = "flex";
+          workoutProgramPlaceholder.style.flexDirection = "column";
+          workoutProgramPlaceholder.style.justifyContent = "center";
+          workoutProgramPlaceholder.style.alignItems = "center";
+        }
       });
 
       listElement.querySelector(".exerciseheaderdiv").appendChild(removeItem);
@@ -9828,6 +9916,7 @@ async function main() {
       } else if(type == "task") {
         listElement.querySelector("#guideName").innerText = element.querySelector("#taskName").innerText;
         listElement.querySelector("#guideName").id = "taskName";
+
         listElement.querySelector("#itemID").innerText = element.querySelector("#taskItemID").innerText;
 
         listElement.querySelector("#exerciseThumbnail").style.display = "none";
