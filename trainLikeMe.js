@@ -1325,7 +1325,7 @@ async function main() {
       const saveWorkout = document.getElementById("saveWorkout");
       
       if (listLength == 1) {
-        document.getElementById("firstExercisePlaceholder").style.display = "block";
+        document.getElementById("firstExercisePlaceholder").style.display = "flex";
         document.getElementById("workoutList").style.display = "none";
         //Hide workout button if there is only one exercise in list
         saveWorkout.style.display = "none";
