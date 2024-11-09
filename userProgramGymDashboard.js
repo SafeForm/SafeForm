@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
+
   //Check off checklist:
   checkOffChecklist();
   
@@ -399,7 +400,10 @@ async function main() {
     const now = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(now.getDate() - 30); // Date 30 days ago
-  
+    
+    if(salesData.length > 0) {
+      document.getElementById("salesPlaceholder").style.display = "none";
+    }
     // Iterate through each payment object in the data
     salesData.data.forEach(payment => {
       const amount = payment.amount / 100; // Convert amount from cents to dollars
@@ -3695,9 +3699,27 @@ async function main() {
 
     });
 
+    window.addEventListener("beforeunload", (event) => {
+      // This message will show in some browsers as a confirmation dialog
+      //event.preventDefault(); // Some browsers require preventDefault to trigger the dialog
+    });
+
     //Click listener
     //Listen for click events:
     document.addEventListener('click', function (event) {
+
+      //Remove classes for dropdowns
+      var shareProgramDropdown = document.getElementById("shareProgramDropdown");
+      if(!event.target.closest("#workoutOptionsDropdown") && shareProgramDropdown.classList.contains("w--open")) {
+        shareProgramDropdown.classList.remove("w--open");
+        shareProgramDropdown.querySelector("#workoutOptionsDropdown").classList.remove("w--open");
+      }
+
+      var shareProductDropdown = document.getElementById("shareProductDropdown");
+      if(!event.target.closest("#workoutOptionsDropdown") && shareProductDropdown.classList.contains("w--open")) {
+        shareProductDropdown.classList.remove("w--open");
+        shareProductDropdown.nextElementSibling.classList.remove("w--open");
+      }
 
       if(event.target.id == "skipProgramPreview") {
         document.getElementById("productsBuilderBody").style.display = "none";
@@ -3713,7 +3735,10 @@ async function main() {
 
         var fcEmail = document.getElementById("fcEmail").innerText;
         var programLink = document.getElementById("programPreviewLink").innerText;
-        sendEmail(fcEmail, programLink, "program");
+        var programName = document.getElementById("programPreviewName").innerText;
+        var fcName = document.getElementById("gymFullName").innerText;
+
+        sendEmail(fcEmail, programLink, programName, fcName, "program");
 
         //Change modal
         document.getElementById("shareProductHeader").innerText = "Check your emails 📩";
@@ -3733,8 +3758,8 @@ async function main() {
       if (event.target.id == "copyProgramPreview") {
 
         //Get program link
-        var programLink = document.getElementById("programPreviewLink").innerText;
-        navigator.clipboard.writeText(programLink);
+        var productLink = document.getElementById("productPreviewLink").innerText;
+        navigator.clipboard.writeText(productLink);
 
         const copiedPopup = document.getElementById("copiedPopup");
       
@@ -3745,6 +3770,23 @@ async function main() {
         setTimeout(() => {
           copiedPopup.style.display = "none";
         }, 1500); // 1500 milliseconds = 1.5 seconds
+      }
+
+      if(event.target.id == "copyProductLink") {
+        var shareProductDropdown = event.target.closest("#shareProductDropdown");
+        if(!shareProductDropdown.classList.contains("w--open")) {
+          shareProductDropdown.classList.add("w--open");
+          shareProductDropdown.nextElementSibling.classList.add("w--open");
+        }
+
+      }
+
+      if(event.target.id == "productOptions") {
+        var shareProgramDropdown = event.target.closest("#shareProgramDropdown");
+        if(!shareProgramDropdown.classList.contains("w--open")) {
+          shareProgramDropdown.classList.add("w--open");
+          shareProgramDropdown.querySelector("#workoutOptionsDropdown").classList.add("w--open");
+        }
       }
 
       if(event.target.closest("#productSummary")) {
@@ -3768,14 +3810,18 @@ async function main() {
       if(event.target.id == "emailProductLink") {
         var fcEmail = document.getElementById("fcEmail").innerText;
         var productLink = event.target.closest("#productSummary").querySelector("#productSummarySalesPage").href;
-        sendEmail(fcEmail, productLink, "sales-page");
+        var productName = event.target.closest("#productSummary").querySelector("#productSummaryName").innerText;
+        var fcName = document.getElementById("gymFullName").innerText;
+        sendEmail(fcEmail, productLink, productName, fcName, "sales-page");
         event.target.innerText = "Sent!";
       }
 
       if(event.target.id == "previewProgram") {
         var fcEmail = document.getElementById("fcEmail").innerText;
         var programLink = event.target.closest("#productSummary").querySelector("#productSummaryProgramPreview").href;
-        sendEmail(fcEmail, programLink, "program");
+        var programName = event.target.closest("#productSummary").querySelector("#productSummaryProgramName").innerText;
+        var fcName = document.getElementById("gymFullName").innerText;
+        sendEmail(fcEmail, programLink, programName, fcName, "program");
         event.target.innerText = "Sent!";
       }
 
@@ -4117,6 +4163,7 @@ async function main() {
       if(event.target.closest("#workoutSummaryProgram")) {
 
         var workout = event.target.closest("#workoutSummaryProgram");
+
         //prefillWorkoutTaskList(workout, "workout");
         if(sessionStorage.getItem("createChallenge") != "true" && sessionStorage.getItem("editChallenge") != "true") {
 
@@ -4136,7 +4183,6 @@ async function main() {
             if(mainWorkoutList[j].querySelector("#workoutID").innerText == programWorkoutID) {
               //Populate select workout side bar
               var selectedWorkout = getWorkoutExerciseInformation(mainWorkoutList[j], true)
-
               document.getElementById("selectedWorkoutName").innerText = selectedWorkout.workoutName;
               document.getElementById("selectedWorkoutDescription").innerText = selectedWorkout.workoutSummaryDescription;
               document.getElementById("selectedWorkoutDuration").innerText = selectedWorkout.workoutDuration;
@@ -5638,7 +5684,6 @@ async function main() {
     }
 
     function addEventToCalendar() {
-
       // Add the new event to the calendar
       calendar.addEvent(newEvent);
 
@@ -7165,6 +7210,7 @@ async function main() {
         document.getElementById("programListModalParent").appendChild(modalProgramRow);
         const programListParentModal = document.getElementById("programListModalParent");
         programListParentModal.insertBefore(modalProgramRow, programListParentModal.firstChild);
+        modalProgramRow.style.display = "grid";
       }
 
       //Clean up:
@@ -7294,6 +7340,7 @@ async function main() {
         // Add the class 'workoutsummaryitem' to the div
         newDiv.classList.add("workoutsummaryitem");
         newModalDiv.classList.add("workoutmodalitem");
+
         // Append the mainWorkoutListRow to the new div
         newDiv.appendChild(mainWorkoutListRow);
         newModalDiv.appendChild(workoutListRow);
@@ -7325,7 +7372,10 @@ async function main() {
 
       if(sessionStorage.getItem("createWorkoutFromModal") == "true") {
         //Close modal workout builder and show modal workout list
-        document.getElementById("closeWorkoutBuilder").click();
+        
+        workoutListRow.querySelector("#workoutSummaryProgram").click(); //Click the workout
+
+        document.getElementById("selectProgramWorkout").click() //Select the workout
         
       } else {
         //Close normal workout builder and show workout list
@@ -8039,22 +8089,29 @@ async function main() {
           newProduct = true;
         }
 
+        var foundProgramRow = document.querySelector(`div[programid="${product["programID"]}"]`);
+
         //Fill in template values
         newProductRow.querySelector("#productSummaryName").innerText = product["programName"];
         newProductRow.querySelector("#productSummaryDescription").innerHTML = product["programDescription"];
         newProductRow.querySelector("#productSummaryPrice").innerText = `$${price} ${currency}`;
         newProductRow.querySelector("#productSummaryStatus").innerText = "Published";
-        newProductRow.querySelector("#productSummaryLastEdited").innerText = moment().format('MMMM DD, YYYY');
+        newProductRow.querySelector("#productSummaryLastEdited").innerText = moment().format('D/M/YY');
         newProductRow.querySelector("#productSummaryProgramID").innerText = product["programID"];
         newProductRow.querySelector("#productSummaryProgramName").innerText = product["programName"];
         newProductRow.querySelector("#productSummaryBtnColor").innerText = product["buttonColor"];
         newProductRow.querySelector("#productSummaryID").innerText = productID;
+        newProductRow.querySelector("#productSummarySalesPage").href = salesPageLink;
+        newProductRow.querySelector("#productSummaryProgramPreview").href = foundProgramRow.querySelector("#programSummaryLink").href;
         newProductRow.querySelector("#productSummarySalesID").innerText = salesPageID;
 
-        var foundProgramRow = document.querySelector(`div[programid="${product["programID"]}"]`);
+        
         newProductRow.querySelector("#productSummaryWeeks").innerText = foundProgramRow.querySelector("#programSummaryWeeks").innerText;
 
         document.getElementById("programPreviewLink").innerText = foundProgramRow.querySelector("#programSummaryLink").href;
+        document.getElementById("programPreviewName").innerText = foundProgramRow.querySelector("#programSummaryName").href;
+        document.getElementById("productPreviewLink").innerText = salesPageLink;
+        document.getElementById("productPreviewName").innerText = product["programName"];
         
         if(product["imageType"] != "") {
           newProductRow.querySelector("#productSummaryThumbnail").src = `https://d3l49f0ei2ot3v.cloudfront.net/PNGs/${product["programID"]}.${product["imageType"]}`;
@@ -8183,7 +8240,7 @@ async function main() {
       document.querySelector("#profilePicPreview").src = document.getElementById("defaultThumbnail").innerText;
       document.querySelector("#customProfilePic").src = document.getElementById("defaultThumbnail").innerText;
       document.querySelector("#customProfilePic").style.borderRadius = "8px";
-      document.querySelector("#profilePicPreview").style.borderRadius = "8px";
+      document.querySelector("#profilePicPreview").style.borderRadius = "50px";
       document.querySelector("#profilePicPreview").style.objectFit = "cover";
       document.querySelector("#customProfilePic").style.objectFit = "cover";
       
@@ -8226,6 +8283,8 @@ async function main() {
       document.getElementById("productNameHeader").innerText = programName;
       document.getElementById("productName").value = programName;
       document.getElementById("selectProgramProduct").innerText = programName;
+      document.getElementById("previewName").innerText = programName;
+      
       document.getElementById("productProgramID").innerText = programID;
 
     }
@@ -8239,15 +8298,15 @@ async function main() {
       document.getElementById("productProgramID").innerHTML = "programID";
       document.getElementById("customProductImage").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/66f293141eae3fcb348cbab3_Group%208835.webp";
       document.getElementById("customProductImage").style.borderRadius = "0px";
-      document.getElementById("customProfilePic").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/67078bda5779fbd1e7668c90_Group%20512708%20(1).avif";
+      document.getElementById("customProfilePic").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/66f293141eae3fcb348cbab3_Group%208835.webp";
       document.getElementById("customProfilePic").style.borderRadius = "0px";
       document.getElementById("colorParent").querySelector(".clr-field").color = "";
       document.getElementById("parentSubmitProduct").innerText = "Publish";
       
       //The preview div:
-      document.getElementById("previewThumbnail").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/66f293f2911a0d2ba8adcf53_Group%20512698.avif";
+      document.getElementById("previewThumbnail").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/672daf15d8004489b3f8bff7_Group%20512726.avif";
       document.getElementById("previewThumbnail").style.borderRadius = "0px";
-      document.getElementById("profilePicPreview").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/670790eda8b038123aeb2f22_Rectangle%204537.avif";
+      document.getElementById("profilePicPreview").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/672daf188d3dba16bb827e0b_Group%20512725.avif";
       document.getElementById("profilePicPreview").style.borderRadius = "0px";
       document.getElementById("profileNamePreview").innerText = "Profile Name";
       document.getElementById("previewName").innerText = "Product Name";
@@ -8875,12 +8934,14 @@ async function main() {
     }
     
 
-    function sendEmail(email, link, linkType) {
+    function sendEmail(email, link, name, username, linkType) {
       const webhookUrl = "https://hook.us1.make.com/xk91wkouxdzb7n6qchyji5srnu321fgm";
       
       const data = {
         email: email,
         link: link,
+        username: username,
+        topicName: name,
         linkType: linkType
       };
     
