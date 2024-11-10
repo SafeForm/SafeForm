@@ -644,7 +644,7 @@ async function main() {
   
             clientRow.onclick = (event) => { 
               //Hide user summary list
-              document.getElementById("userSummaryPage").style.display = "block";
+              //document.getElementById("userSummaryPage").style.display = "block";
 
               if(!event.target.closest("#userOptionsLink") && event.target.id != "copyInviteLinkDropdown") {
                 alert("Please wait for your client to fill out the form before making a program"); 
@@ -2206,14 +2206,14 @@ async function main() {
       duration: { weeks: currentNumberOfWeeks},
       views: {
         dayGridFourWeek: {
-          dayHeaderContent: function(info) {
-            var dayOfWeek = info.date.getDay();
-            return dayOfWeek === 0 ? 7 : dayOfWeek; // Convert Sunday (0) to 7
-
-          },
-          type: 'dayGrid',
+            dayHeaderContent: function(info) {
+                // Get the day of the week and map it to day labels
+                const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+                return dayLabels[info.date.getDay()];
+            },
+            type: 'dayGrid',
         }
-      },
+    },
       editable: true,
       dayCellContent: function(info) {
         // Return an empty string to hide the date of the month
@@ -2542,6 +2542,7 @@ async function main() {
 
       viewDidMount: function(view) {
         var index = 0;
+
         $(view.el).find('[role=row]').each(function() {
           if (index == 0) {
             $(this).prepend("<div/>");
@@ -2624,10 +2625,10 @@ async function main() {
             
             // Add text for the first day
             if (rowIndex == 1) {
-              $firstDayCell.append('<div class="first-day-text" style="font-family: Manrope; text-align: center;margin-top: 10px;">Click any day to add first workout</div>');
+              $firstDayCell.append('<div class="first-day-text" style="font-family: Manrope; text-align: center;margin-top: 30px;">Click any day to add first workout</div>');
             
               // Add text for the second day with line breaks
-              $secondDayCell.append('<div class="second-day-text" style="font-family: Manrope;text-align: center;margin-top: 10px;">Blank day<br>=<br>Rest Day</div>');
+              $secondDayCell.append('<div class="second-day-text" style="font-family: Manrope;text-align: center;margin-top: 30px;">Blank day<br>=<br>Rest Day</div>');
             }
             
 
@@ -7372,9 +7373,7 @@ async function main() {
 
       if(sessionStorage.getItem("createWorkoutFromModal") == "true") {
         //Close modal workout builder and show modal workout list
-        
         workoutListRow.querySelector("#workoutSummaryProgram").click(); //Click the workout
-
         document.getElementById("selectProgramWorkout").click() //Select the workout
         
       } else {
