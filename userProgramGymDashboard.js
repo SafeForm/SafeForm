@@ -159,7 +159,9 @@ async function main() {
   sessionStorage.setItem("programConfirmModal", "false");
   sessionStorage.setItem("createProduct", "false");
   sessionStorage.setItem("editProduct", "false");
-
+  sessionStorage.setItem("createProgram", "false");
+  sessionStorage.setItem("editProgram", "false");
+  
   //Object to keep track of the guide -> exercise workout mapping
   //Object with guide ID as the key and array of guide divs as values
   var guideToWorkoutObj = {};
@@ -3214,6 +3216,7 @@ async function main() {
         profilePic: profilePic.base64Data,
         profilePicType: profilePic.fileFormat,
         profileName: document.querySelector("#profileNamePreview").innerText,
+        profileImgLink: document.querySelector("#defaultThumbnail").innerText,
       };
 
       //Call Stripe first
@@ -3701,8 +3704,29 @@ async function main() {
     });
 
     window.addEventListener("beforeunload", (event) => {
-      // This message will show in some browsers as a confirmation dialog
-      //event.preventDefault(); // Some browsers require preventDefault to trigger the dialog
+      // List of sessionStorage keys to check
+      const keysToCheck = [
+        "createChallenge",
+        "editChallenge",
+        "createWorkoutFromModal",
+        "createWorkout",
+        "editWorkout",
+        "createTask",
+        "createProduct",
+        "editProduct",
+        "createProgram",
+        "editProgram"
+      ];
+    
+      // Check if any sessionStorage item is set to "true"
+      const shouldWarnOnUnload = keysToCheck.some((key) => sessionStorage.getItem(key) === "true");
+
+      if (shouldWarnOnUnload) {
+        event.preventDefault(); // Required in some browsers
+      } else {
+        // Optionally, you can remove the listener if you don't need it anymore
+        window.removeEventListener("beforeunload", arguments.callee);
+      }
     });
 
     //Click listener
@@ -3719,7 +3743,10 @@ async function main() {
       var shareProductDropdown = document.getElementById("shareProductDropdown");
       if(!event.target.closest("#workoutOptionsDropdown") && shareProductDropdown.classList.contains("w--open")) {
         shareProductDropdown.classList.remove("w--open");
-        shareProductDropdown.nextElementSibling.classList.remove("w--open");
+        if(shareProductDropdown.nextElementSibling) {
+          shareProductDropdown.nextElementSibling.classList.remove("w--open");
+        }
+        
       }
 
       if(event.target.id == "skipProgramPreview") {
@@ -3777,7 +3804,10 @@ async function main() {
         var shareProductDropdown = event.target.closest("#shareProductDropdown");
         if(!shareProductDropdown.classList.contains("w--open")) {
           shareProductDropdown.classList.add("w--open");
-          shareProductDropdown.nextElementSibling.classList.add("w--open");
+          if(shareProductDropdown.nextElementSibling) {
+            shareProductDropdown.nextElementSibling.classList.add("w--open");
+          }
+          
         }
 
       }
@@ -3863,7 +3893,7 @@ async function main() {
         if(sessionStorage.getItem("createProduct") == "true") {
           if (thumbnailImage.files.length == 0) {
             imagesSet = false;
-          } else if(profileImage.files.length == 0) {
+          } else if(document.getElementById("productListEmptyState") && profileImage.files.length == 0) {
             imagesSet = false;
           }
         }
@@ -3897,7 +3927,7 @@ async function main() {
             alert("A thumbail is required to create a product");
           } else if(productDescription.innerHTML == "") {
             alert("A description is required to create a product");
-          } else if(sessionStorage.getItem("createProduct") == "true" && profileImage.files.length == 0) {
+          } else if(document.getElementById("productListEmptyState") && sessionStorage.getItem("createProduct") == "true" && profileImage.files.length == 0) {
             alert("A profile image is required to create a product");
           }
           
@@ -3920,6 +3950,19 @@ async function main() {
         sessionStorage.setItem("createProduct", "true");
         document.querySelector(".clr-field").style.color = "#0003FF";
         document.getElementById("button-color").value = "#0003FF";
+        //Check if first product being created, if not then hide profile 
+        if(!document.getElementById("productListEmptyState")) {
+          document.getElementById("profileDivider").style.display = "none";
+          document.getElementById("profileFormLabel").style.display = "none";
+          document.getElementById("profileInputGroup").style.display = "none";
+        }
+
+        document.getElementById("profileName").value = document.getElementById("gymFullName").innerText;
+        document.getElementById("profileNamePreview").innerText = document.getElementById("gymFullName").innerText;
+        if(document.getElementById("defaultThumbnail").innerText != "") {
+          document.getElementById("profilePicPreview").src = document.getElementById("defaultThumbnail").innerText;
+          document.getElementById("profilePicPreview").style.borderRadius = "8px";
+        }
         
       }
 
@@ -3954,7 +3997,7 @@ async function main() {
         document.getElementById("closeWorkoutBuilder").style.display = "block";
       }
       
-      if(event.target.id == "closeWorkoutBuilder" || event.target.id == "modalWrapper") {
+      if(event.target.id == "closeWorkoutBuilder") {
 
         //Hide workout builder and put back in original place
         var workoutBuilderSubpage = document.getElementById("workoutbuildersubpage");
@@ -4144,9 +4187,6 @@ async function main() {
 
           //Hide user summary list
           document.getElementById("userSummaryPage").style.display = "none";
-
-          // Show user details
-          document.getElementById("userDetailsPage").style.display = "block";
 
           //Show user program
           document.getElementById("trainingRadio").click();
@@ -4610,7 +4650,7 @@ async function main() {
         sessionStorage.setItem("weeklyTask", "false");
         
         document.getElementById("linkCopiedText").style.display = "none";
-        if(event.target.id == "modalWrapper") {
+        if(event.target.id == "modalWrapper" && sessionStorage.getItem("createWorkoutFromModal") == "false") {
           document.getElementById("modalWrapper").style.display = "none";
           document.getElementById("submitIssueDiv").style.display = "none";
           document.getElementById("workoutQRDiv").style.display = "none";
@@ -5260,14 +5300,61 @@ async function main() {
     }, false);
 
     document.getElementById('productName').addEventListener('input', function() {
-      document.getElementById('previewName').textContent = this.value || 'Product name';
-      document.getElementById('productNameHeader').textContent = this.value || 'Product name';
+      const previewElement = document.getElementById('previewName');
+      const headerElement = document.getElementById('productNameHeader');
+      
+      // Store the previous valid value
+      if (!this.lastValidValue) {
+          this.lastValidValue = '';
+      }
+      
+      // Update the preview text
+      previewElement.textContent = this.value || 'Product name';
+      headerElement.textContent = this.value || 'Product name';
+      
+      // Check if text is overflowing
+      const isOverflowing = () => {
+          // Add a small buffer (1px) to account for rounding
+          return previewElement.scrollHeight > (previewElement.offsetHeight + 1);
+      };
+      
+      // If text is overflowing, revert to last valid value
+      if (isOverflowing()) {
+          this.value = this.lastValidValue;
+          previewElement.textContent = this.lastValidValue || 'Product name';
+          headerElement.textContent = this.lastValidValue || 'Product name';
+      } else {
+          // Update the last valid value
+          this.lastValidValue = this.value;
+      }
     });
+
+    const currencySymbols = {
+      'USD': '$',
+      'AUD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'AED': 'د.إ',
+      'SGD': '$',
+      'JPY': '¥',
+      'CAD': '$',
+      'CHF': 'Fr.',
+      'HKD': '$',
+      'NZD': '$'
+    };
+  
+    // Function to update preview
+    function updatePreview() {
+      const amount = document.getElementById('productAmount').value;
+      const currency = document.getElementById('productCurrency').value;
+      const symbol = currencySymbols[currency] || currency;
+      
+      document.getElementById('previewPrice').textContent = amount ? `${symbol}${amount} ${currency}` : 'Price';
+    }
     
-    document.getElementById('productAmount').addEventListener('input', function() {
-      var currency = document.getElementById("productCurrency").value;
-      document.getElementById('previewPrice').textContent = this.value ? `$${this.value} ${currency}` : 'Price';
-    });
+    // Add listeners to both elements
+    document.getElementById('productAmount').addEventListener('input', updatePreview);
+    document.getElementById('productCurrency').addEventListener('change', updatePreview);
     
     document.getElementById('productDescription').addEventListener('input', function() {
       document.getElementById('previewDescription').innerHTML = this.innerHTML || 'Description goes into greater depth of the product and what to expect/ set realistic expectations.';
@@ -7373,7 +7460,13 @@ async function main() {
 
       if(sessionStorage.getItem("createWorkoutFromModal") == "true") {
         //Close modal workout builder and show modal workout list
-        workoutListRow.querySelector("#workoutSummaryProgram").click(); //Click the workout
+        document.getElementById("closeWorkoutBuilder").click() //Select the workout
+        if(workoutListRow.querySelector("#workoutSummaryProgram")) {
+          workoutListRow.querySelector("#workoutSummaryProgram").click(); //Click the workout
+        } else {
+          workoutListRow.click();
+        }
+
         document.getElementById("selectProgramWorkout").click() //Select the workout
         
       } else {
@@ -8108,7 +8201,7 @@ async function main() {
         newProductRow.querySelector("#productSummaryWeeks").innerText = foundProgramRow.querySelector("#programSummaryWeeks").innerText;
 
         document.getElementById("programPreviewLink").innerText = foundProgramRow.querySelector("#programSummaryLink").href;
-        document.getElementById("programPreviewName").innerText = foundProgramRow.querySelector("#programSummaryName").href;
+        document.getElementById("programPreviewName").innerText = foundProgramRow.querySelector("#programSummaryName").innerText;
         document.getElementById("productPreviewLink").innerText = salesPageLink;
         document.getElementById("productPreviewName").innerText = product["programName"];
         
@@ -8142,7 +8235,12 @@ async function main() {
         }
 
         //Show modal:
-        document.getElementById("shareProductModal").style.display = "flex";
+        if(sessionStorage.getItem("createProduct") == "true") {
+          document.getElementById("shareProductModal").style.display = "flex";
+        } else {
+          document.getElementById("skipProgramPreview").click();
+        }
+        
 
       })
       .catch((error) => {
@@ -8245,7 +8343,6 @@ async function main() {
       
       document.querySelector("#profileNamePreview").innerText = document.getElementById("gymFullName").innerText;
       document.querySelector("#profileName").value = document.getElementById("gymFullName").innerText;
-
       
       document.getElementById("stripeProductID").innerText = productSummary.querySelector("#productStripeProductID").innerText;
       document.getElementById("stripePaymentID").innerText = productSummary.querySelector("#productStripePaymentID").innerText;
@@ -8270,10 +8367,16 @@ async function main() {
 
       document.getElementById("parentSubmitProduct").innerText = "Save Changes";
 
+      //Check if first product being created, if not then hide profile 
+      if(!document.getElementById("productListEmptyState")) {
+        document.getElementById("profileDivider").style.display = "none";
+        document.getElementById("profileFormLabel").style.display = "none";
+        document.getElementById("profileInputGroup").style.display = "none";
+      }
+
       
     }
-    
-
+  
     function prefillProductFormFromProgram(programName, programID) {
       document.getElementById("productPage").style.display = "block";
       document.getElementById("createProduct").click();
@@ -8285,6 +8388,19 @@ async function main() {
       document.getElementById("previewName").innerText = programName;
       
       document.getElementById("productProgramID").innerText = programID;
+      document.getElementById("profileName").value = document.getElementById("gymFullName").innerText;
+      document.getElementById("profileNamePreview").innerText = document.getElementById("gymFullName").innerText;
+      if(document.getElementById("defaultThumbnail").innerText != "") {
+        document.getElementById("profilePicPreview").src = document.getElementById("defaultThumbnail").innerText;
+        document.getElementById("profilePicPreview").style.borderRadius = "8px";
+      }
+      
+      //Check if first product being created, if not then hide profile 
+      if(!document.getElementById("productListEmptyState")) {
+        document.getElementById("profileDivider").style.display = "none";
+        document.getElementById("profileFormLabel").style.display = "none";
+        document.getElementById("profileInputGroup").style.display = "none";
+      }
 
     }
 
@@ -9773,12 +9889,12 @@ async function main() {
    }
 
     function updateCalendarWeeks(overrideWeeks=0, programType="builder") {
-      if(overrideWeeks != 0 && overrideWeeks > 4) {
+      if(overrideWeeks != 0 && overrideWeeks > 5) {
 
         currentNumberOfWeeks = overrideWeeks;
       
-      } else if(programType != "challenge" && overrideWeeks != 0 && overrideWeeks <= 4) {
-        currentNumberOfWeeks = 4;
+      } else if(programType != "challenge" && overrideWeeks != 0 && overrideWeeks <= 5) {
+        currentNumberOfWeeks = 5;
       } else if(programType != "challenge") {
         //Increment current number of weeks
         currentNumberOfWeeks += 1;
