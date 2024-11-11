@@ -79,6 +79,7 @@ function main() {
   sessionStorage.setItem("currentFullProgram", document.getElementById("programFullEventData").innerText);
 
   var workouts = [];
+  var tasks = [];
 
   var endOfProgramWeek = getEndOfWeek(programs[0]['start']);
   var startOfProgramWeek = moment(endOfProgramWeek).subtract(6, 'days').format('YYYY-MM-DD');
@@ -86,15 +87,26 @@ function main() {
   //Iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
 
-    workouts.push(programs[i]);
+    if(programs[i].extendedProps.workoutID) {
+      workouts.push(programs[i]);
+    } else {
+      tasks.push(programs[i]);
+    }
   
   }
-
   //Check if workouts exist
-  if(workouts != null) {
+  if(workouts.length > 0 || tasks.length > 0) {
+
+    workouts = workouts.concat(tasks)
 
     //Sort the workouts array based on the 'Start Date' field
     workouts.sort((a, b) => {
+      const dateA = moment(a['start']);
+      const dateB = moment(b['start']);
+      return dateA - dateB;
+    });
+
+    tasks.sort((a, b) => {
       const dateA = moment(a['start']);
       const dateB = moment(b['start']);
       return dateA - dateB;
@@ -154,7 +166,7 @@ function main() {
     thisWeek = 1;
 
     const buttons = document.querySelectorAll('a[id^="week-"]');
-    const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
+    const workoutListWorkouts = document.querySelectorAll('.workoutprogramitem');
     const workoutList = document.getElementById('programWorkoutList');
 
     // Add event listeners to the buttons
@@ -286,8 +298,8 @@ function main() {
       const workout = selectedWeekWorkouts[i];
 
       if (workout.extendedProps.completedID === undefined) {
-          closestWorkout = selectedWeekWorkouts[i];
-          break;
+        closestWorkout = selectedWeekWorkouts[i];
+        break;
       }
     }
 
@@ -315,8 +327,11 @@ function main() {
 
           currentDiv.dataset.date = currentDay.format("YYYY-MM-DD"); // Set dataset to track date
 
+          const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+          const dayIndex = (count - 1) % 7;  // Convert count to 0-6 index
+          
           const daytext = document.createElement('div');
-          daytext.innerText = `Day ${count}`; 
+          daytext.innerText = `${dayNames[dayIndex]}`; 
 
           daytext.classList.add("workout-day")
           daytext.style.display = "block";
@@ -335,16 +350,29 @@ function main() {
       var workoutElement = null;
       var foundIndex = "";
       var workoutIndex = 0;
-      
+
       for(var i = 0; i < workoutListWorkouts.length; i++) {
+        
+        if(workoutListWorkouts[i].querySelector("#workoutID")) {
+          const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
+          workoutIndex = workoutListWorkouts[i].querySelector("#workoutIndex").innerText;
+  
+          if(workoutListElement.innerText == workout.extendedProps.workoutID) {
+            foundIndex = i;
+            workoutElement = workoutListElement;
+            break;
+          }
+        }
+        
+        if(workoutListWorkouts[i].querySelector("#taskID")) {
 
-        const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
-        workoutIndex = workoutListWorkouts[i].querySelector("#workoutIndex").innerText;
+          if (workoutListWorkouts[i].querySelector("#taskID").innerText == workout.extendedProps.taskID) {
+            const clonedTask = workoutListWorkouts[i].cloneNode(true);
 
-        if(workoutListElement.innerText == workout.extendedProps.workoutID) {
-          foundIndex = i;
-          workoutElement = workoutListElement;
-          break;
+            currentDiv.appendChild(clonedTask); // Append to the current div for same-day workouts
+            workoutList.appendChild(clonedTask); // Append directly to the workout list
+            break;
+          }
         }
 
       }
