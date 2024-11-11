@@ -2234,7 +2234,7 @@ async function main() {
 
         styleStartAndEndDates(startChallenge, endChallenge);
 
-        if((sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true")) {
+        if(true || (sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true")) {
 
           document.getElementById("workoutTaskPlaceholderText").innerHTML = "<strong>Start by selecting a workout or task</strong>";
           document.getElementById("selectProgramWorkout").innerText = "Create Day";
@@ -2268,6 +2268,7 @@ async function main() {
 
             //Check if any events and click on them in the workout modal list
             var allEvents = calendar.getEvents();
+
             var dayEvents = allEvents.filter(function (event) {
               return !event.extendedProps.weeklyTask && moment(event.start).isSame(moment(selectedDate), 'day'); // '[]' to include the start and end dates
             });
@@ -2605,7 +2606,6 @@ async function main() {
                   itemID = dayEvents[i].extendedProps.taskID;
                   itemSelector = "#taskItemID";
                 }
-      
                 clickModalListItem(listID, itemID, itemSelector);
               }
       
@@ -2615,7 +2615,7 @@ async function main() {
       
             eventCopy.classList.add("weekly-task");
       
-            if (sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
+            if (true || sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
               $(this).prepend(eventCopy);
             }
       
@@ -2739,7 +2739,7 @@ async function main() {
     //Set onclick for program workout select
     document.getElementById("selectProgramWorkout").onclick = () => {
 
-      if(sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
+      if(true || sessionStorage.getItem("createChallenge") == "true" || sessionStorage.getItem("editChallenge") == "true") {
 
         sortable.option("disabled", false);
 
@@ -2769,12 +2769,14 @@ async function main() {
           dayEvents.forEach(function (event) {
             event.remove();
           });
-
           const weeklyElement = document.querySelector(`td[data-date="${desiredDate}"].weekly-task`);
-          const eventElements = weeklyElement.querySelectorAll(".fc-event");
-          for(var i = 0; i < eventElements.length; i++) {
-            eventElements[i].remove();
+          if(weeklyElement) {
+            const eventElements = weeklyElement.querySelectorAll(".fc-event");
+            for(var i = 0; i < eventElements.length; i++) {
+              eventElements[i].remove();
+            }
           }
+ 
         }
 
         const workoutTaskList = document.getElementById("programWorkoutList").children;
@@ -4206,7 +4208,7 @@ async function main() {
         var workout = event.target.closest("#workoutSummaryProgram");
 
         //prefillWorkoutTaskList(workout, "workout");
-        if(sessionStorage.getItem("createChallenge") != "true" && sessionStorage.getItem("editChallenge") != "true") {
+        if(false && sessionStorage.getItem("createChallenge") != "true" && sessionStorage.getItem("editChallenge") != "true") {
 
           sortable.option("disabled", true);
           
@@ -5835,11 +5837,13 @@ async function main() {
 
     function clickModalListItem(listID, itemID, listItemSelector) {
 
-      var listItems = document.querySelectorAll(listID);
-      for(var i = 0; i < listItems.length; i++) {
-        if(listItems[i].querySelector(listItemSelector).innerText == itemID) {
-          listItems[i].click();
-          break;
+      if(listID){
+        var listItems = document.querySelectorAll(listID);
+        for(var i = 0; i < listItems.length; i++) {
+          if(listItems[i].querySelector(listItemSelector).innerText == itemID) {
+            listItems[i].click();
+            break;
+          }
         }
       }
 
@@ -5875,7 +5879,6 @@ async function main() {
       }
 
       if(sessionStorage.getItem("editTask") == "true") {
-
         submitTaskToMake("https://hook.us1.make.com/ojgq4bok6717v1x8rh6fobyn5n0bjzon", "update", null, formData);
         updateSelectedTask();
         hideAndClearTaskModal();
@@ -6922,18 +6925,63 @@ async function main() {
 
     function addNewTaskToList(formData) {
       // Find the first .exerciseguideitem element to clone
-      const templateItem = document.querySelector('.taskitem');
-  
-      if (!templateItem) {
-          console.error('Template item not found');
-          return;
+      var modalTemplateItem = null;
+      var mainTemplateItem = null;
+      if(document.getElementById("taskModalEmptyState")) {
+        modalTemplateItem = document.getElementById("taskModalSummaryPlaceholder");
+        mainTemplateItem = document.getElementById("taskSummaryPlaceholderParent");
+      } else {
+        modalTemplateItem = document.querySelector('.taskitem');
+        mainTemplateItem = document.querySelector('.tasklistitem');
+      }
+
+      if (!modalTemplateItem) {
+        console.error('Template item not found');
+        return;
       }
   
       // Clone the template item
-      const newTaskItem = templateItem.cloneNode(true);
-  
+      const newTaskItem = modalTemplateItem.cloneNode(true);
+      const newMainTaskItem = mainTemplateItem.cloneNode(true);
       // Fill in the gaps with the data from formData
       newTaskItem.querySelector('#taskName').innerText = formData.get('name');
+      newMainTaskItem.querySelector('#taskListName').innerText = formData.get('name');
+
+      newTaskItem.querySelector('#taskAttachment').innerText = moment().format('MMMM D, YYYY');
+      newMainTaskItem.querySelector('#taskListCreated').innerText = moment().format('MMMM D, YYYY');
+
+      if(document.getElementById("uploadImage2").src != "https://assets-global.website-files.com/627e2ab6087a8112f74f4ec5/65504c5a73ed7d0d9ae8c2c6_Upload.webp") {
+        newTaskItem.querySelector("#taskListContentImage img").src = document.getElementById("uploadImage2").src;
+        newMainTaskItem.querySelector("#taskListContentImage img").src = document.getElementById("uploadImage2").src;
+      }
+
+      //Clear up other fields for now:
+      newMainTaskItem.querySelector("#taskListFilename").innerText = "";
+      newMainTaskItem.querySelector("#taskListDescription").innerText = "";
+
+      //Check if first task
+      if(document.getElementById("taskModalEmptyState")) {
+        // Add the new task item to the start of the exerciseLibraryList
+        const modalExerciseLibraryList = document.getElementById('taskListModalParent');
+        modalExerciseLibraryList.insertBefore(newTaskItem, modalExerciseLibraryList.firstChild);
+
+        const exerciseLibraryList = document.getElementById('taskListParent');
+        exerciseLibraryList.insertBefore(newMainTaskItem, exerciseLibraryList.firstChild);
+
+        document.getElementById("taskModalEmptyState").style.display = "none";
+        document.getElementById("taskMainEmptyState").style.display = "none";
+        
+        newTaskItem.style.display = "block";
+        newMainTaskItem.style.display = "block";
+      } else {
+        const modalExerciseLibraryList = document.getElementById('taskListModal');
+        modalExerciseLibraryList.insertBefore(newTaskItem, modalExerciseLibraryList.firstChild);
+
+        const exerciseLibraryList = document.getElementById('taskList');
+        exerciseLibraryList.insertBefore(newMainTaskItem, exerciseLibraryList.firstChild);
+      }
+
+      return newTaskItem;
 
       /*
       newTaskItem.querySelector('#taskListContentLink').innerText = formData.get('taskContentLink');
@@ -6943,21 +6991,15 @@ async function main() {
       const taskImage = formData.get('taskImage');
   
       if (taskFile) {
-          newTaskItem.querySelector('#taskListFilename').innerText = taskFile.name;
+        newTaskItem.querySelector('#taskListFilename').innerText = taskFile.name;
       }
   
       if (taskImage) {
-          newTaskItem.querySelector('#taskListContentImage').innerHTML = taskImage.name;
+        newTaskItem.querySelector('#taskListContentImage').innerHTML = taskImage.name;
       }
           */
 
-      newTaskItem.querySelector('#taskAttachment').innerText = moment().format('MMMM D, YYYY');
-  
-      // Add the new task item to the start of the exerciseLibraryList
-      const exerciseLibraryList = document.getElementById('taskListModal');
-      exerciseLibraryList.insertBefore(newTaskItem, exerciseLibraryList.firstChild);
 
-      return newTaskItem;
 
 
     }
@@ -8784,6 +8826,7 @@ async function main() {
               }
     
             }
+
             obj.events.forEach(event => {
               // Parse event.start in local timezone
               const startDateString = event.start; // e.g., "2024-11-05"
@@ -8813,6 +8856,7 @@ async function main() {
             });
           });
         } else {
+
           eventsData.forEach((event, index) => {
             // Parse event.start in local timezone
             const startDateString = event.start; // e.g., "2024-11-05"
@@ -8822,17 +8866,33 @@ async function main() {
 
             // Create the date object in the local timezone
             const startDate = new Date(startYear, startMonth - 1, startDay); // Local timezone
-            events.push({
-              title: event.title,
-              extendedProps: {
-                length: event.extendedProps.length,
-                targetArea: event.extendedProps.targetArea,
-                workoutID: event.extendedProps.workoutID,
-                uniqueWorkoutID: (event.extendedProps.uniqueWorkoutID != undefined) ? event.extendedProps.uniqueWorkoutID : uuidv4()
-              },
-              start: startDate,
-              allDay: true
-            });
+
+            if(event.extendedProps.workoutID) {
+              events.push({
+                title: event.title,
+                extendedProps: {
+                  length: event.extendedProps.length,
+                  targetArea: event.extendedProps.targetArea,
+                  workoutID: event.extendedProps.workoutID,
+                  uniqueWorkoutID: (event.extendedProps.uniqueWorkoutID != undefined) ? event.extendedProps.uniqueWorkoutID : uuidv4()
+                },
+                start: startDate,
+                allDay: true
+              });
+            } else {
+              events.push({
+                title: event.title,
+                extendedProps: {
+                  length: event.extendedProps.length,
+                  targetArea: event.extendedProps.targetArea,
+                  taskID: event.extendedProps.taskID,
+                  uniqueTaskID: (event.extendedProps.uniqueTaskID != undefined) ? event.extendedProps.uniqueTaskID : uuidv4()
+                },
+                start: startDate,
+                allDay: true
+              });
+            }
+
           });
         }
         
@@ -9990,13 +10050,13 @@ async function main() {
       var parts = selectedDate.split("-");
 
       if(parts.length > 2) {
-        // Rearrange the parts to form the new string in the format "DD-MM-YYYY"
-        var newDate = moment(selectedDate).format('DD MMMM');
-
-        // Set the formatted date to the element with the ID "selectedWorkoutName"
-        document.getElementById("selectedWorkoutName").innerText = newDate;
+          // Get the day of week using moment
+          var dayOfWeek = moment(selectedDate).format('dddd');
+          
+          // Set the day of week to the element
+          document.getElementById("selectedWorkoutName").innerText = dayOfWeek;
       } else {
-        document.getElementById("selectedWorkoutName").innerText = selectedDate;
+          document.getElementById("selectedWorkoutName").innerText = selectedDate;
       }
 
       //Clone guide element
