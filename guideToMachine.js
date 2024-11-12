@@ -14,7 +14,8 @@ function main() {
     var memberID = member["id"];
     var gymName = member["gym-name"]
     var gymLocation = member["gym-location"]
-
+    gymName = "UTS";
+    gymLocation = "ActivateFit Gym";
     document.getElementById("memberstackField").innerText = `${gymName} - ${gymLocation}`;
 
     document.getElementById("gymFilter").innerText = `${gymName} - ${gymLocation}`;
