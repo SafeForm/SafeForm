@@ -86,17 +86,11 @@ function main() {
 
   //Iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
-
-    if(programs[i].extendedProps.workoutID) {
-      workouts.push(programs[i]);
-    } else {
-      tasks.push(programs[i]);
-    }
-  
+    workouts.push(programs[i]);
   }
+  
   //Check if workouts exist
   if(workouts.length > 0 || tasks.length > 0) {
-
     workouts = workouts.concat(tasks)
 
     //Sort the workouts array based on the 'Start Date' field
@@ -307,7 +301,7 @@ function main() {
     // Iterate over the selected week's workouts
 
     selectedWeekWorkouts.forEach((workout, index) => {
-
+      console.log(workout)
       currentDay = moment(workout.start);
       if (i < workouts.length - 1) {
           nextDay = moment(workout.start);
