@@ -5984,7 +5984,7 @@ async function main() {
     
       // Copy each entry
       formData.forEach((value, key) => {
-          newFormData.append(key, value);
+        newFormData.append(key, value);
       });
 
       if(sessionStorage.getItem("editExercise") == 'false') {
@@ -6769,7 +6769,6 @@ async function main() {
 
         //Change body overflow to hidden
         document.querySelector(".body-33").style.overflow = 'hidden';
-  
 
       }
 
@@ -6947,12 +6946,15 @@ async function main() {
       newTaskItem.querySelector('#taskName').innerText = formData.get('name');
       newMainTaskItem.querySelector('#taskListName').innerText = formData.get('name');
 
-      newTaskItem.querySelector('#taskAttachment').innerText = moment().format('MMMM D, YYYY');
+      newTaskItem.querySelector('#taskAttachment').innerText = moment().format('D/M/YYYY');
       newMainTaskItem.querySelector('#taskListCreated').innerText = moment().format('MMMM D, YYYY');
 
       if(document.getElementById("uploadImage2").src != "https://assets-global.website-files.com/627e2ab6087a8112f74f4ec5/65504c5a73ed7d0d9ae8c2c6_Upload.webp") {
         newTaskItem.querySelector("#taskListContentImage img").src = document.getElementById("uploadImage2").src;
         newMainTaskItem.querySelector("#taskListContentImage img").src = document.getElementById("uploadImage2").src;
+      } else {
+        newTaskItem.querySelector("#taskListContentImage img").style.display = "none";
+        newMainTaskItem.querySelector("#taskListContentImage img").style.display = "none";
       }
 
       //Clear up other fields for now:
@@ -7374,6 +7376,8 @@ async function main() {
       var parsedData = JSON.parse(data); // Parse the JSON data once
       var newWorkoutID = parsedData["itemID"];
       var newWorkoutSlug = parsedData["itemSlug"];
+      var workoutThumbnail = "";
+      var firstExerciseName = "";
     
       var emptyState = false;
       if(document.getElementById("workoutModalEmptyState")) {
@@ -7447,6 +7451,9 @@ async function main() {
           exerciseGroup.forEach((exercise, index) => {
             // Handle DOM manipulation logic
             handleExerciseElement(exercise, index, emptyState, mainWorkoutListRow, outerIndex);
+            if(firstExerciseName == "") {
+              firstExerciseName = exercise.exerciseName;
+            }
           });
         } else {
           // Is superset
@@ -7454,11 +7461,22 @@ async function main() {
             exerciseArray.forEach((exercise, index) => {
               // Handle DOM manipulation logic
               handleExerciseElement(exercise, index, emptyState, mainWorkoutListRow, outerIndex);
+              if(firstExerciseName == "") {
+                firstExerciseName = exercise.exerciseName;
+              }
             });
           });
         }
 
       });
+
+      //Now fill in thumbnail:
+      document.getElementById("exerciseSearch").value = firstExerciseName;
+      document.getElementById("exerciseSearch").dispatchEvent(new Event('input', { bubbles: true }));
+
+      var firstExerciseThumbnail = document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)").querySelector(".exerciseThumbnail").src;
+
+      mainWorkoutListRow.querySelector("#exerciseThumbnailURL").innerText = firstExerciseThumbnail;
 
       mainWorkoutListRow.style.display = "grid";
 
@@ -7792,7 +7810,6 @@ async function main() {
         userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
       } 
-
       sendUserProgramToMake(userProgram, "update");
 
     }
