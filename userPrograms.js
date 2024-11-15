@@ -21,7 +21,10 @@ function main() {
   localStorage.setItem("currentTrainingPlan", window.location)
 
   for(var i = 0; i < workoutList.length; i++) {
-    workoutList[i].querySelector("#workoutIndex").innerText = i;
+    if(workoutList[i].querySelector("#workoutIndex")) {
+      workoutList[i].querySelector("#workoutIndex").innerText = i;
+    }
+    
   }
 
   if (typeof moment === 'function') {
@@ -146,7 +149,8 @@ function main() {
   sessionStorage.setItem("currentProgram", document.getElementById("programEventData").innerText);
   sessionStorage.setItem("currentFullProgram", document.getElementById("programFullEventData").innerText);
 
-  var workouts = null;
+  var workouts = [];
+  var tasks = [];
 
   //iterate until we find current program
   for(var i = 0; i < programs.length; i++) {
@@ -266,7 +270,7 @@ function main() {
     }
   
     const buttons = document.querySelectorAll('a[id^="week-"]');
-    const workoutListWorkouts = document.getElementById('programWorkoutList').cloneNode(true).children;
+    const workoutListWorkouts = document.querySelectorAll('.workoutprogramitem');
     const workoutList = document.getElementById('programWorkoutList');
 
     // Add event listeners to the buttons
@@ -529,8 +533,11 @@ function main() {
 
           currentDiv.dataset.date = currentDay.format("YYYY-MM-DD"); // Set dataset to track date
 
+          const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+          const dayIndex = (count - 1) % 7;  // Convert count to 0-6 index
+          
           const daytext = document.createElement('div');
-          daytext.innerText = `Day ${count}`; 
+          daytext.innerText = `${dayNames[dayIndex]}`; 
 
           daytext.classList.add("workout-day")
           daytext.style.display = "block";
@@ -554,15 +561,30 @@ function main() {
       for(var i = 0; i < workoutListWorkouts.length; i++) {
 
         const workoutListElement = workoutListWorkouts[i].querySelector("#workoutID");
-        workoutIndex = workoutListWorkouts[i].querySelector("#workoutIndex").innerText;
+        if(workoutListWorkouts[i].querySelector("#workoutIndex")) {
+          workoutIndex = workoutListWorkouts[i].querySelector("#workoutIndex").innerText;
 
-        if(workoutListElement.innerText == workout.extendedProps.workoutID && i == workoutIndex) {
+        }
+
+        if(workoutListElement && workoutListElement.innerText == workout.extendedProps.workoutID && i == workoutIndex) {
           foundIndex = i;
           workoutElement = workoutListElement;
           break;
+        } 
+
+        if(workoutListWorkouts[i].querySelector("#taskID")) {
+
+          if (workoutListWorkouts[i].querySelector("#taskID").innerText == workout.extendedProps.taskID) {
+            const clonedTask = workoutListWorkouts[i].cloneNode(true);
+
+            currentDiv.appendChild(clonedTask); // Append to the current div for same-day workouts
+            workoutList.appendChild(clonedTask); // Append directly to the workout list
+            break;
+          }
         }
 
       }
+      
 
       if (workoutElement && workoutElement.textContent === workout.extendedProps.workoutID) {
 
