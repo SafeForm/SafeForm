@@ -6946,8 +6946,8 @@ async function main() {
       newTaskItem.querySelector('#taskName').innerText = formData.get('name');
       newMainTaskItem.querySelector('#taskListName').innerText = formData.get('name');
 
-      newTaskItem.querySelector('#taskAttachment').innerText = moment().format('D/M/YYYY');
-      newMainTaskItem.querySelector('#taskListCreated').innerText = moment().format('MMMM D, YYYY');
+      newTaskItem.querySelector('#taskAttachment').innerText = moment().format('MMM D, YYYY');
+      newMainTaskItem.querySelector('#taskListCreated').innerText = moment().format('MMM D, YYYY');
 
       if(document.getElementById("uploadImage2").src != "https://assets-global.website-files.com/627e2ab6087a8112f74f4ec5/65504c5a73ed7d0d9ae8c2c6_Upload.webp") {
         newTaskItem.querySelector("#taskListContentImage img").src = document.getElementById("uploadImage2").src;
@@ -7316,7 +7316,7 @@ async function main() {
       newProgramRow.querySelector("#programSummaryGoal").innerText = program["programGoal"];
       newProgramRow.querySelector("#programSummaryWeeks").innerText = program["numberOfWeeks"];
       newProgramRow.querySelector("#eventData").innerText = program["eventData"];
-      newProgramRow.querySelector("#programLastEdited").innerText = moment().format('MMMM DD, YYYY');
+      newProgramRow.querySelector("#programLastEdited").innerText = moment().format('MMM D, YYYY');
       newProgramRow.querySelector("#programID").innerText = data;
 
       newProgramRow.querySelector("#programSummary").style.display = "grid";
@@ -7327,7 +7327,7 @@ async function main() {
       modalProgramRow.querySelector("#programGoalModal").innerText = program["programGoal"];
       modalProgramRow.querySelector("#programWeeks").innerText = program["numberOfWeeks"];
       modalProgramRow.querySelector("#eventDataModal").innerText = program["eventData"];
-      modalProgramRow.querySelector("#programModalEdited").innerText = moment().format('MMMM DD, YYYY');
+      modalProgramRow.querySelector("#programModalEdited").innerText = moment().format('MMM DD, YYYY');
       modalProgramRow.querySelector("#programIDModal").innerText = data;
       modalProgramRow.querySelector("#programFullNameModal").innerText = program["programName"];
       
@@ -7434,7 +7434,7 @@ async function main() {
       mainWorkoutListRow.querySelector("#workoutMuscleGroups").innerText = workout.muscleGroups; //comma separated list of muscle groups
 
       mainWorkoutListRow.querySelector("#workoutLink").href = `${window.location.origin}/workout-summary/${newWorkoutSlug}`;
-      mainWorkoutListRow.querySelector("#workoutLastEdited").innerText = moment().format('MMMM DD, YYYY');
+      mainWorkoutListRow.querySelector("#workoutLastEdited").innerText = moment().format('MMM DD, YYYY');
 
       if(!emptyState) {
         // Need to remove old guides:
@@ -7473,7 +7473,7 @@ async function main() {
       //Now fill in thumbnail:
       document.getElementById("exerciseSearch").value = firstExerciseName;
       document.getElementById("exerciseSearch").dispatchEvent(new Event('input', { bubbles: true }));
-
+      
       var firstExerciseThumbnail = document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)").querySelector(".exerciseThumbnail").src;
 
       mainWorkoutListRow.querySelector("#exerciseThumbnailURL").innerText = firstExerciseThumbnail;
@@ -9966,12 +9966,12 @@ async function main() {
    }
 
     function updateCalendarWeeks(overrideWeeks=0, programType="builder") {
-      if(overrideWeeks != 0 && overrideWeeks > 5) {
+      if(overrideWeeks != 0 && overrideWeeks > 4) {
 
         currentNumberOfWeeks = overrideWeeks;
       
-      } else if(programType != "challenge" && overrideWeeks != 0 && overrideWeeks <= 5) {
-        currentNumberOfWeeks = 5;
+      } else if(programType != "challenge" && overrideWeeks != 0 && overrideWeeks <= 4) {
+        currentNumberOfWeeks = 4;
       } else if(programType != "challenge") {
         //Increment current number of weeks
         currentNumberOfWeeks += 1;
