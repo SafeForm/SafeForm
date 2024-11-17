@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   var numberOfExercisesInList = 0;
 
   var workoutSortable = new Sortable(document.getElementById("workoutList"), {
@@ -440,20 +441,6 @@ async function main() {
   
     const lastSetRepInput = exerciseInfoElements[exerciseInfoElements.length - 1];
 
-    //Set onclick for new remove set button
-    lastExerciseInfo.querySelector("#removeExercise").onclick = (event) => {
-      //Check that there is one left
-      if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length > 2) {
-      } else {
-        //Check after removal
-        event.target.closest("#setRepInfoParent").querySelector("#removeSetMobile").style.display = "none";
-        //Check if mobile:
-        if(window.innerWidth < 992) {
-          event.target.closest("#setRepInfoParent").querySelector("#removeExerciseMobile").style.display = "block";
-        }
-      }
-    }
-
     lastSetRepInput.after(lastExerciseInfo);
   }
 
@@ -482,9 +469,6 @@ async function main() {
         supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
       }
 
-        
-
-      
       //Make sure not end of list and the next element isn't already in a superset
       if(nextSibling != null && !nextSibling.querySelector(".exercise-list-item-superset")) {
         nextSibling.querySelector("#removeFullExercise").style.display = "none";
@@ -1149,12 +1133,26 @@ async function main() {
     }
 
     if(event.target.id == "removeExercise") {
-      //Check that there is one left
-      if(event.target.closest("#setRepInfoParent")) {
-        if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length >= 2) {
-          event.target.closest("#exerciseInfo").remove();
+
+      //Check if in superset
+      if(event.target.closest(".exercise-list-item-superset")) {
+        //Grab all exerciseInfo
+        const exercisesInSuperset = event.target.closest(".exercise-list-item-superset").querySelectorAll(".exercise-list-item");
+
+        for(var i = 0; i < exercisesInSuperset.length; i++) {
+          if(exercisesInSuperset[i].querySelectorAll("#exerciseInfo").length >= 2) {
+            var previousExerciseInfo = exercisesInSuperset[i].querySelector("#exerciseInfo");
+            previousExerciseInfo.remove();
+          }
+
         }
-        
+      } else {
+        if(event.target.closest("#setRepInfoParent")) {
+          //Check that there is one left
+          if(event.target.closest("#setRepInfoParent").querySelectorAll("#exerciseInfo").length >= 2) {
+            event.target.closest("#exerciseInfo").remove();
+          }
+        }
       }
     }
 
@@ -1292,86 +1290,99 @@ async function main() {
 
     if(event.target.id == "removeSetMobile") {
       var previousExerciseInfo = event.target.closest(".div-block-501").previousSibling;
+
+      //Handle removing the set
       if(previousExerciseInfo.id == "exerciseInfo") {
         previousExerciseInfo.querySelector("#removeExercise").click();
+      }
+
+      //Now ensure the correct buttons hide and show
+      if(event.target.closest(".exercise-list-item-superset")) {
+        const exercisesInSuperset = event.target.closest(".exercise-list-item-superset").querySelectorAll(".exercise-list-item");
+        for(var i = 0; i < exercisesInSuperset.length; i++) {
+          var previousExerciseInfo = exercisesInSuperset[i].querySelector(".div-block-501").previousSibling;
+          if(exercisesInSuperset[i].querySelectorAll("#exerciseInfo").length > 1) {
+          } else {
+            //Check after removal
+            exercisesInSuperset[i].querySelector("#removeSetMobile").style.display = "none";
+            //Check if mobile:
+            if(window.innerWidth < 992) {
+              exercisesInSuperset[i].querySelector("#removeExerciseMobile").style.display = "block";
+            }
+          }
+        }
+
       }
     }
 
     if(event.target.closest(".addset") || event.target.id == "addSetMobile") {
 
+      //If it's a superset
       if(event.target.closest(".exercise-list-item-superset")) {
         const exercisesInSuperset = event.target.closest(".exercise-list-item-superset").querySelectorAll(".exercise-list-item");
         for(var i = 0; i < exercisesInSuperset.length; i++) {
           handleAddSet(exercisesInSuperset[i].querySelector(".addset"));
+          if(event.target.id == "addSetMobile") {
+            exercisesInSuperset[i].querySelector("#removeSetMobile").style.display = "block";
+            exercisesInSuperset[i].querySelector("#removeExerciseMobile").style.display = "none";
+          }
         }
       } else {
         handleAddSet(event.target);
       }
-
-      if(event.target.id == "addSetMobile") {
-        event.target.closest("#setRepInfoParent").querySelector("#removeSetMobile").style.display = "block";
-        event.target.closest("#setRepInfoParent").querySelector("#removeExerciseMobile").style.display = "none";
-      }
-
 
     }
 
     if(event.target.id == "removeFullExercise" || event.target.id == "removeExerciseMobile") {
         
       const workoutList = document.getElementById("workoutList");
-      const removedElement = workoutList.removeChild(event.target.closest(".exercise-list-item"));
+      if(!event.target.closest(".supersetWrapper")) {
+        const removedElement = workoutList.removeChild(event.target.closest(".exercise-list-item"));
       
-      const listLength = workoutList.childNodes.length;
-      const saveWorkout = document.getElementById("saveWorkout");
-      
-      if (listLength == 1) {
-        document.getElementById("firstExercisePlaceholder").style.display = "flex";
-        document.getElementById("workoutList").style.display = "none";
-        //Hide workout button if there is only one exercise in list
-        saveWorkout.style.display = "none";
+        const listLength = workoutList.childNodes.length;
+        const saveWorkout = document.getElementById("saveWorkout");
         
-      } else if(listLength >= 2) {
-
-        const firstElement = workoutList.querySelector("ul > li:nth-child(2)");
-        const lastElement = workoutList.querySelector(`ul > li:nth-child(${listLength})`);
-
-        if(listLength == 2) {
-          //Hide superset button
-          if(firstElement) {
-            firstElement.querySelector(".supersetparent").style.display = "none";
+        if (listLength == 1) {
+          document.getElementById("firstExercisePlaceholder").style.display = "flex";
+          document.getElementById("workoutList").style.display = "none";
+          //Hide workout button if there is only one exercise in list
+          saveWorkout.style.display = "none";
+          
+        } else if(listLength >= 2) {
+  
+          const firstElement = workoutList.querySelector("ul > li:nth-child(2)");
+          const lastElement = workoutList.querySelector(`ul > li:nth-child(${listLength})`);
+  
+          if(listLength == 2) {
+            //Hide superset button
+            if(firstElement) {
+              firstElement.querySelector(".supersetparent").style.display = "none";
+            }
           }
-        }
         
-        if(firstElement) {
-          if(firstElement.querySelector("#moveUp")) {
-            firstElement.querySelector("#moveUp").style.display = "none";
-          }	
-          if(listLength == 2 && firstElement.querySelector("#moveDown")) {
-            firstElement.querySelector("#moveDown").style.display = "none";
-          }
-        }
-
-        if(lastElement != firstElement && lastElement && lastElement.querySelector("#moveDown")) {
-            lastElement.querySelector("#moveDown").style.display = "none";
+  
+          if(lastElement != firstElement && lastElement && lastElement.querySelector("#moveDown")) {
             lastElement.querySelector(".supersetparent").style.display = "none";
+          }
+        }
+  
+        var workoutExerciseItemId = removedElement.querySelector("#itemID").innerText;
+  
+        //Check if the guide exercise is still in the list, if not then turn border back to SF blue
+        var result = checkIfLastExerciseInList(workoutExerciseItemId);
+        if(result) {
+          result.style.borderColor = "#cbcbcb"
+        }
+  
+        //Update workout input text
+        numberOfExercisesInList -= 1;
+        if(numberOfExercisesInList > 0) {
+          document.getElementById("workoutInput").innerText = `Workout (${numberOfExercisesInList})`;
+        } else {
+          document.getElementById("workoutInput").innerText = `Workout`;
         }
       }
-
-      var workoutExerciseItemId = removedElement.querySelector("#itemID").innerText;
-
-      //Check if the guide exercise is still in the list, if not then turn border back to SF blue
-      var result = checkIfLastExerciseInList(workoutExerciseItemId);
-      if(result) {
-        result.style.borderColor = "#cbcbcb"
-      }
-
-      //Update workout input text
-      numberOfExercisesInList -= 1;
-      if(numberOfExercisesInList > 0) {
-        document.getElementById("workoutInput").innerText = `Workout (${numberOfExercisesInList})`;
-      } else {
-        document.getElementById("workoutInput").innerText = `Workout`;
-      }
+      
     
     }
 
