@@ -699,44 +699,8 @@ async function main() {
 
   }
 
-  function addCustomWorkouts() {
-
-    //List all custom exercises
-    var customGuides = document.getElementById("exerciseLibraryList");
-    if(customGuides) {
-      customGuides = customGuides.children;
-    } else {
-      return;
-    }
-
-    for(var i = 0; i < customGuides.length; i++) {
-      var exerciseUploadName = customGuides[i].querySelector("#exerciseLibraryName").innerText;
-      var guideID = customGuides[i].querySelector("#exerciseLibraryID").innerText;
-      var uploadPrimaryMuscles = customGuides[i].querySelector("#primaryExerciseLibraryMuscles").innerText;
-      var uploadScientificMuscles = customGuides[i].querySelector("#primaryScientificExerciseLibraryMuscles").innerText;
-      var videoThumbnail = customGuides[i].querySelector(".exerciseThumbnail").src;
-      var muscleImage = customGuides[i].querySelector("#customExerciseMuscleImage").innerText;
-      var guideLink = customGuides[i].querySelector("#libraryVideoSlug").innerText;
-      var exeriseCategory = customGuides[i].querySelector("#exerciseLibraryCategory").innerText;
-
-      var formData = new FormData();
-      formData.append('exerciseName', exerciseUploadName);
-      formData.append('primaryCasualMuscles', uploadPrimaryMuscles);
-      formData.append('primaryScientificMuscles', uploadScientificMuscles);
-      formData.append('guideID', guideID);
-      formData.append('videoThumbnail', videoThumbnail);
-      formData.append('gymName', document.getElementById("gymFullName").innerText);
-      formData.append('muscleImage', muscleImage);
-      formData.append('guideLink', guideLink);
-      formData.append('exeriseCategory', exeriseCategory);
-
-      cloneAndFillExerciseList(formData, true);
-
-    }
-    
-  }
-
   async function resetFilters(onlyCheckboxes=false, addedItem=null) {
+
     window.fsAttributes = window.fsAttributes || [];
     window.fsAttributes.push([
       'cmsfilter',
@@ -748,8 +712,8 @@ async function main() {
           var formID = filterInstances[i].form.id;
           if(formID == "workoutBuilderForm") {
             if(addedItem) {
-              filterInstances[i].listInstance.renderItems(true);
               filterInstances[i].listInstance.addItems([addedItem])
+              filterInstances[i].listInstance.renderItems(true);
             }
 
             !onlyCheckboxes ? await filterInstances[i].resetFilters(filterKeys=["exercisename","casualmusclefilter"], null) : null;
@@ -774,10 +738,9 @@ async function main() {
 
   function cloneAndFillExerciseList(formData, customGuide=false) {
     // Clone the first element
-    const firstListItem = document.querySelector("#individualGuide:not([addedToList]").parentElement;
+    var firstListItem = document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)").querySelector("#individualGuide:not([addedToList]").parentElement;
     const clonedElement = firstListItem.cloneNode(true);
     const guideListItem = clonedElement.querySelector("#individualGuide");
-  
     // Update fields with form data
     clonedElement.querySelector('#guideName').innerText = formData.get('exerciseName');
     clonedElement.querySelector('#exerciseDifficulty').innerText = ''; // Clear experience field
@@ -814,8 +777,6 @@ async function main() {
       }
     });
 
-
-
     //Set muscle image
     if(customGuide) {
       //Set muscle image
@@ -841,11 +802,11 @@ async function main() {
 
     //Update temp id
     clonedElement.querySelector('#exerciseListTempID').innerText = formData.get("tempID");
-
-    resetFilters(false, clonedElement);
   
     // Append the cloned element to the document or do whatever is needed with it
-    document.getElementById("guideList").insertBefore(clonedElement, firstListItem);
+    var firstListItem = document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)").querySelector("#individualGuide:not([addedToList]").parentElement;
+
+    document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)").querySelector("#guideList").insertBefore(clonedElement, firstListItem);
 
   }
 
@@ -5908,7 +5869,6 @@ async function main() {
       const uploadSecondaryMuscles = Array.from(secondaryMuscles).join(',');
       const secondaryScientificMuscles = Array.from(secondaryMuscles).map(muscle => reverseMuscleMapping[muscle]);
 
-
       //Exercise Notes
       const exerciseNotes = document.querySelector(".editor").innerHTML;
 
@@ -5977,8 +5937,8 @@ async function main() {
         sendNewExerciseToMake(formData, "update");
       }
 
-      document.getElementById("exerciseSearch").value = formData.get("exerciseName");
-      document.getElementById("exerciseSearch").dispatchEvent(new Event('input', { bubbles: true }));
+      // document.getElementById("exerciseSearch").value = formData.get("exerciseName");
+      // document.getElementById("exerciseSearch").dispatchEvent(new Event('input', { bubbles: true }));
 
       const newFormData = new FormData();
     
@@ -6514,6 +6474,7 @@ async function main() {
           for(var i = 0; i < exerciseLibItems.length; i++) {
             var exerciseLibTempID = exerciseLibItems[i].querySelector("#exerciseLibraryTempID").innerText;
             if(exerciseLibTempID == exerciseJSON.tempID) {
+
               //Found exercise
               exerciseLibItems[i].querySelector("#exerciseLibraryID").innerText = exerciseJSON.itemID;
               exerciseLibItems[i].querySelector(".exerciseThumbnail").parentElement.style.backgroundColor = 'black';
@@ -6536,10 +6497,12 @@ async function main() {
             }
           }
 
-          const workoutGuideItems = document.querySelector("#guideList").children;
+          var workoutGuideItems = document.querySelector("#guideListParent:not(.w-condition-invisible > #guideListParent)").querySelectorAll(".collection-item-10");
+
           for(var i = 0; i < workoutGuideItems.length; i++) {
             var workoutItemTempID = workoutGuideItems[i].querySelector("#exerciseListTempID").innerText;
             if(workoutItemTempID == exerciseJSON.tempID) {
+
               if(exerciseJSON.srcType == "upload") {
                 //Hide loading gif
                 workoutGuideItems[i].querySelector(".exerciseThumbnail").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/65597db995abd34586f5f3b7_playButton.webp";
@@ -6550,9 +6513,11 @@ async function main() {
                 workoutGuideItems[i].querySelector(".exerciseThumbnail").src = exerciseJSON.thumbnailURL;
               }
 
-              workoutGuideItems[i].querySelector("#itemID").innerHTML = exerciseJSON.itemID;
+              workoutGuideItems[i].querySelector("#itemID").innerText = exerciseJSON.itemID;
               
               workoutGuideItems[i].querySelector("#guideLinkInfo").href = `/guides/${exerciseJSON.slug}`;
+
+              resetFilters(false, workoutGuideItems[i]);
 
               break;
             }
@@ -6797,7 +6762,7 @@ async function main() {
     }
 
     async function resetGeneralFilters(clearButton=false) {
-      
+
       const checkboxes = document.getElementsByClassName('filter-checkbox');
       for (let i = 0; i < checkboxes.length; i++) { 
         if(checkboxes[i].classList.value.includes('w--redirected-checked')) {
@@ -7371,7 +7336,6 @@ async function main() {
     }
 
     function addOrUpdateWorkoutRow(data, workout, action="create") {
-
 
       var parsedData = JSON.parse(data); // Parse the JSON data once
       var newWorkoutID = parsedData["itemID"];
@@ -9988,7 +9952,10 @@ async function main() {
       var eventCells = document.querySelectorAll(".fc-daygrid-day-frame");
       for(let i = 0; i < eventCells.length; i++) {
         if(programType != "challenge") {
-          eventCells[i].style.height = "110px";
+          eventCells[i].style.height = "150px";
+          eventCells[i].style.width = "150px";
+          eventCells[i].style.aspectRatio = "1 / 1";
+
         } else {
 
           eventCells[i].style.height = "260px";
