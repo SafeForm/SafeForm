@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   //Check off checklist:
   checkOffChecklist();
   
@@ -1576,6 +1577,16 @@ async function main() {
 
       }
       
+    }
+
+    // Function to validate URL
+    function isValidUrl(string) {
+      try {
+        new URL(string);
+        return true;
+      } catch (_) {
+        return false;
+      }
     }
 
     function handleAddSet(eventTarget) {
@@ -3262,7 +3273,7 @@ async function main() {
       
     };
 
-    document.getElementById("submitWorkoutBuilderForm").onclick = function(event) {
+    document.getElementById("submitWorkoutBuilderForm").onclick = async function(event) {
 
       var workoutBuilderForm = document.getElementById("workoutBuilderForm");
       
@@ -3401,6 +3412,17 @@ async function main() {
   
         //Make sure they have selected a duration and focus area
         if(!workout["length"].includes("Duration")) {
+          // var workoutThumbnail = {};
+          // var workoutThumbnailImage = document.getElementById("workoutUploadImage").src;
+          // var workoutThumbnailImage = isBase64Image(workoutThumbnailImage)
+          // ? await processBase64Image(workoutThumbnailImage)
+          // : { base64Data: '', fileFormat: '' };
+          
+          // workout["workoutThumbnailImage"] = workoutThumbnailImage.base64Data;
+          // workout["workoutThumbnailImageType"] = workoutThumbnailImage.fileFormat;
+          // workout["affiliateProductLink"] = document.getElementById("affiliateProductLink").value;
+          // workout["affiliateDisplayText"] = document.getElementById("affiliateDisplayText").value;
+
           document.getElementById("saveWorkout").value = "Please wait...";
           sendWorkoutToMake(workout);
         }
@@ -3694,7 +3716,37 @@ async function main() {
 
     //Click listener
     //Listen for click events:
-    document.addEventListener('click', function (event) {
+    document.addEventListener('click', async function (event) {
+
+
+      if (event.target.id == "submitWorkoutThumbnail") {
+        var workoutThumbnailImage = document.getElementById("workoutThumbnailPreview").src;
+        var affiliateProductLink = document.getElementById("affiliateProductLink").value;
+      
+        // Check if the image has been uploaded
+        if (workoutThumbnailImage == "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673b0159dbf31147062d676c_Group%20512754.avif") {
+          alert("An image is required for a thumbnail");
+        } 
+        // Check if the affiliate product link is a valid URL
+        else if (affiliateProductLink != "" && !isValidUrl(affiliateProductLink)) {
+          alert("Please provide a valid affiliate product link");
+        } 
+        else {
+          // Hide modal and pick values up later
+          // Also set thumbnail in workout
+          document.getElementById("workoutThumbnail").src = workoutThumbnailImage;
+          document.getElementById("createThumbnailModal").style.display = "none";
+        }
+      }
+
+      if(event.target.id == "workoutThumbnail") {
+        //Show modal
+        document.getElementById("createThumbnailModal").style.display = "flex";
+      }
+
+      if(event.target.id == "closeThumbnailModal" || event.target.id == "createThumbnailModal") {
+        document.getElementById("createThumbnailModal").style.display = "none";
+      }
 
       //Remove classes for dropdowns
       var shareProgramDropdown = document.getElementById("shareProgramDropdown");
@@ -5014,6 +5066,9 @@ async function main() {
           document.getElementById("programPageHover").click();
         }
 
+        //Go to 2 weeks ago - to deal with airtable
+        calendar.gotoDate(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+
         //Remove all events first
         calendar.removeAllEvents();
 
@@ -5041,6 +5096,7 @@ async function main() {
         hideOrShowGodModeSwitch();
 
         document.getElementById("saveProgram").value = "Create Program";
+
 
       } else if(event.target.id == "reset-filters" || event.target.id == "reset-filters-ipad" || event.target.id == "reset-filters-modal" || event.target.id == "reset-filters-program-modal" || event.target.id == "reset-filters-users" ) {
         resetGeneralFilters(true);
@@ -5261,6 +5317,21 @@ async function main() {
 
       }
     }, false);
+
+    
+  
+    document.getElementById('affiliateDisplayText').addEventListener('input', () => {
+      var affiliateDisplayText = document.getElementById('affiliateDisplayText');
+      var workoutThumbnailText = document.getElementById('workoutThumbnailText');
+      const text = affiliateDisplayText.value.trim();
+  
+      if (text) {
+        workoutThumbnailText.innerText = text;
+        workoutThumbnailText.style.display = 'flex'; // Show the element
+      } else {
+        workoutThumbnailText.style.display = 'none'; // Hide the element
+      }
+    });
 
     document.getElementById('productName').addEventListener('input', function() {
       const previewElement = document.getElementById('previewName');
@@ -6446,7 +6517,6 @@ async function main() {
       const mediaData = await response.json();
       return mediaData;
     }
-
 
     async function sendNewExerciseToMake(formData, method="create") {
       //Set edit flag
@@ -8945,6 +9015,8 @@ async function main() {
         if(programType == "userProgram") {
           getProgramBreakers();
         }
+      } else {
+        calendar.gotoDate(new Date().toISOString().split('T')[0]);
       }
 
     }
@@ -9894,7 +9966,6 @@ async function main() {
    // Function to handle input changes
    function handleDateInputChange() {
 
-    
      // Get references to the date picker elements
      const startDateElement = document.getElementById('challengeStartDate');
      const endDateElement = document.getElementById('challengeEndDate');
