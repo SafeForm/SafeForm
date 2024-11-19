@@ -14,7 +14,6 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
-
   //Check off checklist:
   checkOffChecklist();
   
@@ -1620,19 +1619,18 @@ async function main() {
     }
 
     function handleSupersetClick(event) {
-
       const supersetImage = event.target;
       var reset = false;
-    
+  
       if (event.target.classList.contains("supersetimageopen")) {
-    
+      
         var supersetParent = supersetImage.closest('.exercise-list-item');
         var nextSibling = supersetParent.nextElementSibling;
         const previousSibling = supersetParent.previousElementSibling;
         const grandParentSibling = supersetParent.closest(".exercise-list-item-superset");
     
         supersetParent.querySelector(".supersetparent img").src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc5a1339301140b4110_closed_superset.webp";
-
+  
         // Make sure it's not the end of the list and the next element isn't already in a superset
         if (nextSibling != null && !nextSibling.querySelector(".exercise-list-item-superset")) {
           nextSibling.querySelector("#removeFullExercise").style.display = "none";
@@ -1715,39 +1713,39 @@ async function main() {
           }
     
         } else if (nextSibling && nextSibling.querySelector(".exercise-list-item-superset")) {
-
+  
           // Now check if the next element is in a superset
           supersetParent.querySelector(".exercisegroup").style.border = 'none';
           supersetParent.querySelector(".supersetparent").style.marginRight = "25px";
           nextSibling.querySelector(".supersetparent").style.marginRight = "25px";
           supersetParent.querySelector("#navigationButtons").style.display = 'none';
-
+  
           const nextSupersetItem = nextSibling.querySelector(".exercise-list-item-superset");
           const supersetDropdown = nextSibling.querySelector("#supersetDropdown");
-
+  
           // Insert supersetParent at the top of the next superset item
           nextSupersetItem.insertBefore(supersetParent, nextSupersetItem.firstChild);
-
+  
           // Insert the supersetDropdown right after supersetParent
           nextSupersetItem.insertBefore(supersetDropdown, nextSupersetItem.firstChild);
-
+  
           supersetParent.style.width = "100%";
     
         } else if (grandParentSibling && supersetParent) {
     
           if (nextSibling == null) {
-
+  
             nextSibling = grandParentSibling.parentElement.nextElementSibling;
             nextSibling.querySelector(".supersetparent").style.marginRight = "25px";
-
+  
             if (nextSibling && nextSibling.classList.contains("supersetWrapper")) {
               // Handling superset logic here
               reset = true;
             } else {
-
+  
               // Now check if the current element is in a superset
               supersetParent = grandParentSibling.parentElement.nextElementSibling;
-
+  
               supersetParent.style.width = "100%";
               supersetParent.querySelector(".exercisegroup").style.border = 'none';
               if (supersetParent.querySelector("#navigationButtons")) {
@@ -1756,25 +1754,25 @@ async function main() {
     
               grandParentSibling.appendChild(supersetParent);
             }
-
+  
           }
     
         }
     
         // Remove supersetimageopen class
         supersetParent.querySelector(".supersetparent").style.marginRight = "25px";
-
+  
         if(!reset) {
           supersetImage.classList.remove("supersetimageopen");
           supersetImage.classList.add("supersetimageclosed");
         } else {
           supersetImage.src = "https://uploads-ssl.webflow.com/627e2ab6087a8112f74f4ec5/64e71cc7674f21dd849120ea_open_superset.webp"
         }
-
+  
         if (supersetParent.querySelector("#removeFullExercise")) {
           supersetParent.querySelector("#removeFullExercise").style.display = "none";
         }
-
+  
         reset = false;
     
       } else {
@@ -1844,6 +1842,7 @@ async function main() {
         supersetImage.classList.add("supersetimageopen");
         supersetImage.classList.remove("supersetimageclosed");
       }
+      
     }
     
 
@@ -3124,10 +3123,14 @@ async function main() {
       program["startDate"] = dates[0];
       program["endDate"] = dates[dates.length - 1];
 
-      const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
       const firstDate = dates[0];
       const lastDate = dates[dates.length - 1];
-      program["numberOfWeeks"] = Math.ceil((lastDate - firstDate) / millisecondsPerWeek);
+      const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000; // Number of milliseconds in a week
+
+      const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+
+      // Add one day to account for events that fall on the same day as the lastDate
+      program["numberOfWeeks"] = Math.ceil((lastDate - firstDate + oneDay) / millisecondsPerWeek);
       
       program["gymName"] = document.getElementById("gymFullName").innerText;
       program["gymID"] = document.getElementById("gymID").innerText;
@@ -3412,16 +3415,16 @@ async function main() {
   
         //Make sure they have selected a duration and focus area
         if(!workout["length"].includes("Duration")) {
-          // var workoutThumbnail = {};
-          // var workoutThumbnailImage = document.getElementById("workoutUploadImage").src;
-          // var workoutThumbnailImage = isBase64Image(workoutThumbnailImage)
-          // ? await processBase64Image(workoutThumbnailImage)
-          // : { base64Data: '', fileFormat: '' };
+          var workoutThumbnail = {};
+          var workoutThumbnailImage = document.getElementById("workoutUploadImage").src;
+          var workoutThumbnailImage = isBase64Image(workoutThumbnailImage)
+          ? await processBase64Image(workoutThumbnailImage)
+          : { base64Data: '', fileFormat: '' };
           
-          // workout["workoutThumbnailImage"] = workoutThumbnailImage.base64Data;
-          // workout["workoutThumbnailImageType"] = workoutThumbnailImage.fileFormat;
-          // workout["affiliateProductLink"] = document.getElementById("affiliateProductLink").value;
-          // workout["affiliateDisplayText"] = document.getElementById("affiliateDisplayText").value;
+          workout["workoutThumbnailImage"] = workoutThumbnailImage.base64Data;
+          workout["workoutThumbnailImageType"] = workoutThumbnailImage.fileFormat;
+          workout["affiliateProductLink"] = document.getElementById("affiliateProductLink").value;
+          workout["affiliateDisplayText"] = document.getElementById("affiliateDisplayText").value;
 
           document.getElementById("saveWorkout").value = "Please wait...";
           sendWorkoutToMake(workout);
@@ -7735,9 +7738,12 @@ async function main() {
         // End date
         userProgram["endDate"] = lastDate;
 
-        const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-
-        userProgram["numberOfWeeks"] = Math.ceil((new Date(lastDate) - new Date(firstDate)) / millisecondsPerWeek);
+        const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000; // Number of milliseconds in a week
+  
+        const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+  
+        // Add one day to account for events that fall on the same day as the lastDate
+        userProgram["numberOfWeeks"] = Math.ceil((lastDate - firstDate + oneDay) / millisecondsPerWeek);
 
         // List of webflow workout IDs
         var userProgramWorkouts = [];
@@ -7811,7 +7817,10 @@ async function main() {
 
         const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
 
-        userProgram["numberOfWeeks"] = Math.ceil((new Date(lastDate) - new Date(firstDate)) / millisecondsPerWeek);
+        const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+  
+        // Add one day to account for events that fall on the same day as the lastDate
+        userProgram["numberOfWeeks"] = Math.ceil((lastDate - firstDate + oneDay) / millisecondsPerWeek);
 
         // List of webflow workout IDs
         var userProgramWorkouts = [];
@@ -8963,7 +8972,10 @@ async function main() {
         const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
         const firstDate = dates[0];
         const lastDate = dates[dates.length - 1];
-        var weeks = Math.ceil((lastDate - firstDate) / millisecondsPerWeek);
+        const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
+  
+        // Add one day to account for events that fall on the same day as the lastDate
+        var weeks = Math.ceil((lastDate - firstDate + oneDay) / millisecondsPerWeek);
         if(firstDate.getDay() > 4) {
           weeks += 1;
         }
