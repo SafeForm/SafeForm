@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   //Check off checklist:
   checkOffChecklist();
   
@@ -391,9 +392,6 @@ async function main() {
     // Parent div where we will add the cloned rows
     const orderDiv = document.getElementById('orderDiv');
   
-    // Hide first row of table:
-    document.getElementById('salesRowTemplate').style.display = "none";
-  
     // Metrics to calculate
     let totalRevenue = 0; // Total revenue from all sales
     let revenuePast30Days = 0; // Revenue from sales in the past 30 days
@@ -402,9 +400,10 @@ async function main() {
     const now = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(now.getDate() - 30); // Date 30 days ago
-    
-    if(salesData.length > 0) {
+
+    if(salesData.data.length > 0) {
       document.getElementById("salesPlaceholder").style.display = "none";
+      document.getElementById("orderDiv").style.justifyContent = "flex-start";
     }
     // Iterate through each payment object in the data
     salesData.data.forEach(payment => {
@@ -446,6 +445,7 @@ async function main() {
     // Display the calculated metrics
     document.getElementById("30DaysRevenue").innerText = `$${revenuePast30Days.toFixed(2)}`;
     document.getElementById("totalRevenue").innerText = `$${totalRevenue.toFixed(2)}`;
+    
 
   }
   
