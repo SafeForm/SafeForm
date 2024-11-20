@@ -14,7 +14,6 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
-
   //Check off checklist:
   checkOffChecklist();
   
@@ -3410,7 +3409,7 @@ async function main() {
         }
   
         workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
-        workout.exerciseSlugs = workout.exerciseSlugs.join(", ")
+        workout.exerciseSlugs = workout.exerciseSlugs.join(", ");
         workout.muscleGroups = workout.muscleGroups.join(", ");
   
         //Make sure they have selected a duration and focus area
@@ -7152,6 +7151,7 @@ async function main() {
 
           addOrUpdateWorkoutRow(data, workout, "update");
           document.getElementById("saveWorkout").value = "Create Workout";
+          document.getElementById("workoutBuilderForm").reset();
             
         });
 
@@ -7472,6 +7472,13 @@ async function main() {
 
       mainWorkoutListRow.querySelector("#workoutLink").href = `${window.location.origin}/workout-summary/${newWorkoutSlug}`;
       mainWorkoutListRow.querySelector("#workoutLastEdited").innerText = moment().format('MMM DD, YYYY');
+
+      if(document.getElementById("workoutThumbnail").src != "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/6739c8aaf944f8b1aed1c7e7_Group%20512755.avif") {
+        mainWorkoutListRow.querySelector("#workoutSummaryThumbnail").src = document.getElementById("workoutThumbnail").src;
+        mainWorkoutListRow.querySelector("#workoutSummaryAffiliateLink").innerText = document.getElementById("affiliateProductLink").value;
+        mainWorkoutListRow.querySelector("#workoutSummaryAffiliateText").innerText = document.getElementById("affiliateDisplayText").value;
+        workoutListRow.querySelector("#workoutSummaryModalThumbnail").src = document.getElementById("workoutThumbnail").src;
+      }
 
       if(!emptyState) {
         // Need to remove old guides:
@@ -10180,12 +10187,17 @@ async function main() {
 
         var workoutListItem = getWorkoutElement(element.querySelector("#workoutIDProgram").innerText);
         var workoutListItemThumbnail = workoutListItem.querySelector("#exerciseThumbnailURL").innerText.split(",");
+
         if(workoutListItemThumbnail.length > 0) {
-          listElement.querySelector(".exerciseThumbnail").src = workoutListItemThumbnail[0];
+          if(workoutListItem.querySelector("#workoutSummaryThumbnail").getAttribute('src') != "") {
+            listElement.querySelector(".exerciseThumbnail").src = workoutListItem.querySelector("#workoutSummaryThumbnail").getAttribute('src');
+          } else {
+            listElement.querySelector(".exerciseThumbnail").src = workoutListItemThumbnail[0];
+          }
+          
         }
 
         listElement.querySelector(".exerciseThumbnail").style.minWidth = "80px";
-       
 
       } else if(type == "task") {
         listElement.querySelector("#guideName").innerText = element.querySelector("#taskName").innerText;
@@ -10235,17 +10247,18 @@ async function main() {
         var minMatch = workout.workoutDuration.match(/(\d+)\s*mins?/);
 
         if (hourMatch) {
-            hours = parseInt(hourMatch[1]);
+          hours = parseInt(hourMatch[1]);
         }
 
         if (minMatch) {
-            minutes = parseInt(minMatch[1]);
+          minutes = parseInt(minMatch[1]);
         }
 
         // Prefill the text boxes
         if(hours > 0) {
           document.getElementById("workoutLengthHour").value = hours;
         }
+
         if(minutes > 0) {
           document.getElementById("workoutLengthMin").value = minutes;
         }
@@ -10253,6 +10266,14 @@ async function main() {
         document.getElementById("workoutDescription").value = workout.workoutSummaryDescription;
         document.getElementById("workoutSummaryID").innerText = workout.workoutSummaryID;
         document.getElementById("workoutSummaryFullName").innerText = workout.workoutFullName;
+
+        if(workoutSummary.querySelector("#workoutSummaryThumbnail").getAttribute('src') != "") {
+          document.getElementById("workoutThumbnail").src = workoutSummary.querySelector("#workoutSummaryThumbnail").getAttribute('src');
+          document.getElementById("workoutThumbnailPreview").src = workoutSummary.querySelector("#workoutSummaryThumbnail").getAttribute('src');
+          document.getElementById("affiliateProductLink").value = workoutSummary.querySelector("#workoutSummaryAffiliateLink").innerText;
+          document.getElementById("affiliateDisplayText").value = workoutSummary.querySelector("#workoutSummaryAffiliateText").innerText;
+          document.getElementById("affiliateDisplayText").dispatchEvent(new Event('input', { bubbles: true }));
+        }
         
       } else {
         var workout = workoutSummary;
@@ -10824,7 +10845,7 @@ async function main() {
       //Check if list size is > 1 and obtain values for workout summary inputs to check if they are empty or not
       const workoutList = document.getElementById("workoutList").children;
       const workoutTitle = document.getElementById("workoutName").value;
-
+      
       const workoutDescription = document.getElementById("workoutDescription").value;
       if (workoutList.length > 1 || workoutTitle != "" || workoutDescription != "") {
   
@@ -10834,7 +10855,7 @@ async function main() {
         } else {
           document.getElementById("closingText").innerText = "Do you want to save the changes to your workout?";
         }
-  
+        
         var closeBuilderModal = document.getElementById("confirmCloseBuilder");
         //Set flex styling:
         closeBuilderModal.style.display = "flex";
@@ -10902,7 +10923,7 @@ async function main() {
         clearWorkoutListEntry();
 
       }
-  
+
       //Ensure svg man is shown and exercise list is hidden
       //Hide list
       document.getElementById("guideListParent").style.display = "none";
@@ -10910,9 +10931,6 @@ async function main() {
       document.getElementById("ajaxContent").style.display = "block";
       //Clear filters
       resetFilters();
-
-      document.getElementById("workoutBuilderForm").reset();
-      
     }
 
     function clearProgramModalList() {
@@ -10968,6 +10986,17 @@ async function main() {
         document.getElementById("workoutLengthHour").value = "";
         //Reset description value
         document.getElementById("workoutDescription").value = "";
+
+        document.getElementById("workoutThumbnail").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/6739c8aaf944f8b1aed1c7e7_Group%20512755.avif";
+        document.getElementById("workoutThumbnailPreview").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673b0159dbf31147062d676c_Group%20512754.avif";
+        
+        document.getElementById("workoutUploadImage").src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/6739cc916f5f42c0837959d2_Upload.png";
+
+        document.getElementById("affiliateProductLink").value = "";
+        document.getElementById("affiliateDisplayText").value = "";
+
+        document.getElementById("workoutThumbnailText").style.display = "none";
+
       } else {
         workoutList = document.getElementById("programWorkoutList").children;
 
