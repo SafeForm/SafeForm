@@ -191,10 +191,6 @@ async function main() {
     workoutItem.querySelector("#workoutExerciseItemID").remove();
     workoutItem.querySelector("#exerciseInfo").remove();
 
-    //Prefill rest values
-    workoutItem.querySelector("#exerciseRestMin").value = 2;
-    workoutItem.querySelector("#exerciseRestSec").value = 0;
-
     //Code below will handle the rest for rir and rpe required
 
     //Place remove button in the correct location
@@ -463,7 +459,7 @@ async function main() {
         newDiv.classList.add('exercise-list-item-superset');
   
         newDiv.style.width = '100%';
-        newDiv.style.marginTop = '10px';
+        newDiv.style.marginTop = '8px';
         newDiv.style.display = "flex";
         newDiv.style.flexDirection = "column";
         newDiv.style.alignItems = "flex-start";
@@ -826,8 +822,8 @@ async function main() {
               exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
               exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
               exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12";
-              exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
-              exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
+              exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value || "0";
+              exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2";              
               exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
               
               exerciseList.push(exerciseInformation);
@@ -868,8 +864,8 @@ async function main() {
             exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
             exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
             exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12";
-            exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value;
-            exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value;
+            exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value || "0";
+            exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2";  
             exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
             exerciseList.push(exerciseInformation);
           }
@@ -1528,7 +1524,6 @@ async function main() {
         $(this).attr({
           "min": 0,
           "max": 9,
-          "value": 2
         });
         break;
       case "exerciseRestSeconds":
