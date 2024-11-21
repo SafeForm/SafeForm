@@ -885,6 +885,25 @@ async function main() {
 
       }
 
+      //Add playlist:
+      var playlistName = document.getElementById("playlistName").value;
+      var playListLink = document.getElementById("playlistLink").value;
+      workout["playlistName"] = playlistName;
+      workout["playlistLink"] = playListLink
+
+      if(playListLink != "") {
+        // Check playlist name and assign thumbnail
+        if (playListLink.toLowerCase().includes('spotify')) {
+          workout["playlistThumbnail"] = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f092059afb6ba4e370904_spotify.avif";
+        } else if (playListLink.toLowerCase().includes('apple')) {
+          workout["playlistThumbnail"] = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f09202712544f44c18a1e_apple_music.avif";
+        } else if (playListLink.toLowerCase().includes('amazon')) {
+          workout["playlistThumbnail"] = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f09204519b943c7e69dec_amazon_music.avif";
+        } else {
+          workout["playlistThumbnail"] = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f0ae74e0676af6aa70030_Song.avif";
+        }
+      }
+
       workout["stringOfExercises"] = JSON.stringify(workout.listOfExercises);
       workout.exerciseSlugs = workout.exerciseSlugs.join(", ")
       workout.muscleGroups = workout.muscleGroups.join(", ");
@@ -985,7 +1004,7 @@ async function main() {
         document.getElementById("tlmModal").style.display = "flex";
 
         //Add visible class
-        var modalChild = document.getElementById("modalChild");
+        var modalChild = document.getElementById("tlmModal").querySelector("#modalChild");
 
         // Force reflow to ensure transition works
         void modalChild.offsetHeight;
@@ -1069,6 +1088,45 @@ async function main() {
     guideToWorkoutObj = {}
   }
 
+  function isValidURL(link) {
+    try {
+      const url = new URL(link);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  async function checkLinkAccessibility(link) {
+    const webhookUrl = 'https://hook.us1.make.com/6qhd8j57u11v9ise69mmz8yaafbaupqq';
+    try {
+      // Send the link to the webhook
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: link }),
+      });
+  
+      if (!response.ok) {
+        console.error(`Webhook error: ${response.status}`);
+        return false;
+      }
+  
+      // Wait for the webhook's raw response code
+      const responseCode = await response.text();
+  
+      // Return true if the response code is 200
+      return parseInt(responseCode, 10) === 200;
+    } catch (error) {
+      console.error('Error:', error);
+      return false;
+    }
+  }
+  
+  
+
   function checkIfLastExerciseInList(workoutKeyID) {
 
     // Remove an entry from guide to workout object
@@ -1119,7 +1177,95 @@ async function main() {
   //Listen for click events specifically for in paste state when clicking on cells
   //Otherwise if in paste state and not clicked on a day cancel paste state
   //Click listener
-  document.addEventListener('click', function(event) {
+  document.addEventListener('click', async function(event) {
+
+    if(event.target.id == "addPlaylist" || event.target.id == "addPlaylistMobile" || event.target.closest("#playlistLinkPreviewMobile") || event.target.closest("#playlistLinkPreview")) {
+
+      document.getElementById("submitPlaylist").innerHTML = "Add Playlist";
+
+      //Show modal
+      document.getElementById("tlmPlaylist").style.display = "flex";
+
+      //Add visible class
+      var modalChild = document.getElementById("tlmPlaylist").querySelector("#modalChild");
+
+      // Force reflow to ensure transition works
+      void modalChild.offsetHeight;
+
+      modalChild.classList.add("visible");
+
+    }
+
+    if (event.target.id == "submitPlaylist") {
+
+      document.getElementById("submitPlaylist").innerHTML = "Adding...";
+
+      var playlistLink = document.getElementById("playlistLink").value;
+    
+      // Check if valid URL
+      if (!isValidURL(playlistLink)) {
+        alert("Invalid URL. Please enter a valid playlist link.");
+        return;
+      }
+    
+      const isAccessible = await checkLinkAccessibility(playlistLink);
+      if (isAccessible) {
+
+        //Fill in values
+        var playlistName = document.getElementById("playlistName").value;
+        var playListLink = document.getElementById("playlistLink").value;
+        var mobileThumbnailPreview = document.getElementById("musicPlatformImageMobile");
+        var thumbnailPreview = document.getElementById("musicPlatformImage");
+        
+        document.getElementById("playlistNamePreview").innerText = playlistName;
+        document.getElementById("playlistNamePreviewMobile").innerText = playlistName;
+
+        if(window.innerWidth > 991) {
+          document.getElementById("playlistLinkPreview").style.display = "inline-flex";
+        } else {
+          document.getElementById("playlistLinkPreviewMobile").style.display = "inline-flex";
+        }
+       
+        document.getElementById("addPlaylistMobile").style.display = "none";
+        document.getElementById("addPlaylist").style.display = "none";
+
+        if(playListLink != "") {
+          // Check playlist name and assign thumbnail
+          if (playListLink.toLowerCase().includes('spotify')) {
+            mobileThumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f092059afb6ba4e370904_spotify.avif";
+            thumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f092059afb6ba4e370904_spotify.avif";
+          } else if (playListLink.toLowerCase().includes('apple')) {
+            mobileThumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f09202712544f44c18a1e_apple_music.avif";
+            thumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f09202712544f44c18a1e_apple_music.avif";
+          } else if (playListLink.toLowerCase().includes('amazon')) {
+            mobileThumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f09204519b943c7e69dec_amazon_music.avif";
+            thumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f09204519b943c7e69dec_amazon_music.avif";
+          } else {
+            mobileThumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f0ae74e0676af6aa70030_Song.avif";
+            thumbnailPreview.src = "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/673f0ae74e0676af6aa70030_Song.avif";
+          }
+        }
+
+        document.getElementById("submitPlaylist").innerHTML = "Add Playlist";
+        //Add visible class
+        var modalChild = document.getElementById("tlmPlaylist").querySelector("#modalChild");
+
+        modalChild.classList.remove("visible");
+
+        setTimeout(() => {
+          document.getElementById("tlmPlaylist").style.display = "none";
+      }, 350);
+
+
+
+      } else {
+        alert("Your playlist is not accessible. Ensure your playlist is public");
+        document.getElementById("submitPlaylist").innerHTML = "Add Playlist";
+
+      }
+
+    }
+
 
     if(event.target.id == "saveWorkout") {
       event.preventDefault();
@@ -1150,6 +1296,10 @@ async function main() {
     if(event.target.id == "tlmModal" || event.target.id == "closeModal") {
       document.getElementById("tlmModal").style.display = "none";
       document.getElementById("saveWorkout").value = "Share Workout";
+    }
+
+    if(event.target.id == "tlmPlaylist" || event.target.id == "tlmPlaylist") {
+      document.getElementById("tlmPlaylist").style.display = "none";
     }
 
     if(event.target.id == "removeExercise") {
