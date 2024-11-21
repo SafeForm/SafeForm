@@ -689,12 +689,14 @@ async function main() {
     // Change the border color
     guideExercise.style.borderColor = "#CBCBCB";
     document.getElementById("workoutInput").style.color = "black";
+    document.getElementById("addedToWorkout").style.display = "block";
 
     // Set a timeout to revert the border color after 0.5 seconds (500 milliseconds)
     setTimeout(function() {
         guideExercise.style.borderColor = "#6D6D6F";
         document.getElementById("workoutInput").style.color = "";
-    }, 100);
+        document.getElementById("addedToWorkout").style.display = "none";
+    }, 800);
 
   }
 
@@ -1225,6 +1227,8 @@ async function main() {
       if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
         event.target.closest("#individualGuide").style.borderColor = "rgb(109, 109, 111)";
 
+
+
         var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
         
         //Remove info button
@@ -1308,10 +1312,20 @@ async function main() {
 
     if(event.target.id == "removeSetMobile") {
       var previousExerciseInfo = event.target.closest(".div-block-501").previousSibling;
-
+      var parentInfo = event.target.closest("#setRepInfoParent");
       //Handle removing the set
       if(previousExerciseInfo.id == "exerciseInfo") {
         previousExerciseInfo.querySelector("#removeExercise").click();
+        
+        if(parentInfo.querySelectorAll("#exerciseInfo").length > 1) {
+        } else {
+          //Check after removal
+          parentInfo.querySelector("#removeSetMobile").style.display = "none";
+          //Check if mobile:
+          if(window.innerWidth < 992) {
+            parentInfo.querySelector("#removeExerciseMobile").style.display = "block";
+          }
+        }
       }
 
       //Now ensure the correct buttons hide and show
@@ -1347,7 +1361,13 @@ async function main() {
         }
       } else {
         handleAddSet(event.target);
+        if(event.target.id == "addSetMobile") {
+          event.target.closest("#setRepInfoParent").querySelector("#removeSetMobile").style.display = "block";
+          event.target.closest("#setRepInfoParent").querySelector("#removeExerciseMobile").style.display = "none";
+        }
       }
+
+
 
     }
 
