@@ -1298,8 +1298,14 @@ async function main() {
       document.getElementById("saveWorkout").value = "Share Workout";
     }
 
-    if(event.target.id == "tlmPlaylist" || event.target.id == "tlmPlaylist") {
-      document.getElementById("tlmPlaylist").style.display = "none";
+    if(event.target.id == "tlmPlaylist" || event.target.id == "closePlaylistModal") {
+      var modalChild = document.getElementById("tlmPlaylist").querySelector("#modalChild");
+
+      modalChild.classList.remove("visible");
+
+      setTimeout(() => {
+        document.getElementById("tlmPlaylist").style.display = "none";
+    }, 350);
     }
 
     if(event.target.id == "removeExercise") {
