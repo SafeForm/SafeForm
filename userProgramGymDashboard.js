@@ -2640,72 +2640,6 @@ async function main() {
     var desiredDate = "";
     var newEvent = "";
 
-    //Set onclicks for programs in modal
-    var programListModal = document.querySelectorAll("#programModalSummary");
-    for(var i = 0; i < programListModal.length; i++) {
-      (function(programItem) {
-        programItem.onclick = () => {
-
-          if(sessionStorage.getItem("selectProgramProduct") == "true") {
-
-            document.getElementById("selectProgramProduct").innerText = programItem.querySelector("#programModalName").innerText;
-            document.getElementById("productProgramID").innerText = programItem.querySelector("#programIDModal").innerText;
-
-            document.getElementById("modalWrapper").click();
-
-            return;
-          } 
-
-          workoutIndexCount = [];
-
-          //Remove if any workouts exist
-          clearProgramModalList();
-
-          //Set selected program name
-          document.getElementById("selectedProgramName").innerText = programItem.querySelector("#programModalName").innerText;
-          
-          //Set selected program description
-          document.getElementById("selectedProgramDescription").innerText = programItem.querySelector("#programModalDescription").innerText;
-
-          //Set selected program number of weeks
-          document.getElementById("selectedProgramWeeks").innerText = programItem.querySelector("#programWeeks").innerText;
-
-          //Get program ID:
-          userProgramWorkoutID = programItem.querySelector("#programIDModal").innerText;
-          
-          //Get events related to program
-          userProgramEvents = programItem.querySelector("#eventDataModal").innerText;
-
-          //Get program experience
-          document.getElementById("selectedProgramExperience").innerText = programItem.querySelector("#programExperienceModal").innerText;
-
-          //Get program goal
-          document.getElementById("selectedProgramGoal").innerText = programItem.querySelector("#programGoalModal").innerText;
-
-          //Set program full name
-          document.getElementById("programFullNameModal").innerText = programItem.querySelector("#programFullNameModal").innerText;
-
-          //Hide placeholder
-          document.getElementById("selectProgramPlaceholder").style.display = "none";
-
-          //Prefill program list with workouts
-          addWorkoutToProgramModalList(userProgramEvents);
-
-          //Show workoutProgramSummary
-          var programSummary = document.getElementById("programSummaryModal");
-          programSummary.style.display = "flex";
-          programSummary.style.flexDirection = "column";
-          programSummary.style.justifyContent = "center";
-          programSummary.style.alignItems = "center";
-
-          document.getElementById("week-1").click();
-
-
-        }
-      })(programListModal[i]);
-
-    }
-
     //Set onclick for program workout select
     document.getElementById("selectProgramWorkout").onclick = () => {
 
@@ -3719,6 +3653,66 @@ async function main() {
     //Click listener
     //Listen for click events:
     document.addEventListener('click', async function (event) {
+
+
+      if(event.target.closest("#programModalSummary")) {
+
+        var programItem = event.target.closest("#programModalSummary");
+
+        if(sessionStorage.getItem("selectProgramProduct") == "true") {
+
+          document.getElementById("selectProgramProduct").innerText = programItem.querySelector("#programModalName").innerText;
+          document.getElementById("productProgramID").innerText = programItem.querySelector("#programIDModal").innerText;
+
+          document.getElementById("modalWrapper").click();
+
+          return;
+        } 
+
+        workoutIndexCount = [];
+
+        //Remove if any workouts exist
+        clearProgramModalList();
+
+        //Set selected program name
+        document.getElementById("selectedProgramName").innerText = programItem.querySelector("#programModalName").innerText;
+        
+        //Set selected program description
+        document.getElementById("selectedProgramDescription").innerText = programItem.querySelector("#programModalDescription").innerText;
+
+        //Set selected program number of weeks
+        document.getElementById("selectedProgramWeeks").innerText = programItem.querySelector("#programWeeks").innerText;
+
+        //Get program ID:
+        userProgramWorkoutID = programItem.querySelector("#programIDModal").innerText;
+        
+        //Get events related to program
+        userProgramEvents = programItem.querySelector("#eventDataModal").innerText;
+
+        //Get program experience
+        document.getElementById("selectedProgramExperience").innerText = programItem.querySelector("#programExperienceModal").innerText;
+
+        //Get program goal
+        document.getElementById("selectedProgramGoal").innerText = programItem.querySelector("#programGoalModal").innerText;
+
+        //Set program full name
+        document.getElementById("programFullNameModal").innerText = programItem.querySelector("#programFullNameModal").innerText;
+
+        //Hide placeholder
+        document.getElementById("selectProgramPlaceholder").style.display = "none";
+
+        //Prefill program list with workouts
+        addWorkoutToProgramModalList(userProgramEvents);
+
+        //Show workoutProgramSummary
+        var programSummary = document.getElementById("programSummaryModal");
+        programSummary.style.display = "flex";
+        programSummary.style.flexDirection = "column";
+        programSummary.style.justifyContent = "center";
+        programSummary.style.alignItems = "center";
+
+        document.getElementById("week-1").click();
+      }
 
 
       if (event.target.id == "submitWorkoutThumbnail") {
