@@ -7809,17 +7809,18 @@ async function main() {
       userProgram["events"] = JSON.stringify(userTrainingPlan);
 
       if(userTrainingPlan.length > 0) {
-        const firstDate = userTrainingPlan[0].startWeek;
-        const lastDate = userTrainingPlan[0].endWeek;
+        const firstDate = new Date(userTrainingPlan[0].startWeek);
+        const lastDate = new Date(userTrainingPlan[0].endWeek);
+        
         // Start date
         userProgram["startDate"] = firstDate;
         // End date
         userProgram["endDate"] = lastDate;
-
+        
         const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-
+        
         const oneDay = 24 * 60 * 60 * 1000; // Number of milliseconds in a day
-  
+        
         // Add one day to account for events that fall on the same day as the lastDate
         userProgram["numberOfWeeks"] = Math.ceil((lastDate - firstDate + oneDay) / millisecondsPerWeek);
 
@@ -7851,7 +7852,7 @@ async function main() {
         for(table of tableArr) {
           fullTableData = fullTableData.concat(table.getData());
         }
-        userProgram["fullTableData"] = JSON.stringify(fullTableData);
+        //userProgram["fullTableData"] = JSON.stringify(fullTableData);
         sessionStorage.setItem("programSheetChanged", "false");
       } 
       sendUserProgramToMake(userProgram, "update");
