@@ -497,7 +497,7 @@ function main() {
         }
 
         //Fill in rest fields
-        inputList[i].querySelector("#inputRest").innerText = `${exerciseInformation[0].exerciseRestMinutes}m ${exerciseInformation[0].exerciseRestSeconds}s`;
+        inputList[i].querySelector("#inputRest").innerText = `${exerciseInformation[0].exerciseRestMinutes}m ${exerciseInformation[0].exerciseRestSeconds}s rest`;
 
         inputList[i].querySelector("#inputRest").classList.add("rest-input")
       }
@@ -538,7 +538,7 @@ function main() {
               }
             }
             //Set rest
-            newRestDiv.querySelector("#inputRest").innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s`;
+            newRestDiv.querySelector("#inputRest").innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s  rest`;
           }
   
           newWeightInput.addEventListener('blur', function(event) {
@@ -820,15 +820,64 @@ function main() {
 
       localStorage.setItem("startedWorkout", uniqueWorkoutID);
 
-      document.getElementById("workoutInput").click();
+      //document.getElementById("workoutInput").click();
 
       document.getElementById("workoutNavigation").style.display = "none";
       
       if(document.getElementById("shareWorkout").style.display != "block") {
-        document.getElementById("finishWorkoutDiv").style.display = "block";
+        document.getElementById("finishWorkoutDiv").style.display = "flex";
+        document.getElementById("finishWorkoutDiv").style.justifyContent = "center";
       }
       
-    };
+      // Now everything is filled out - move the input sections to the summary elements
+      const inputElements = document.querySelectorAll('[inputexercise]');
+
+      // Loop through the elements and do something
+      inputElements.forEach((inputElement) => {
+
+        const exerciseId = inputElement.getAttribute('inputexercise');
+      
+        // Clean up inputElement
+        const inputBlock = inputElement.querySelector("#inputSectionBlock");
+        inputBlock.style.width = "100%";
+
+        inputElement.querySelector("#inputHeaderDiv").style.display = "none";
+
+        // Find corresponding summary element
+        const guideSummaryElement = document.querySelector(`[workoutexercise="${exerciseId}"]`);
+        if (guideSummaryElement) {
+
+          const exerciseInfo = guideSummaryElement.querySelector("#exerciseInfo");
+          if (exerciseInfo) {
+
+            exerciseInfo.removeAttribute('href');
+            // Temporarily set height to its current value
+            var initialHeight = exerciseInfo.offsetHeight; // Get current height
+            exerciseInfo.style.height = `${initialHeight}px`;
+      
+            // Append the inputElement
+            setTimeout(() => {
+              exerciseInfo.appendChild(inputElement);
+      
+              // Trigger height transition by calculating new height
+              var newHeight = exerciseInfo.scrollHeight; // Total height with content
+
+              exerciseInfo.style.height = `${newHeight}px`;
+
+              // After transition, reset height to 'auto' for flexibility
+              exerciseInfo.addEventListener(
+                "transitionend",
+                () => {
+                  exerciseInfo.style.height = "auto";
+                },
+                { once: true }
+              );
+            }, 0); // Small timeout to ensure DOM changes are applied
+          }
+        }
+      });
+    }
+
 
     //Click listeners:
     document.addEventListener('click', async function(event) {
@@ -1069,7 +1118,6 @@ function main() {
       newDiv.style.display = "flex";
       newDiv.style.flexDirection = "column";
       newDiv.style.alignItems = "center";
-      newDiv.style.boxShadow = "0 4px 4px 0px rgba(0, 0, 0, 0.25)";
       const supersetText = document.createElement('div');
       if(exerciseGroupName != "") {
         supersetText.innerText = exerciseGroupName;
@@ -1102,12 +1150,10 @@ function main() {
         listOfExercises[exerciseCount].style.marginBottom = 0;
         
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.border = "none";
-        listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.boxShadow = "0 0px 0px 0px rgba(0, 0, 0, 0)";
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.marginBottom = 0;
         listOfExercises[exerciseCount].querySelector("#exerciseInfo").style.marginTop = 0;
 
         inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.border = "none";
-        inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.boxShadow = "0 0px 0px 0px rgba(0, 0, 0, 0)";
         inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.marginBottom = 0;
         inputListExercises[exerciseCount].querySelector("#inputSectionBlock").style.marginTop = 0;
         exerciseCount += 1;
@@ -1117,61 +1163,6 @@ function main() {
       exerciseCount += 1;
     }
     
-  });
-
-
-  // Now everything is filled out - move the input sections to the summary elements
-  const inputElements = document.querySelectorAll('[inputexercise]');
-
-  // Loop through the elements and do something
-  inputElements.forEach((inputElement) => {
-
-    return;
-
-    const exerciseId = inputElement.getAttribute('inputexercise');
-  
-    // Clean up inputElement
-    const inputBlock = inputElement.querySelector("#inputSectionBlock");
-    const inputHeader = inputElement.querySelector("#inputHeader");
-    inputElement.style.marginBottom = "0px"
-    inputBlock.style.border = "none";
-    inputBlock.style.boxShadow = "none";
-    inputBlock.style.paddingLeft = "0px";
-    inputBlock.style.paddingRight = "0px";
-    inputBlock.style.backgroundColor = "transparent"
-    inputHeader.style.display = "none";
-
-    // Find corresponding summary element
-    const guideSummaryElement = document.querySelector(`[workoutexercise="${exerciseId}"]`);
-    if (guideSummaryElement) {
-
-      const exerciseInfo = guideSummaryElement.querySelector("#exerciseInfo");
-      if (exerciseInfo) {
-        exerciseInfo.removeAttribute('href');
-        // Temporarily set height to its current value
-        var initialHeight = exerciseInfo.offsetHeight; // Get current height
-        exerciseInfo.style.height = `${initialHeight}px`;
-  
-        // Append the inputElement
-        setTimeout(() => {
-          exerciseInfo.appendChild(inputElement);
-  
-          // Trigger height transition by calculating new height
-          var newHeight = exerciseInfo.scrollHeight; // Total height with content
-
-          exerciseInfo.style.height = `${newHeight}px`;
-
-          // After transition, reset height to 'auto' for flexibility
-          exerciseInfo.addEventListener(
-            "transitionend",
-            () => {
-              exerciseInfo.style.height = "auto";
-            },
-            { once: true }
-          );
-        }, 1000); // Small timeout to ensure DOM changes are applied
-      }
-    }
   });
 
   function swapInitialLoadExercises(swappedExercisesJSON, swappedLevel="workout") {
@@ -1578,7 +1569,7 @@ function main() {
         // Update the div content with the remaining time
         let minutes = Math.floor(timeRemaining / 60);
         let seconds = timeRemaining % 60;
-        restDiv.textContent = `${minutes}m ${seconds}s`;
+        restDiv.textContent = `${minutes}m ${seconds}s rest`;
     }
     }, 1000);
   }
