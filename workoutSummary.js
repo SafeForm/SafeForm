@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   sessionStorage.setItem("numberOfGuides", 0);
   sessionStorage.setItem("onlyFinish", "false");
   var currentSwappedExercise = "";
@@ -320,17 +319,17 @@ function main() {
         // Iterate over exercises array and construct new objects
         exerciseInformation[exerciseInformationIndex].exercises.forEach((exercise, index) => {
           newArray.push({
-            "exercise": exerciseInformation[exerciseInformationIndex].exerciseName,
-            "reps": exercise.reps,
-            "load": exercise.measure,
-            "loadAmount": exercise.loadAmount,
-            "exerciseRestMinutes": exercise.exerciseRestMinutes === "" ? "0" : exercise.exerciseRestMinutes,
-            "exerciseRestSeconds": exercise.exerciseRestSeconds === "" ? '0' : exercise.exerciseRestSeconds,
-            "quantityUnit": exercise.quantityUnit,
-            "notes": exerciseInformation[exerciseInformationIndex].exerciseNotes,
+            "exercise": exerciseInformation[exerciseInformationIndex]?.exerciseName ?? "",
+            "reps": exercise?.reps ?? "",
+            "load": exercise?.measure || "Kg",  // Default to "Kg" if measure is missing or empty
+            "loadAmount": exercise?.loadAmount ?? "",
+            "exerciseRestMinutes": exercise?.exerciseRestMinutes === "" ? "0" : (exercise?.exerciseRestMinutes ?? "0"),
+            "exerciseRestSeconds": exercise?.exerciseRestSeconds === "" ? "0" : (exercise?.exerciseRestSeconds ?? "0"),
+            "quantityUnit": exercise?.quantityUnit ?? "",
+            "notes": exerciseInformation[exerciseInformationIndex]?.exerciseNotes ?? "",
             "setNumber": index,
-            "guideID": exerciseInformation[exerciseInformationIndex].guideID,
-            "uniqueWorkoutID": exerciseInformation[exerciseInformationIndex].uniqueWorkoutID
+            "guideID": exerciseInformation[exerciseInformationIndex]?.guideID ?? "",
+            "uniqueWorkoutID": exerciseInformation[exerciseInformationIndex]?.uniqueWorkoutID ?? ""
           });
         });
 
@@ -346,7 +345,7 @@ function main() {
       }
 
       //Get rest info for that exercise
-      const restDiv = inputList[i].querySelector("#inputRest");
+      const restDiv = inputList[i].querySelector(".exercise-info-input");
       var newRestDiv = restDiv.cloneNode(true);
       newRestDiv.style.display = "flex";
 
@@ -499,16 +498,18 @@ function main() {
 
         //Fill in rest fields
         inputList[i].querySelector("#inputRest").innerText = `${exerciseInformation[0].exerciseRestMinutes}m ${exerciseInformation[0].exerciseRestSeconds}s`;
+
         inputList[i].querySelector("#inputRest").classList.add("rest-input")
       }
 
       for (var j = 0; j < numberOfSets - 1; j++) {
         (function(j) {
-
           newRestDiv = restDiv.cloneNode(true);
+
           var newInputSection = inputSectionPlaceholder.cloneNode(true);
           var newWeightInput = newInputSection.querySelector("#weight");
           var newRepsInput = newInputSection.querySelector("#reps");
+          
           //Reset values
           newRepsInput.value = "";
           newWeightInput.value = "";
@@ -536,9 +537,8 @@ function main() {
 
               }
             }
-
             //Set rest
-            newRestDiv.innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s`;
+            newRestDiv.querySelector("#inputRest").innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s`;
           }
   
           newWeightInput.addEventListener('blur', function(event) {
@@ -627,6 +627,8 @@ function main() {
           }
           
           exerciseInputSection.appendChild(newInputSection);
+          newInputSection.querySelector("#setNumber").innerText = j+2;
+
 
         })(j); // Pass the value of j into the immediately-invoked function expression (IIFE)
       }
@@ -656,7 +658,8 @@ function main() {
 
           hideCompleteButton(button);
           // Get the rest time from the div and parse it
-          let restDiv = button.closest("#inputSection").nextElementSibling;
+          let restDiv = button.closest("#inputSection").nextElementSibling.querySelector("#inputRest");
+
           if(restDiv) {
             let restTime = parseTime(restDiv.textContent);
 
@@ -685,7 +688,8 @@ function main() {
         hideCompleteButton(button);
 
         // Get the rest time from the div and parse it
-        let restDiv = button.closest("#inputSection").nextElementSibling;
+        let restDiv = button.closest("#inputSection").nextElementSibling.querySelector("#inputRest");
+
         if(restDiv && !button.classList.contains("pre-complete")) {
           let restTime = parseTime(restDiv.textContent);
 
@@ -1116,6 +1120,59 @@ function main() {
   });
 
 
+  // Now everything is filled out - move the input sections to the summary elements
+  const inputElements = document.querySelectorAll('[inputexercise]');
+
+  // Loop through the elements and do something
+  inputElements.forEach((inputElement) => {
+
+    return;
+
+    const exerciseId = inputElement.getAttribute('inputexercise');
+  
+    // Clean up inputElement
+    const inputBlock = inputElement.querySelector("#inputSectionBlock");
+    const inputHeader = inputElement.querySelector("#inputHeader");
+    inputElement.style.marginBottom = "0px"
+    inputBlock.style.border = "none";
+    inputBlock.style.boxShadow = "none";
+    inputBlock.style.paddingLeft = "0px";
+    inputBlock.style.paddingRight = "0px";
+    inputBlock.style.backgroundColor = "transparent"
+    inputHeader.style.display = "none";
+
+    // Find corresponding summary element
+    const guideSummaryElement = document.querySelector(`[workoutexercise="${exerciseId}"]`);
+    if (guideSummaryElement) {
+
+      const exerciseInfo = guideSummaryElement.querySelector("#exerciseInfo");
+      if (exerciseInfo) {
+        exerciseInfo.removeAttribute('href');
+        // Temporarily set height to its current value
+        var initialHeight = exerciseInfo.offsetHeight; // Get current height
+        exerciseInfo.style.height = `${initialHeight}px`;
+  
+        // Append the inputElement
+        setTimeout(() => {
+          exerciseInfo.appendChild(inputElement);
+  
+          // Trigger height transition by calculating new height
+          var newHeight = exerciseInfo.scrollHeight; // Total height with content
+
+          exerciseInfo.style.height = `${newHeight}px`;
+
+          // After transition, reset height to 'auto' for flexibility
+          exerciseInfo.addEventListener(
+            "transitionend",
+            () => {
+              exerciseInfo.style.height = "auto";
+            },
+            { once: true }
+          );
+        }, 1000); // Small timeout to ensure DOM changes are applied
+      }
+    }
+  });
 
   function swapInitialLoadExercises(swappedExercisesJSON, swappedLevel="workout") {
     //Get all current exercises
@@ -1532,7 +1589,7 @@ function main() {
       button.style.display = "none";
       //Get input section sibling to update the next set
       var setInputSection = button.closest("#inputSection");
-  
+
       var nextInputSection = setInputSection.nextElementSibling;
 
       while (nextInputSection) {
@@ -1543,11 +1600,17 @@ function main() {
       }
 
       //Style outside div
-      button.closest("#inputSection").style.backgroundColor = "#DBDAFF";
-      button.closest("#inputSection").style.borderColor = "#0C08D5";
+      //button.closest("#inputSection").style.backgroundColor = "#DBDAFF";
+      //button.closest("#inputSection").style.borderColor = "#0003FF";
 
-      button.closest("#inputSection").querySelector("#reps").style.borderColor = "#0C08D5";
-      button.closest("#inputSection").querySelector("#weight").style.borderColor = "#0C08D5";
+      button.closest("#inputSection").querySelector("#reps").style.backgroundColor = "#0003FF";
+      button.closest("#inputSection").querySelector("#reps").style.color = "white";
+      button.closest("#inputSection").querySelector("#reps").placeholder = "";
+      button.closest("#inputSection").querySelector("#weight").style.backgroundColor = "#0003FF";
+      button.closest("#inputSection").querySelector("#weight").style.color = "white";
+      button.closest("#inputSection").querySelector("#weight").placeholder = "";
+      button.closest("#inputSection").querySelector("#setNumber").style.backgroundColor = "#0003FF";
+      button.closest("#inputSection").querySelector("#setNumber").style.color = "white";
 
       if(nextInputSection) {
         if(nextInputSection.querySelector("#completedExercise").style.display != "block") {
