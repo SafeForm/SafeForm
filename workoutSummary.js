@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
   sessionStorage.setItem("numberOfGuides", 0);
   sessionStorage.setItem("onlyFinish", "false");
   var currentSwappedExercise = "";
@@ -709,12 +708,11 @@ function main() {
         if (activeRestDiv && activeRestDiv !== restDiv) {
           // Save the remaining time for the paused timer
           remainingTime = parseTime(activeRestDiv.textContent);
-          inputRest
           activeRestDiv.style.color = "#cbcbcb";
         }
 
         if (restDiv && !button.classList.contains("pre-complete")) {
-          let restTime = remainingTime || parseTime(restDiv.textContent); // Use paused time or parse new time
+          let restTime = parseTime(restDiv.textContent); //Use parse new time
 
           // Start a new timer and update the active references
           activeRestDiv = restDiv;
