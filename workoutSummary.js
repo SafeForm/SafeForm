@@ -652,7 +652,9 @@ function main() {
       var exerciseInfo = memberJSON[completedExercisename];
       if(exerciseInfo && exerciseInfo.workouts != undefined) {
         var numCompletedSets = exerciseInfo.workouts[workoutID];
-        if((index%3 + 1) <= numCompletedSets) {
+        var setNumber = parseInt(button.closest("#inputSection").querySelector("#setNumber").innerText);
+
+        if(setNumber <= numCompletedSets) {
 
           const repsValue = button.closest("#inputSection").querySelector("#reps").placeholder;
           button.closest("#inputSection").querySelector("#reps").value  = repsValue;
@@ -689,7 +691,10 @@ function main() {
         hideCompleteButton(button);
 
         // Get the rest time from the div and parse it
-        let restDiv = button.closest("#inputSection").nextElementSibling.querySelector("#inputRest");
+        var restDiv = button.closest("#inputSection").nextElementSibling;
+        if(restDiv) {
+          restDiv = restDiv.querySelector("#inputRest");
+        }
 
         if(restDiv && !button.classList.contains("pre-complete")) {
           let restTime = parseTime(restDiv.textContent);
@@ -697,7 +702,6 @@ function main() {
           // Start the timer with the parsed rest time
           startTimer(restTime, restDiv);
         }
-
 
         //Increment 'completed sets' counter
         completedSets += 1;
@@ -708,12 +712,13 @@ function main() {
 
         if((workoutID != null || workoutID != "") && !button.classList.contains("pre-complete") && member.loggedIn) {
           var workoutIDUnique = workoutID.split("+");
+          var setNumber = parseInt(button.closest("#inputSection").querySelector("#setNumber").innerText);
 
           if(workoutIDUnique.length > 0) {
             workoutIDUnique = workoutIDUnique[0];
-            updateWorkoutDetails(completedExerciseID, completedExercisename, workoutIDUnique, (index)%3 + 1);
+            updateWorkoutDetails(completedExerciseID, completedExercisename, workoutIDUnique, setNumber);
           } else {
-            updateWorkoutDetails(completedExerciseID, completedExercisename, workoutID, (index)%3 + 1);
+            updateWorkoutDetails(completedExerciseID, completedExercisename, workoutID, setNumber);
           }
           
         }
