@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   sessionStorage.setItem("numberOfGuides", 0);
   sessionStorage.setItem("onlyFinish", "false");
   var currentSwappedExercise = "";
@@ -842,45 +843,95 @@ function main() {
         inputBlock.style.width = "100%";
 
         inputElement.querySelector("#inputHeaderDiv").style.display = "none";
+        //inputElement.style.height = "0px";
+        inputElement.style.transition = "height 1000ms ease";
 
         // Find corresponding summary element
         const guideSummaryElement = document.querySelector(`[workoutexercise="${exerciseId}"]`);
         if (guideSummaryElement) {
-
+          guideSummaryElement.querySelector("#guidePlaceHolder").removeAttribute('href');
           const exerciseInfo = guideSummaryElement.querySelector("#exerciseInfo");
           if (exerciseInfo) {
-
-            exerciseInfo.removeAttribute('href');
+            exerciseInfo.style.transition = "none";
             // Temporarily set height to its current value
             var initialHeight = exerciseInfo.offsetHeight; // Get current height
-            exerciseInfo.style.height = `${initialHeight}px`;
-      
+
+            var initialInputHeight = inputElement.offsetHeight; // Get current height
+            inputElement.style.height = `${initialInputHeight}px`;
+            exerciseInfo.style.height = `auto`;
             // Append the inputElement
             setTimeout(() => {
               exerciseInfo.appendChild(inputElement);
-      
               // Trigger height transition by calculating new height
               var newHeight = exerciseInfo.scrollHeight; // Total height with content
+              const inputElementHeight = inputElement.scrollHeight;
 
-              exerciseInfo.style.height = `${newHeight}px`;
+              //exerciseInfo.style.height = `${newHeight}px`;
+              inputElement.style.height = `${inputElementHeight}px`;
 
-              // After transition, reset height to 'auto' for flexibility
-              exerciseInfo.addEventListener(
+              inputElement.addEventListener(
                 "transitionend",
                 () => {
-                  exerciseInfo.style.height = "auto";
+                  inputElement.style.height = 'auto';
                 },
                 { once: true }
               );
+
             }, 0); // Small timeout to ensure DOM changes are applied
+
           }
         }
       });
     }
 
-
     //Click listeners:
     document.addEventListener('click', async function(event) {
+
+      if(event.target.closest("#guidePlaceHolder")) {
+
+        //Disable scrolling on screen behing
+        document.querySelector("body").style.overflow = "hidden";
+
+        //Grab guide stuff
+        var exerciseParent = event.target.closest("[workoutexercise]");
+
+        //Get guide contents
+        var guideInfo = exerciseParent.querySelector("#guideSummaryContents");
+        var guideBody = document.getElementById("guideSummaryBody");
+        //Show guide drawer component
+        document.getElementById("guideSummaryParent").style.display = "flex";
+
+        // Force reflow to ensure transition works
+        void guideBody.offsetHeight;
+    
+        guideBody.classList.add("visible");
+
+        guideBody.appendChild(guideInfo);
+
+      }
+
+      if(event.target.id == "guideSummaryParent") {
+        
+        var guideBody = document.getElementById("guideSummaryBody");
+
+        //Get id:
+        var selectedGuideID = guideBody.querySelector("#guideSummaryContents").getAttribute("guidesummarycontents");
+
+        //Find corresponding home for the guide:
+        var guideHome = document.querySelector(`[guidesummarycontentsparent="${selectedGuideID}"]`);
+        guideHome.appendChild(guideBody.querySelector("#guideSummaryContents"));
+
+        guideBody.classList.remove("visible");
+
+        setTimeout(() => {
+          document.getElementById("guideSummaryParent").style.display = "none";
+        }, 350);
+
+        //Allow scrolling again
+        document.querySelector("body").style.overflow = "";
+
+      }
+
       if(event.target.closest(".user-page")) {
 
         // Change screen to current / rest of program / back
