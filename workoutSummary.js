@@ -19,6 +19,10 @@ function main() {
   var currentSwappedExercise = "";
   var currentSwappedExerciseID = "";
   var swappingExerciseID = "";
+  let activeTimer = null; // Track the active timer
+  let activeRestDiv = null; // Track the active restDiv
+  let remainingTime = null; // Track the remaining time for the active timer
+
 
   var guideLinks = document.querySelectorAll("#guideLink");
 
@@ -672,7 +676,7 @@ function main() {
 
         }
       }
-      
+
       button.addEventListener("click", () => {
 
         //Get both input boxes from that row
@@ -696,11 +700,26 @@ function main() {
           restDiv = restDiv.querySelector("#inputRest");
         }
 
-        if(restDiv && !button.classList.contains("pre-complete")) {
-          let restTime = parseTime(restDiv.textContent);
+        // Pause the previous timer if it's running
+        if (activeTimer) {
+          clearInterval(activeTimer); // Stop the interval
+          activeTimer = null; // Reset the timer reference
+        }
 
-          // Start the timer with the parsed rest time
-          startTimer(restTime, restDiv);
+        if (activeRestDiv && activeRestDiv !== restDiv) {
+          // Save the remaining time for the paused timer
+          remainingTime = parseTime(activeRestDiv.textContent);
+          inputRest
+          activeRestDiv.style.color = "#cbcbcb";
+        }
+
+        if (restDiv && !button.classList.contains("pre-complete")) {
+          let restTime = remainingTime || parseTime(restDiv.textContent); // Use paused time or parse new time
+
+          // Start a new timer and update the active references
+          activeRestDiv = restDiv;
+          remainingTime = null; // Reset paused time for the new timer
+          activeTimer = startTimer(restTime, restDiv);
         }
 
         //Increment 'completed sets' counter
@@ -710,7 +729,7 @@ function main() {
           document.getElementById("finishWorkout").click;
         }
 
-        if((workoutID != null || workoutID != "") && !button.classList.contains("pre-complete") && member.loggedIn) {
+        if((workoutID != null && workoutID != "") && !button.classList.contains("pre-complete") && member.loggedIn) {
           var workoutIDUnique = workoutID.split("+");
           var setNumber = parseInt(button.closest("#inputSection").querySelector("#setNumber").innerText);
 
@@ -1607,27 +1626,30 @@ function main() {
 
   function parseTime(timeString) {
     let timeParts = timeString.split(" ");
-    let minutes = parseInt(timeParts[0].replace("m", ""));
-    let seconds = parseInt(timeParts[1].replace("s", ""));
+    let minutes = parseInt(timeParts[0].replace("m", "")) || 0;
+    let seconds = parseInt(timeParts[1].replace("s", "")) || 0;
     return minutes * 60 + seconds;
   }
 
   function startTimer(initialTime, restDiv) {
     let timeRemaining = initialTime;
     let timerInterval = setInterval(() => {
-    restDiv.style.color = "black";
-    if (timeRemaining <= 0) {
+      restDiv.style.color = "black";
+      if (timeRemaining <= 0) {
         clearInterval(timerInterval);
-        restDiv.innerHTMl = "<br>";
+        restDiv.innerHTML = "<br>";
         restDiv.style.color = "#CBCBCB";
-    } else {
+        activeTimer = null; // Clear activeTimer when the timer finishes
+        activeRestDiv = null; // Clear activeRestDiv
+      } else {
         timeRemaining--;
         // Update the div content with the remaining time
         let minutes = Math.floor(timeRemaining / 60);
         let seconds = timeRemaining % 60;
         restDiv.textContent = `${minutes}m ${seconds}s rest`;
-    }
+      }
     }, 1000);
+    return timerInterval; // Return the timer interval ID to track it
   }
 
   function hideCompleteButton(button) {
