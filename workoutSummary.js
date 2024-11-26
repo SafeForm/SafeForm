@@ -1637,7 +1637,7 @@ function main() {
       restDiv.style.color = "black";
       if (timeRemaining <= 0) {
         clearInterval(timerInterval);
-        restDiv.innerHTML = "<br>";
+        restDiv.innerHTML = "0m 0s rest";
         restDiv.style.color = "#CBCBCB";
         activeTimer = null; // Clear activeTimer when the timer finishes
         activeRestDiv = null; // Clear activeRestDiv
