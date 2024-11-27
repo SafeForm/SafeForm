@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 async function main() {
 
+
   //Check off checklist:
   checkOffChecklist();
   
@@ -4089,6 +4090,9 @@ async function main() {
         if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
 
           var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
+
+          //Hide loading mechanism
+          copyOfGuide.querySelector("#exerciseLoadingMechanism").style.display = "none";
 
           //Remove info button
           copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
