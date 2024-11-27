@@ -21,7 +21,7 @@ function main() {
   let activeTimer = null; // Track the active timer
   let activeRestDiv = null; // Track the active restDiv
   let remainingTime = null; // Track the remaining time for the active timer
-
+  monitorUserActivity()
 
   var guideLinks = document.querySelectorAll("#guideLink");
 
@@ -663,15 +663,6 @@ function main() {
           button.closest("#inputSection").querySelector("#reps").value  = repsValue;
 
           hideCompleteButton(button);
-          // Get the rest time from the div and parse it
-          let restDiv = button.closest("#inputSection").nextElementSibling.querySelector("#inputRest");
-
-          if(restDiv) {
-            let restTime = parseTime(restDiv.textContent);
-
-            // Start the timer with the parsed rest time
-            startTimer(restTime, restDiv);
-          }
 
         }
       }
@@ -693,31 +684,22 @@ function main() {
 
         hideCompleteButton(button);
 
-        // Get the rest time from the div and parse it
-        var restDiv = button.closest("#inputSection").nextElementSibling;
-        if(restDiv) {
+        let restDiv = button.closest("#inputSection").nextElementSibling;
+
+        if (restDiv) {
           restDiv = restDiv.querySelector("#inputRest");
         }
-
+      
         // Pause the previous timer if it's running
-        if (activeTimer) {
-          clearInterval(activeTimer); // Stop the interval
-          activeTimer = null; // Reset the timer reference
-        }
-
-        if (activeRestDiv && activeRestDiv !== restDiv) {
-          // Save the remaining time for the paused timer
-          remainingTime = parseTime(activeRestDiv.textContent);
-          activeRestDiv.style.color = "#cbcbcb";
-        }
-
+        pauseTimer();
+      
         if (restDiv && !button.classList.contains("pre-complete")) {
-          let restTime = parseTime(restDiv.textContent); //Use parse new time
-
-          // Start a new timer and update the active references
+          let restTime = parseTime(restDiv.textContent); // Parse new time
           activeRestDiv = restDiv;
           remainingTime = null; // Reset paused time for the new timer
           activeTimer = startTimer(restTime, restDiv);
+        } else {
+          activeRestDiv = null;
         }
 
         //Increment 'completed sets' counter
@@ -747,8 +729,6 @@ function main() {
       }
 
     });
-
-
 
     document.getElementById("finishWorkout").onclick = async () => {
       
@@ -1629,25 +1609,114 @@ function main() {
     return minutes * 60 + seconds;
   }
 
+  function formatTime(seconds) {
+    let minutes = Math.floor(seconds / 60);
+    let remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s rest`;
+  }
+
   function startTimer(initialTime, restDiv) {
     let timeRemaining = initialTime;
+    lastUpdatedTimestamp = Date.now();
+    sessionStorage.setItem("activeRestDivId", restDiv.id);
+    sessionStorage.setItem("timerDuration", timeRemaining);
+    sessionStorage.setItem("lastUpdatedTimestamp", lastUpdatedTimestamp);
+  
     let timerInterval = setInterval(() => {
-      restDiv.style.color = "black";
-      if (timeRemaining <= 0) {
-        clearInterval(timerInterval);
-        restDiv.innerHTML = "0m 0s rest";
-        restDiv.style.color = "#CBCBCB";
-        activeTimer = null; // Clear activeTimer when the timer finishes
-        activeRestDiv = null; // Clear activeRestDiv
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastUpdatedTimestamp) / 1000);
+  
+      if (elapsed > 3) {
+        // Detect user absence and adjust time
+        timeRemaining -= elapsed;
+        if (timeRemaining <= 0) {
+          completeTimer(restDiv);
+          return;
+        }
       } else {
         timeRemaining--;
-        // Update the div content with the remaining time
-        let minutes = Math.floor(timeRemaining / 60);
-        let seconds = timeRemaining % 60;
-        restDiv.textContent = `${minutes}m ${seconds}s rest`;
+      }
+  
+      lastUpdatedTimestamp = now;
+      sessionStorage.setItem("timerDuration", timeRemaining);
+      sessionStorage.setItem("lastUpdatedTimestamp", lastUpdatedTimestamp);
+  
+      restDiv.style.color = "black";
+      restDiv.textContent = formatTime(timeRemaining);
+  
+      if (timeRemaining <= 0) {
+        completeTimer(restDiv);
       }
     }, 1000);
+  
     return timerInterval; // Return the timer interval ID to track it
+  }
+
+  // Pause the current timer and store remaining time
+  function pauseTimer() {
+    if (activeTimer) {
+      clearInterval(activeTimer); // Stop the interval
+      activeTimer = null; // Reset the timer reference
+      if (activeRestDiv) {
+        remainingTime = parseTime(activeRestDiv.textContent);
+        sessionStorage.setItem("timerDuration", remainingTime);
+        sessionStorage.setItem("lastUpdatedTimestamp", Date.now());
+        activeRestDiv.style.color = "#cbcbcb";
+      }
+    }
+  }
+  function resumeTimer() {
+    const activeDivId = sessionStorage.getItem("activeRestDivId");
+    const duration = parseInt(sessionStorage.getItem("timerDuration"));
+    const lastUpdated = parseInt(sessionStorage.getItem("lastUpdatedTimestamp"));
+    const now = Date.now();
+  
+    if (activeDivId && duration && lastUpdated) {
+      const elapsed = Math.floor((now - lastUpdated) / 1000);
+      const remainingTime = duration - elapsed;
+  
+      const restDiv = document.querySelector(`#${activeDivId}`);
+      if (remainingTime <= 0) {
+        completeTimer(restDiv);
+      } else {
+        activeRestDiv = restDiv;
+        activeTimer = startTimer(remainingTime, restDiv);
+      }
+    }
+  }
+
+  // Start monitoring user absence
+  function monitorUserActivity() {
+    setInterval(() => {
+      const lastUpdated = parseInt(sessionStorage.getItem("lastUpdatedTimestamp"));
+      if (lastUpdated) {
+        const now = Date.now();
+        const elapsed = Math.floor((now - lastUpdated) / 1000);
+
+        if (elapsed > 3 && activeRestDiv) {
+          const remaining = parseInt(sessionStorage.getItem("timerDuration"));
+          const timeRemaining = remaining - elapsed;
+  
+          if (timeRemaining <= 0) {
+            completeTimer(activeRestDiv);
+          } else {
+            pauseTimer(); // Sync remaining time
+            resumeTimer();
+          }
+        }
+      }
+    }, 1000);
+  }
+
+  function completeTimer(restDiv) {
+    clearInterval(activeTimer);
+    restDiv.innerHTML = "0m 0s rest";
+    restDiv.style.color = "#CBCBCB";
+    activeTimer = null;
+    activeRestDiv = null;
+    sessionStorage.removeItem("activeRestDivId");
+    sessionStorage.removeItem("timerDuration");
+    sessionStorage.removeItem("lastUpdatedTimestamp");
   }
 
   function hideCompleteButton(button) {
@@ -1665,10 +1734,6 @@ function main() {
         }
         nextInputSection = nextInputSection.nextElementSibling;
       }
-
-      //Style outside div
-      //button.closest("#inputSection").style.backgroundColor = "#DBDAFF";
-      //button.closest("#inputSection").style.borderColor = "#0003FF";
 
       button.closest("#inputSection").querySelector("#reps").style.backgroundColor = "#0003FF";
       button.closest("#inputSection").querySelector("#reps").style.color = "white";
