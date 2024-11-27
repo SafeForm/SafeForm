@@ -687,15 +687,15 @@ async function main() {
     }
 
     // Change the border color
-    guideExercise.style.borderColor = "#CBCBCB";
+    guideExercise.style.borderColor = "#6D6D6F";
     document.getElementById("workoutInput").style.color = "black";
     document.getElementById("addedToWorkout").style.display = "block";
 
     // Set a timeout to revert the border color after 0.5 seconds (500 milliseconds)
     setTimeout(function() {
-        guideExercise.style.borderColor = "#6D6D6F";
-        document.getElementById("workoutInput").style.color = "";
-        document.getElementById("addedToWorkout").style.display = "none";
+      guideExercise.style.borderColor = "#CBCBCB"; 
+      document.getElementById("workoutInput").style.color = "";
+      document.getElementById("addedToWorkout").style.display = "none";
     }, 800);
 
   }
@@ -1254,7 +1254,7 @@ async function main() {
 
         setTimeout(() => {
           document.getElementById("tlmPlaylist").style.display = "none";
-      }, 350);
+        }, 350);
 
 
 
@@ -1374,18 +1374,20 @@ async function main() {
     if(!event.target.closest(".search-filters-parent") && document.getElementById("searchFilterImg").classList.contains("filtericonclicked")) {
       document.getElementById("searchFilterImg").click();
       document.getElementById("clearTextImage").click();
-
     }
 
     if(event.target.closest("#individualGuide")) {
 
       //Make sure when info button is clicked the exercise isnt added to the list
       if(event.target.id != "guideLinkInfo" && event.target.id != "guideLinkInfoImage") {
+
+
         event.target.closest("#individualGuide").style.borderColor = "rgb(109, 109, 111)";
 
-
-
         var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
+
+        //Hide loading mechanism
+        copyOfGuide.querySelector("#exerciseLoadingMechanism").style.display = "none";
         
         //Remove info button
         copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
