@@ -10171,6 +10171,10 @@ async function main() {
       listItem.style.width = "90%";
 
       listElement.style.backgroundColor = "white";
+
+      if(listElement.querySelector("#exerciseLoadingMechanism")) {
+        listElement.querySelector("#exerciseLoadingMechanism").remove();
+      }
       
       if(type == "workout") {
 
@@ -10178,8 +10182,6 @@ async function main() {
         listElement.querySelector("#guideName").id = "workoutSummaryNameProgram"
         listElement.querySelector("#exerciseInfoRight").style.display = "";
         listElement.id = "workoutItem";
-
-        listElement.querySelector("#exerciseLoadingMechanism").remove();
         
         listElement.querySelector("#exerciseListTempID").innerText = element.querySelector("#workoutDurationProgram").innerText;
         listElement.querySelector("#exerciseListTempID").id = "workoutDurationProgram";
