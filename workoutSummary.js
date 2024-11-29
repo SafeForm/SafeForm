@@ -343,6 +343,7 @@ function main() {
       }
 
       //Get number of sets for that exercise
+
       var numberOfSets = exerciseInformation.length;
       if(numberOfSets == 0) {
         numberOfSets = 3;
@@ -360,15 +361,24 @@ function main() {
       const exerciseID = exerciseInputSection.querySelector("#exerciseItemID").innerText;
       var weightInput = exerciseInputSection.querySelector("#weight");
       var repsInput = exerciseInputSection.querySelector("#reps");
+      
+      const newExerciseInformation = exerciseInformation;
 
       //Check if it is an empty filler exercise from god mode:
       if(exerciseInformation.length > 0 && exerciseInformation[0].exercise != "") {
 
         weightInput.addEventListener('blur', function(event) {
+
           const inputValue = event.target.value;
-          
-          if(!event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
+
+          if((event.target.placeholder.toLowerCase() == "weight" || event.target.placeholder.toLowerCase().includes(loadUnit)) && !event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
             event.target.value = `${inputValue} ${loadUnit}`;
+          } else if(event.target.placeholder.toLowerCase().includes("rpe") && !event.target.value.toLowerCase().includes("rpe")) {
+            event.target.value = `RPE ${inputValue}`;
+          } else if(event.target.placeholder.toLowerCase().includes("%1rm") && !event.target.value.toLowerCase().includes("%1rm")) {
+            event.target.value = `${inputValue} %1RM`;
+          } else if(event.target.placeholder.toLowerCase().includes("zone") && !event.target.value.toLowerCase().includes("zone")) {
+            event.target.value = `Zone ${inputValue}`;
           }
 
           const exerciseBlock = event.target.closest("#inputSectionBlock");
@@ -388,8 +398,22 @@ function main() {
 
         repsInput.addEventListener('blur', function(event) {
           const inputValue = event.target.value;
-          if(!event.target.value.toLowerCase().includes(exerciseInformation[0].quantityUnit.toLowerCase()) && event.target.value != "") {
-            event.target.value = `${inputValue} ${exerciseInformation[0].quantityUnit}`;
+
+          if(event.target.placeholder.toLowerCase().includes("rir") && !event.target.value.toLowerCase().includes("rir")) {  
+            event.target.value = `${inputValue} RIR`;
+          } else if(event.target.placeholder.toLowerCase().includes("km") && !event.target.value.toLowerCase().includes("km")) {  
+            event.target.value = `${inputValue} km`;
+          } else if(event.target.placeholder.toLowerCase().includes("mi") && !event.target.value.toLowerCase().includes("mi")) {  
+            event.target.value = `${inputValue} mi`;
+          } else if(event.target.placeholder.toLowerCase().includes("secs") && !event.target.value.toLowerCase().includes("secs")) {  
+            event.target.value = `${inputValue} secs`;
+          } else if(event.target.placeholder.toLowerCase().includes("reps") && !event.target.value.toLowerCase().includes("reps")) {  
+            event.target.value = `${inputValue} reps`;
+          } else if(event.target.placeholder.toLowerCase().includes("emom") && !event.target.value.toLowerCase().includes("emom")) {  
+            event.target.value = `${inputValue} emom`;
+          }
+          else if(event.target.placeholder.toLowerCase().includes("amrap") && !event.target.value.toLowerCase().includes("amrap")) {  
+            event.target.value = `${inputValue}`;
           }
           var allRepInputs = event.target.closest("#inputSectionBlock").querySelectorAll("#reps");
           allRepInputs = getTextboxValue(allRepInputs);
@@ -407,20 +431,28 @@ function main() {
         });
 
         //Set placeholder of the first rep input text box for each exercise
-        inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
+        if(exerciseInformation[0].quantityUnit.toLowerCase() == "amrap") {
+          inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].quantityUnit}`;
+        } else if(exerciseInformation[0].quantityUnit.toLowerCase() == "rpe") {
+          inputList[i].querySelector("#reps").placeholder = ``;
+        } else {
+          inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
+        }
 
         //Set value of notes
         inputList[i].querySelector("#notes").innerText = `${exerciseInformation[0].notes}`;
-
         //Check if load has inputs from PT
         if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
-          
+
           if(exerciseInformation[0].load.toLowerCase() == loadUnit.toLowerCase()) {
             inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load.toLowerCase()}`;
             document.querySelectorAll("#load")[i].innerText = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load.toLowerCase()}`;
           } else {
-
-            if(exerciseInformation[0].load.toLowerCase() == "kg") {
+            if(exerciseInformation[0].load.toLowerCase() == "%1rm") {
+              inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+            } else if(exerciseInformation[0].load.toLowerCase() == "rpe") {
+              inputList[i].querySelector("#reps").placeholder = ``;
+            } else if(exerciseInformation[0].load.toLowerCase() == "kg") {
               //We need to convert from lbs to kg
               inputList[i].querySelector("#weight").placeholder = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
               document.querySelectorAll("#load")[i].innerText = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
@@ -522,14 +554,26 @@ function main() {
           //Check if it is an empty filler exercise from god mode:
           if(exerciseInformation.length > 0 && exerciseInformation[j+1] && exerciseInformation[j+1].exercise != "") {
             //Set quantity/reps field
-            newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`
+            if(exerciseInformation[j+1].quantityUnit.toLowerCase() == "amrap") {
+              newRepsInput.placeholder = `${exerciseInformation[j+1].quantityUnit}`
+            } else if(exerciseInformation[j+1].load.toLowerCase() == "rpe") {
+               newRepsInput.placeholder = ``;
+            } else {
+              newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`;
+            }
+            
             //Set weight field if exists
             //Check if load has inputs from PT
             if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
               if(exerciseInformation[j+1].load.toLowerCase() == loadUnit.toLowerCase()) {
                 newWeightInput.placeholder = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
               } else {
-                if(exerciseInformation[0].load.toLowerCase() == "kg") {
+
+                if(exerciseInformation[0].load.toLowerCase() == "%1rm") {
+                  inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
+                } else if(exerciseInformation[0].load.toLowerCase() == "rpe") {
+                  inputList[i].querySelector("#reps").placeholder = ``;
+                } else if(exerciseInformation[0].load.toLowerCase() == "kg") {
                   //We need to convert from lbs to kg
                   newWeightInput.placeholder = `${lbsToKg(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
                 } else if(exerciseInformation[0].load.toLowerCase() == "lbs") {
@@ -547,8 +591,15 @@ function main() {
   
           newWeightInput.addEventListener('blur', function(event) {
             const inputValue = event.target.value;
-            if(!event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
+
+            if((event.target.placeholder.toLowerCase() == "weight" || event.target.placeholder.toLowerCase().includes(loadUnit)) && !event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
               event.target.value = `${inputValue} ${loadUnit}`;
+            } else if(event.target.placeholder.toLowerCase().includes("rpe") && !event.target.value.toLowerCase().includes("rpe")) {
+              event.target.value = `RPE ${inputValue}`;
+            } else if(event.target.placeholder.toLowerCase().includes("%1rm") && !event.target.value.toLowerCase().includes("%1rm")) {
+              event.target.value = `${inputValue} %1RM`;
+            } else if(event.target.placeholder.toLowerCase().includes("zone") && !event.target.value.toLowerCase().includes("zone")) {
+              event.target.value = `Zone ${inputValue}`;
             }
 
             var allWeightInputs = event.target.closest("#inputSectionBlock").querySelectorAll("#weight");
@@ -566,13 +617,26 @@ function main() {
               newInputSection.querySelector("#completeExercise").click();
             }
           });
-  
+          
           newRepsInput.addEventListener('blur', function(event) {
 
             const inputValue = event.target.value;
 
-            if(!event.target.value.toLowerCase().includes(exerciseInformation[j+1].quantityUnit.toLowerCase()) && event.target.value != "") {
-              event.target.value = `${inputValue} ${exerciseInformation[j+1].quantityUnit}`;
+            if(event.target.placeholder.toLowerCase().includes("rir") && !event.target.value.toLowerCase().includes("rir")) {  
+              event.target.value = `${inputValue} RIR`;
+            } else if(event.target.placeholder.toLowerCase().includes("km") && !event.target.value.toLowerCase().includes("km")) {  
+              event.target.value = `${inputValue} km`;
+            } else if(event.target.placeholder.toLowerCase().includes("mi") && !event.target.value.toLowerCase().includes("mi")) {  
+              event.target.value = `${inputValue} mi`;
+            } else if(event.target.placeholder.toLowerCase().includes("secs") && !event.target.value.toLowerCase().includes("secs")) {  
+              event.target.value = `${inputValue} secs`;
+            } else if(event.target.placeholder.toLowerCase().includes("reps") && !event.target.value.toLowerCase().includes("reps")) {  
+              event.target.value = `${inputValue} reps`;
+            } else if(event.target.placeholder.toLowerCase().includes("emom") && !event.target.value.toLowerCase().includes("emom")) {  
+              event.target.value = `${inputValue} emom`;
+            }
+            else if(event.target.placeholder.toLowerCase().includes("amrap") && !event.target.value.toLowerCase().includes("amrap")) {  
+              event.target.value = `${inputValue}`;
             }
       
             const exerciseBlock = event.target.closest("#inputSectionBlock");
@@ -1083,10 +1147,29 @@ function main() {
   //Fill workout list with values from workout json
   //Iterate through existing exercise list and change names
   for(var i = 0; i < exerciseList.length; i++) {
-    exerciseList[i].querySelector("#repInput").innerText = flattenedArray[i].exercises[0].reps;
-    exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + flattenedArray[i].exercises[0].quantityUnit;
+    
+    if(flattenedArray[i].exercises[0].measure.toLowerCase() == "rpe") {
+      exerciseList[i].querySelector("#repInput").innerText = flattenedArray[i].exercises[0].loadAmount;
+      exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + flattenedArray[i].exercises[0].measure;
+    } else {
+      if(flattenedArray[i].exercises[0].quantityUnit.toLowerCase() == "amrap") {
+        exerciseList[i].querySelector("#quantityUnit").innerText = flattenedArray[i].exercises[0].quantityUnit;
+      } else {
+        exerciseList[i].querySelector("#repInput").innerText = flattenedArray[i].exercises[0].reps;
+        exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + flattenedArray[i].exercises[0].quantityUnit;
+      }
+
+    }
+    
     exerciseList[i].querySelector("#repInput").classList.remove("w-dyn-bind-empty");
     exerciseList[i].querySelector("#setInput").innerText = flattenedArray[i].sets;
+    if(flattenedArray[i].sets == 1) {
+      if(exerciseList[i].querySelector("#setInput").nextElementSibling) {
+        exerciseList[i].querySelector("#setInput").nextElementSibling.innerText = "\u00A0 set";
+      }
+      
+    }
+    
     exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
     if(flattenedArray[i].exercises[0].exerciseRestSeconds == 0) {
       flattenedArray[i].exercises[0].exerciseRestSeconds = "00";
@@ -1318,7 +1401,12 @@ function main() {
 
       var inputValues = workoutInformation.filter(item => item.guideID && item.guideID.includes(inputElementID));
 
-      inputSections[i].querySelector("#reps").placeholder = `${inputValues[0].reps} ${inputValues[0].quantityUnit}`;
+      if(inputValues[i].quantityUnit.toLowerCase() == "amrap") {
+        inputSections[i].querySelector("#reps").placeholder = `${inputValues[0].quantityUnit}`;
+      } else {
+        inputSections[i].querySelector("#reps").placeholder = `${inputValues[0].reps} ${inputValues[0].quantityUnit}`;
+      }
+      
       //Clear Weight input
       inputSections[i].querySelector("#weight").value = "";
       inputSections[i].querySelector("#weight").placeholder = "Weight";
