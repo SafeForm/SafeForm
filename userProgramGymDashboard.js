@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
+
   //Check off checklist:
   checkOffChecklist();
   
@@ -4090,7 +4091,7 @@ async function main() {
           var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
           
           //Hide loading mechanism
-          copyOfGuide.querySelector("#exerciseLoadingMechanism").remove();
+          //copyOfGuide.querySelector("#exerciseLoadingMechanism").remove();
 
           //Remove info button
           copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
@@ -10177,7 +10178,7 @@ async function main() {
         listElement.querySelector("#exerciseInfoRight").style.display = "";
         listElement.id = "workoutItem";
 
-        listElement.querySelector("#exerciseLoadingMechanism").remove();
+        //listElement.querySelector("#exerciseLoadingMechanism").remove();
         
         listElement.querySelector("#exerciseListTempID").innerText = element.querySelector("#workoutDurationProgram").innerText;
         listElement.querySelector("#exerciseListTempID").id = "workoutDurationProgram";
