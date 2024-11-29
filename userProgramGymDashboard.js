@@ -40,7 +40,7 @@ async function main() {
   var workoutSortable = new Sortable(document.getElementById("workoutList"), {
     animation: 150,
     dragClass: "sortable-ghost",  // Class name for the dragging item
-    handle: ".drag-item",
+    //handle: ".drag-item",
     onEnd: function (evt) {
       // Get all superset elements
       var supersetIcons = document.getElementById("workoutList").querySelectorAll(".supersetparent");
@@ -4092,7 +4092,7 @@ async function main() {
           var copyOfGuide = event.target.closest("#individualGuide").cloneNode(true);
           
           //Hide loading mechanism
-          //copyOfGuide.querySelector("#exerciseLoadingMechanism").remove();
+          copyOfGuide.querySelector("#exerciseLoadingMechanism").remove();
 
           //Remove info button
           copyOfGuide.querySelector("#guideLinkInfo").style.display = "none";
@@ -10179,7 +10179,7 @@ async function main() {
         listElement.querySelector("#exerciseInfoRight").style.display = "";
         listElement.id = "workoutItem";
 
-        //listElement.querySelector("#exerciseLoadingMechanism").remove();
+        listElement.querySelector("#exerciseLoadingMechanism").remove();
         
         listElement.querySelector("#exerciseListTempID").innerText = element.querySelector("#workoutDurationProgram").innerText;
         listElement.querySelector("#exerciseListTempID").id = "workoutDurationProgram";
@@ -10398,7 +10398,11 @@ async function main() {
   
         //Change ID of exercise name
         copyOfGuide.querySelector("#guideName").id = "workoutExercisename";
-  
+
+        if(copyOfGuide.querySelector("#exerciseLoadingMechanism")) {
+          copyOfGuide.querySelector("#exerciseLoadingMechanism").remove();
+        }
+        
         //Ensure proper guide ID is set
         copyOfGuide.querySelector("#itemID").innerText = workout.exercises[i].exerciseGuideID;
   
