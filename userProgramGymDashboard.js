@@ -40,6 +40,7 @@ async function main() {
   var workoutSortable = new Sortable(document.getElementById("workoutList"), {
     animation: 150,
     dragClass: "sortable-ghost",  // Class name for the dragging item
+    handle: ".drag-item",
     onEnd: function (evt) {
       // Get all superset elements
       var supersetIcons = document.getElementById("workoutList").querySelectorAll(".supersetparent");
