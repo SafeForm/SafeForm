@@ -961,8 +961,10 @@ function main() {
         //Grab guide stuff
         var exerciseParent = event.target.closest("[workoutexercise]");
 
+        var selectedGuideID = exerciseParent.getAttribute("workoutexercise");
+
         //Get guide contents
-        var guideInfo = exerciseParent.querySelector("#guideSummaryContents");
+        var guideInfo = document.querySelector(`[guidesummarycontents="${selectedGuideID}"]`);
         var guideBody = document.getElementById("guideSummaryBody");
         //Show guide drawer component
         document.getElementById("guideSummaryParent").style.display = "flex";
