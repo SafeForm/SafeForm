@@ -371,10 +371,12 @@ function main() {
 
           const inputValue = event.target.value;
 
-          if((event.target.placeholder.toLowerCase() == "weight" || event.target.placeholder.toLowerCase().includes(loadUnit)) && !event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
-            event.target.value = `${inputValue} ${loadUnit}`;
+          if((event.target.placeholder.toLowerCase() == "kg/lbs" || event.target.placeholder.toLowerCase().includes(loadUnit)) && !event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
+            event.target.value = `${inputValue}`;
           } else if(event.target.placeholder.toLowerCase().includes("rpe") && !event.target.value.toLowerCase().includes("rpe")) {
             event.target.value = `RPE ${inputValue}`;
+          } else if(event.target.placeholder.toLowerCase().includes("rir") && !event.target.value.toLowerCase().includes("rir")) {  
+            event.target.value = `${inputValue} RIR`;
           } else if(event.target.placeholder.toLowerCase().includes("%1rm") && !event.target.value.toLowerCase().includes("%1rm")) {
             event.target.value = `${inputValue} %1RM`;
           } else if(event.target.placeholder.toLowerCase().includes("zone") && !event.target.value.toLowerCase().includes("zone")) {
@@ -399,9 +401,7 @@ function main() {
         repsInput.addEventListener('blur', function(event) {
           const inputValue = event.target.value;
 
-          if(event.target.placeholder.toLowerCase().includes("rir") && !event.target.value.toLowerCase().includes("rir")) {  
-            event.target.value = `${inputValue} RIR`;
-          } else if(event.target.placeholder.toLowerCase().includes("km") && !event.target.value.toLowerCase().includes("km")) {  
+          if(event.target.placeholder.toLowerCase().includes("km") && !event.target.value.toLowerCase().includes("km")) {  
             event.target.value = `${inputValue} km`;
           } else if(event.target.placeholder.toLowerCase().includes("mi") && !event.target.value.toLowerCase().includes("mi")) {  
             event.target.value = `${inputValue} mi`;
@@ -433,8 +433,6 @@ function main() {
         //Set placeholder of the first rep input text box for each exercise
         if(exerciseInformation[0].quantityUnit.toLowerCase() == "amrap") {
           inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].quantityUnit}`;
-        } else if(exerciseInformation[0].quantityUnit.toLowerCase() == "rpe") {
-          inputList[i].querySelector("#reps").placeholder = ``;
         } else {
           inputList[i].querySelector("#reps").placeholder = `${exerciseInformation[0].reps} ${exerciseInformation[0].quantityUnit}`;
         }
@@ -450,8 +448,6 @@ function main() {
           } else {
             if(exerciseInformation[0].load.toLowerCase() == "%1rm") {
               inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
-            } else if(exerciseInformation[0].load.toLowerCase() == "rpe") {
-              inputList[i].querySelector("#reps").placeholder = ``;
             } else if(exerciseInformation[0].load.toLowerCase() == "kg") {
               //We need to convert from lbs to kg
               inputList[i].querySelector("#weight").placeholder = `${lbsToKg(exerciseInformation[0].loadAmount)} ${loadUnit}`;
@@ -556,8 +552,6 @@ function main() {
             //Set quantity/reps field
             if(exerciseInformation[j+1].quantityUnit.toLowerCase() == "amrap") {
               newRepsInput.placeholder = `${exerciseInformation[j+1].quantityUnit}`
-            } else if(exerciseInformation[j+1].load.toLowerCase() == "rpe") {
-               newRepsInput.placeholder = ``;
             } else {
               newRepsInput.placeholder = `${exerciseInformation[j+1].reps} ${exerciseInformation[j+1].quantityUnit}`;
             }
@@ -571,8 +565,6 @@ function main() {
 
                 if(exerciseInformation[0].load.toLowerCase() == "%1rm") {
                   inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
-                } else if(exerciseInformation[0].load.toLowerCase() == "rpe") {
-                  inputList[i].querySelector("#reps").placeholder = ``;
                 } else if(exerciseInformation[0].load.toLowerCase() == "kg") {
                   //We need to convert from lbs to kg
                   newWeightInput.placeholder = `${lbsToKg(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
@@ -592,8 +584,10 @@ function main() {
           newWeightInput.addEventListener('blur', function(event) {
             const inputValue = event.target.value;
 
-            if((event.target.placeholder.toLowerCase() == "weight" || event.target.placeholder.toLowerCase().includes(loadUnit)) && !event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
-              event.target.value = `${inputValue} ${loadUnit}`;
+            if((event.target.placeholder.toLowerCase() == "kg/lbs" || event.target.placeholder.toLowerCase().includes(loadUnit)) && !event.target.value.toLowerCase().includes(loadUnit.toLowerCase()) && event.target.value != "") {
+              event.target.value = `${inputValue}`;
+            } if(event.target.placeholder.toLowerCase().includes("rir") && !event.target.value.toLowerCase().includes("rir")) {  
+              event.target.value = `${inputValue} RIR`;
             } else if(event.target.placeholder.toLowerCase().includes("rpe") && !event.target.value.toLowerCase().includes("rpe")) {
               event.target.value = `RPE ${inputValue}`;
             } else if(event.target.placeholder.toLowerCase().includes("%1rm") && !event.target.value.toLowerCase().includes("%1rm")) {
@@ -622,9 +616,7 @@ function main() {
 
             const inputValue = event.target.value;
 
-            if(event.target.placeholder.toLowerCase().includes("rir") && !event.target.value.toLowerCase().includes("rir")) {  
-              event.target.value = `${inputValue} RIR`;
-            } else if(event.target.placeholder.toLowerCase().includes("km") && !event.target.value.toLowerCase().includes("km")) {  
+            if(event.target.placeholder.toLowerCase().includes("km") && !event.target.value.toLowerCase().includes("km")) {  
               event.target.value = `${inputValue} km`;
             } else if(event.target.placeholder.toLowerCase().includes("mi") && !event.target.value.toLowerCase().includes("mi")) {  
               event.target.value = `${inputValue} mi`;
@@ -900,7 +892,7 @@ function main() {
       const inputElements = document.querySelectorAll('[inputexercise]');
 
       // Loop through the elements and do something
-      inputElements.forEach((inputElement) => {
+      inputElements.forEach((inputElement, index) => {
 
         const exerciseId = inputElement.getAttribute('inputexercise');
       
@@ -913,9 +905,13 @@ function main() {
         inputElement.style.transition = "height 1000ms ease";
 
         // Find corresponding summary element
-        const guideSummaryElement = document.querySelector(`[workoutexercise="${exerciseId}"]`);
+        var guideSummaryElements = document.querySelectorAll(`[workoutexercise="${exerciseId}"]`);
+        var guideSummaryElement = guideSummaryElements[0];
+        if(guideSummaryElements.length > 1) {
+          guideSummaryElement = guideSummaryElements[index];
+        }
+
         if (guideSummaryElement) {
-          guideSummaryElement.querySelector("#guidePlaceHolder").removeAttribute('href');
           const exerciseInfo = guideSummaryElement.querySelector("#exerciseInfo");
           if (exerciseInfo) {
             exerciseInfo.style.transition = "none";
@@ -950,6 +946,10 @@ function main() {
       });
     }
 
+    function calculateExerciseNumber(element) {
+
+    }
+
     //Click listeners:
     document.addEventListener('click', async function(event) {
 
@@ -976,7 +976,7 @@ function main() {
 
       }
 
-      if(event.target.id == "guideSummaryParent") {
+      if(event.target.id == "guideSummaryParent" || event.target.id == "closeVideoModal") {
         
         var guideBody = document.getElementById("guideSummaryBody");
 
@@ -1148,7 +1148,7 @@ function main() {
   //Iterate through existing exercise list and change names
   for(var i = 0; i < exerciseList.length; i++) {
     
-    if(flattenedArray[i].exercises[0].measure.toLowerCase() == "rpe") {
+    if(flattenedArray[i].exercises[0].measure.toLowerCase() == "rpe" || flattenedArray[i].exercises[0].measure.toLowerCase() == "rir") {
       exerciseList[i].querySelector("#repInput").innerText = flattenedArray[i].exercises[0].loadAmount;
       exerciseList[i].querySelector("#quantityUnit").innerText = "\u00A0" + flattenedArray[i].exercises[0].measure;
     } else {
@@ -1409,7 +1409,7 @@ function main() {
       
       //Clear Weight input
       inputSections[i].querySelector("#weight").value = "";
-      inputSections[i].querySelector("#weight").placeholder = "Weight";
+      inputSections[i].querySelector("#weight").placeholder = "Kg/Lbs";
 
     }
   }
