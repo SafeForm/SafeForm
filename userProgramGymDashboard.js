@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
-
   //Check off checklist:
   checkOffChecklist();
   
