@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
+
   var numberOfExercisesInList = 0;
 
   var workoutSortable = new Sortable(document.getElementById("workoutList"), {
@@ -844,11 +845,10 @@ async function main() {
                 exerciseInformation["loadAmount"] = "3";
               } else {
                 exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
-                exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12";
               }
-              
               exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value || "0";
-              exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2";              
+              exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2"; 
+              exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12";             
               
               exerciseList.push(exerciseInformation);
             }
