@@ -217,18 +217,20 @@ async function main() {
         exerciseInfoDiv.querySelector("#exerciseRestMin").value = exerciseInfo.exerciseRestMinutes;
 
         //Show relevant input
-        if(exerciseInfo.measure.toLowerCase() == "rpe") {
+        if(exerciseInfo.measure.toLowerCase() == "rpe" || exerciseInfo.measure.toLowerCase() == "rir") {
           exerciseInfoDiv.querySelector(".middle-item").style.display = "none";
           exerciseInfoDiv.querySelector(".middle-loadamount").style.display = "flex";
-          exerciseInfoDiv.querySelector("#loadAmountInput").required = true;
           exerciseInfoDiv.querySelector(".repsinput").required = false;
           exerciseInfoDiv.querySelector("#loadAmountInput").placeholder = "7";
+
+          if(exerciseInfo.measure.toLowerCase() == "rir") {
+            exerciseInfoDiv.querySelector("#loadAmountInput").placeholder = "3";
+          }
           
         } else if(exerciseInfo.measure.toLowerCase() == "zone" || exerciseInfo.measure.toLowerCase() == "%1rm") {
           //Show load amount input
           exerciseInfoDiv.closest("#exerciseInfo").querySelector(".middle-loadamount").style.display = "flex";
           exerciseInfoDiv.closest("#exerciseInfo").querySelector(".middle-loadamount").style.width = "10%";
-          exerciseInfoDiv.closest("#exerciseInfo").querySelector("#loadAmountInput").required = true;   
           exerciseInfoDiv.closest("#exerciseInfo").querySelector(".middle-item").style.display = "flex";
 
           if(exerciseInfo.measure.toLowerCase() == "zone") {
@@ -239,7 +241,6 @@ async function main() {
           }
 
         } else {
-          exerciseInfoDiv.querySelector(".repsinput").required = true;
           exerciseInfoDiv.querySelector("#loadAmountInput").required = false;
         }
 
@@ -834,13 +835,20 @@ async function main() {
               exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
               exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
               if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
-                exerciseInformation["reps"] = "";
+                exerciseInformation["loadAmount"] = "7";
+              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
+                exerciseInformation["loadAmount"] = "70";
+              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
+                exerciseInformation["loadAmount"] = "3";
+              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
+                exerciseInformation["loadAmount"] = "3";
               } else {
+                exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
                 exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12";
               }
+              
               exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value || "0";
               exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2";              
-              exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
               
               exerciseList.push(exerciseInformation);
             }
@@ -880,13 +888,20 @@ async function main() {
             exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
             exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
             if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
-              exerciseInformation["reps"] = "";
+              exerciseInformation["loadAmount"] = "7";
+            } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
+              exerciseInformation["loadAmount"] = "70";
+            } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
+              exerciseInformation["loadAmount"] = "3";
+            } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
+              exerciseInformation["loadAmount"] = "3";
             } else {
-              exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12";
+              exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
             }
             exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value || "0";
-            exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2";  
-            exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
+            exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2"; 
+            exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12"; 
+            
             exerciseList.push(exerciseInformation);
           }
           workoutExercise["exerciseName"] = exerciseName.innerText;
@@ -1621,8 +1636,6 @@ async function main() {
         event.target.closest("#exerciseInfo").querySelector("#repsInput").style.display = "none";
         //Change AMRAP width:
         event.target.closest("#exerciseInfo").querySelector("#quantityUnit").style.width = "90px";
-      } else if(event.target.value.toLowerCase() == "rir") { 
-        event.target.closest("#exerciseInfo").querySelector("#repsInput").placeholder = "3";
       } else {
         event.target.closest("#exerciseInfo").querySelector("#repsInput").style.display = "flex";
         event.target.closest("#exerciseInfo").querySelector("#quantityUnit").style.width = "65px";
@@ -1632,20 +1645,21 @@ async function main() {
 
     if(event.target.id == "measureInput") {
 
-      if(event.target.value.toLowerCase() == "rpe") {
-        //Hide reps input
-        event.target.closest("#exerciseInfo").querySelector(".middle-item").style.display = "none";
+      if(event.target.value.toLowerCase() == "rpe" || event.target.value.toLowerCase() == "rir") {
         //Show load amount input
         event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.display = "flex";
-        event.target.closest("#exerciseInfo").querySelector("#loadAmountInput").required = true;     
-        event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.width = "";
+        event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.width = "10%";  
+        event.target.closest("#exerciseInfo").querySelector(".middle-item").style.display = "flex";
         event.target.closest("#exerciseInfo").querySelector("#loadAmountInput").placeholder = "7";
+
+        if(event.target.value.toLowerCase() == "rir") { 
+          event.target.closest("#exerciseInfo").querySelector("#loadAmountInput").placeholder = "3";
+        }
 
       } else if(event.target.value.toLowerCase() == "zone" || event.target.value.toLowerCase() == "%1rm") {
         //Show load amount input
         event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.display = "flex";
-        event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.width = "10%";
-        event.target.closest("#exerciseInfo").querySelector("#loadAmountInput").required = true;   
+        event.target.closest("#exerciseInfo").querySelector(".middle-loadamount").style.width = "10%"; 
         event.target.closest("#exerciseInfo").querySelector(".middle-item").style.display = "flex";
 
         if(event.target.value.toLowerCase() == "zone") {
