@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
+
   //Check off checklist:
   checkOffChecklist();
   
@@ -3287,14 +3288,18 @@ async function main() {
                 var exerciseInformation = {};
                 exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
                 exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
-                if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
-                  exerciseInformation["loadAmount"] = "7";
-                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
-                  exerciseInformation["loadAmount"] = "70";
-                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
-                  exerciseInformation["loadAmount"] = "3";
-                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
-                  exerciseInformation["loadAmount"] = "3";
+                if(setInformation[j].querySelector("#loadAmountInput").value == "") {
+                  if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
+                    exerciseInformation["loadAmount"] = "7";
+                  } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
+                    exerciseInformation["loadAmount"] = "70";
+                  } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
+                    exerciseInformation["loadAmount"] = "3";
+                  } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
+                    exerciseInformation["loadAmount"] = "3";
+                  } else {
+                    exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
+                  }
                 } else {
                   exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
                 }
@@ -3339,14 +3344,18 @@ async function main() {
               var exerciseInformation = {};
               exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
               exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
-              if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
-                exerciseInformation["loadAmount"] = "7";
-              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
-                exerciseInformation["loadAmount"] = "70";
-              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
-                exerciseInformation["loadAmount"] = "3";
-              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
-                exerciseInformation["loadAmount"] = "3";
+              if(setInformation[j].querySelector("#loadAmountInput").value == "") {
+                if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
+                  exerciseInformation["loadAmount"] = "7";
+                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
+                  exerciseInformation["loadAmount"] = "70";
+                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
+                  exerciseInformation["loadAmount"] = "3";
+                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
+                  exerciseInformation["loadAmount"] = "3";
+                } else {
+                  exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
+                }
               } else {
                 exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
               }
