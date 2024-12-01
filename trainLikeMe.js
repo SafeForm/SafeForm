@@ -835,14 +835,19 @@ async function main() {
               var exerciseInformation = {};
               exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
               exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
-              if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
-                exerciseInformation["loadAmount"] = "7";
-              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
-                exerciseInformation["loadAmount"] = "70";
-              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
-                exerciseInformation["loadAmount"] = "3";
-              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
-                exerciseInformation["loadAmount"] = "3";
+
+              if(setInformation[j].querySelector("#loadAmountInput").value == "") {
+                if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
+                  exerciseInformation["loadAmount"] = "7";
+                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
+                  exerciseInformation["loadAmount"] = "70";
+                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
+                  exerciseInformation["loadAmount"] = "3";
+                } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
+                  exerciseInformation["loadAmount"] = "3";
+                } else {
+                  exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
+                }
               } else {
                 exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
               }
@@ -887,17 +892,22 @@ async function main() {
             var exerciseInformation = {};
             exerciseInformation["measure"] = setInformation[j].querySelector("#measureInput").value;
             exerciseInformation["quantityUnit"] = setInformation[j].querySelector("#quantityUnit").value;
-            if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
-              exerciseInformation["loadAmount"] = "7";
-            } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
-              exerciseInformation["loadAmount"] = "70";
-            } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
-              exerciseInformation["loadAmount"] = "3";
-            } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
-              exerciseInformation["loadAmount"] = "3";
+            if(setInformation[j].querySelector("#loadAmountInput").value == "") {
+              if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rpe") {
+                exerciseInformation["loadAmount"] = "7";
+              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "%1rm") {
+                exerciseInformation["loadAmount"] = "70";
+              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "zone") {
+                exerciseInformation["loadAmount"] = "3";
+              } else if(setInformation[j].querySelector("#measureInput").value.toLowerCase() == "rir") {
+                exerciseInformation["loadAmount"] = "3";
+              } else {
+                exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
+              }
             } else {
               exerciseInformation["loadAmount"] = setInformation[j].querySelector("#loadAmountInput").value;
             }
+
             exerciseInformation["exerciseRestSeconds"] = setInformation[j].querySelector("#exerciseRestSec").value || "0";
             exerciseInformation["exerciseRestMinutes"] = setInformation[j].querySelector("#exerciseRestMin").value || "2"; 
             exerciseInformation["reps"] = setInformation[j].querySelector("#repsInput").value || "12"; 
