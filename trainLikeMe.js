@@ -50,6 +50,12 @@ async function main() {
     },
   });
 
+  window.addEventListener("beforeunload", (event) => {
+    // Set the returnValue property to trigger the confirmation dialog
+    event.preventDefault();
+    event.returnValue = "Are you sure you want to leave?";
+  });
+
   var muscleMapping = {
     "pectoralis-major":"Chest",
     "quadriceps":"Quads",
