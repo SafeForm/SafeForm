@@ -409,10 +409,6 @@ function main() {
               uniqueWorkoutID = `${workout.extendedProps.workoutID}+${moment().format('YYYY-MM-DD')}+${workoutIndex}`;
             }
           }
-          sessionStorage.setItem("currentWorkout", uniqueWorkoutID);
-          sessionStorage.setItem("workoutIndex", workoutIndex);
-          sessionStorage.setItem("programID", programID);
-          sessionStorage.setItem("programName", programName);
         }
 
       }
