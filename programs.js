@@ -32,7 +32,6 @@ function main() {
   for (var i = 0; i < programWorkoutList.length; i++) {
     //Get link from workout summary information and set thumbnail link
     var workoutSummaryLink = programWorkoutList[i].querySelector("#workoutSummaryLink");
-    workoutSummaryLink.href += "?fromFreeProgram=true";
     programWorkoutList[i].querySelector("#thumbnailLink").href = workoutSummaryLink.href;
     programWorkoutList[i].querySelector("#workoutSummaryLink").href = workoutSummaryLink.href;
 
@@ -451,11 +450,4 @@ function main() {
     }
 
   }
-
-
-  
-
 }
-
-
-
