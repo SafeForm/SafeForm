@@ -270,7 +270,8 @@ function main() {
     if(member.loggedIn) {
       memberJSON = await member.getMetaData();
     }
-    
+    var addedExercises = [];
+    var totalIndex = 0;
     for(var i = 0; i < inputList.length; i++) {
       var inputGuideID = inputList[i].querySelector("#originalExerciseItemID").innerText;
       var exerciseFullName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
@@ -293,33 +294,82 @@ function main() {
               });
             }
           });
+          
           exerciseInformation = flattenedArray.filter(item => item.guideID && item.guideID.includes(inputGuideID));
         } else {
           const newWorkoutInformation = JSON.parse(document.getElementById("workoutJSON").innerText);
           const flatWorkoutInformation = newWorkoutInformation.flat(); // Flatten the nested arrays
-          flatWorkoutInformation.forEach((exercise) => {
-
-            //Check the format
-            if(exercise.guideID && exercise.guideID.includes(inputGuideID)) {
-              exerciseInformation.push(exercise)
-            } else if(!exercise.guideID) {
-
-              var exerciseInfo = Object.values(exercise)[0];
-              exerciseInfo.forEach((subExercise) => {
-                if(subExercise.guideID && subExercise.guideID.includes(inputGuideID)) {
-                  exerciseInformation.push(subExercise)
+          function isExerciseAdded(exercise, addedExercises) {
+            return addedExercises.some((addedExercise) => {
+              // Check if basic properties match
+              if (
+                addedExercise.exerciseName === exercise.exerciseName &&
+                addedExercise.sets === exercise.sets &&
+                addedExercise.guideID === exercise.guideID &&
+                addedExercise.workoutExerciseItemID === exercise.workoutExerciseItemID
+              ) {
+                // Check if the 'exercises' arrays match
+                if (addedExercise.exercises.length === exercise.exercises.length) {
+                  return addedExercise.exercises.every((subExercise, index) => {
+                    const matchingSubExercise = exercise.exercises[index];
+                    return (
+                      subExercise.measure === matchingSubExercise.measure &&
+                      subExercise.quantityUnit === matchingSubExercise.quantityUnit &&
+                      subExercise.loadAmount === matchingSubExercise.loadAmount &&
+                      subExercise.exerciseRestSeconds === matchingSubExercise.exerciseRestSeconds &&
+                      subExercise.exerciseRestMinutes === matchingSubExercise.exerciseRestMinutes &&
+                      subExercise.reps === matchingSubExercise.reps
+                    );
+                  });
                 }
-              })
+              }
+              return false;
+            });
+          }
+          
+          for (let x = 0; x < flatWorkoutInformation.length; x++) {
+            const exercise = flatWorkoutInformation[x];
+          
+            // Check if the exercise is not already added and matches the inputGuideID
+            if (!isExerciseAdded(exercise, addedExercises) && exercise.guideID && exercise.guideID.includes(inputGuideID)) {
+              exerciseInformation.push(exercise);
+              addedExercises.push(exercise);
+              totalIndex += 1;
+              break; // Exit the outer loop
+            } 
+          
+            // If guideID does not exist, check nested exercises
+            if (!exercise.guideID) {
+              const exerciseInfo = Object.values(exercise)[0]; // Assuming exerciseInfo is an array
+              let addedExercise = false;
+          
+              for (let y = 0; y < exerciseInfo.length; y++) {
+                const subExercise = exerciseInfo[y];
+                
+                // Check if the subExercise is not already added and matches the inputGuideID
+                if (!isExerciseAdded(subExercise, addedExercises) && subExercise.guideID && subExercise.guideID.includes(inputGuideID)) {
+                  exerciseInformation.push(subExercise);
+                  addedExercises.push(subExercise);
+                  totalIndex += 1;
+                  addedExercise = true;
+                  break; // Exit the inner loop
+                }
+              }
+          
+              if (addedExercise) {
+                break; // Exit the outer loop
+              }
             }
-
-          });
+          }
         }
 
         const newArray = [];
         var exerciseInformationIndex = 0;
+
         if(exerciseInformation.length > 0 && i < exerciseInformation.length) {
           exerciseInformationIndex = i;
         }
+
         // Iterate over exercises array and construct new objects
         exerciseInformation[exerciseInformationIndex].exercises.forEach((exercise, index) => {
           newArray.push({
@@ -341,9 +391,8 @@ function main() {
       } else {
         exerciseInformation = workoutInformation.filter(item => item.guideID && item.guideID.includes(inputGuideID) && item.exercise == exerciseFullName);
       }
-
+      
       //Get number of sets for that exercise
-
       var numberOfSets = exerciseInformation.length;
       if(numberOfSets == 0) {
         numberOfSets = 3;
@@ -558,17 +607,17 @@ function main() {
             
             //Set weight field if exists
             //Check if load has inputs from PT
-            if(exerciseInformation[0].loadAmount.toLowerCase() != "") {
+            if(exerciseInformation[j+1].loadAmount.toLowerCase() != "") {
               if(exerciseInformation[j+1].load.toLowerCase() == loadUnit.toLowerCase()) {
                 newWeightInput.placeholder = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
               } else {
 
-                if(exerciseInformation[0].load.toLowerCase() == "%1rm") {
-                  inputList[i].querySelector("#weight").placeholder = `${exerciseInformation[0].loadAmount} ${exerciseInformation[0].load}`;
-                } else if(exerciseInformation[0].load.toLowerCase() == "kg") {
+                if(exerciseInformation[j+1].load.toLowerCase() == "%1rm") {
+                  newWeightInput.placeholder = `${exerciseInformation[j+1].loadAmount} ${exerciseInformation[j+1].load}`;
+                } else if(exerciseInformation[j+1].load.toLowerCase() == "kg") {
                   //We need to convert from lbs to kg
                   newWeightInput.placeholder = `${lbsToKg(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
-                } else if(exerciseInformation[0].load.toLowerCase() == "lbs") {
+                } else if(exerciseInformation[j+1].load.toLowerCase() == "lbs") {
                   newWeightInput.placeholder = `${kgToLbs(exerciseInformation[j+1].loadAmount)} ${loadUnit}`;
                 } else {
                   newWeightInput.placeholder = `${exerciseInformation[j+1].load} ${exerciseInformation[j+1].loadAmount}`;
@@ -578,7 +627,7 @@ function main() {
               }
             }
             //Set rest
-            newRestDiv.querySelector("#inputRest").innerText = `${exerciseInformation[j+1].exerciseRestMinutes}m ${exerciseInformation[j+1].exerciseRestSeconds}s  rest`;
+            newRestDiv.querySelector("#inputRest").innerText = `${exerciseInformation[j].exerciseRestMinutes}m ${exerciseInformation[j].exerciseRestSeconds}s  rest`;
           }
   
           newWeightInput.addEventListener('blur', function(event) {
@@ -890,7 +939,6 @@ function main() {
       
       // Now everything is filled out - move the input sections to the summary elements
       const inputElements = document.querySelectorAll('[inputexercise]');
-
       // Loop through the elements and do something
       inputElements.forEach((inputElement, index) => {
 
@@ -905,11 +953,8 @@ function main() {
         inputElement.style.transition = "height 1000ms ease";
 
         // Find corresponding summary element
-        var guideSummaryElements = document.querySelectorAll(`[workoutexercise="${exerciseId}"]`);
-        var guideSummaryElement = guideSummaryElements[0];
-        if(guideSummaryElements.length > 1) {
-          guideSummaryElement = guideSummaryElements[index];
-        }
+        var guideSummaryElements = document.querySelectorAll(`[workoutexercise]`);
+        var guideSummaryElement = guideSummaryElements[index];
 
         if (guideSummaryElement) {
           const exerciseInfo = guideSummaryElement.querySelector("#exerciseInfo");
@@ -1173,10 +1218,12 @@ function main() {
     }
     
     exerciseList[i].querySelector("#setInput").classList.remove("w-dyn-bind-empty");
-    if(flattenedArray[i].exercises[0].exerciseRestSeconds == 0) {
-      flattenedArray[i].exercises[0].exerciseRestSeconds = "00";
+    if(flattenedArray[i].exercises[0].exerciseRestSeconds < 10) {
+      exerciseList[i].querySelector("#restMinutes").innerText = `${flattenedArray[i].exercises[0].exerciseRestMinutes}:0${flattenedArray[i].exercises[0].exerciseRestSeconds}`;
+    } else {
+      exerciseList[i].querySelector("#restMinutes").innerText = `${flattenedArray[i].exercises[0].exerciseRestMinutes}:${flattenedArray[i].exercises[0].exerciseRestSeconds}`;
     }
-    exerciseList[i].querySelector("#restMinutes").innerText = `${flattenedArray[i].exercises[0].exerciseRestMinutes}:${flattenedArray[i].exercises[0].exerciseRestSeconds}`;
+
     exerciseList[i].querySelector("#restMinutes").classList.remove("w-dyn-bind-empty");
     exerciseList[i].querySelector("#exerciseNotes").innerText = flattenedArray[i].exerciseNotes;
   }
