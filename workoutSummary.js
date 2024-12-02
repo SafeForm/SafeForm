@@ -991,12 +991,12 @@ function main() {
       });
     }
 
-    function calculateExerciseNumber(element) {
-
-    }
-
     //Click listeners:
     document.addEventListener('click', async function(event) {
+
+      if(event.target.id == "completedExercise") {
+        showCompleteButton(event.target)
+      }
 
       if(event.target.closest("#guidePlaceHolder")) {
 
@@ -1871,13 +1871,12 @@ function main() {
         }
         nextInputSection = nextInputSection.nextElementSibling;
       }
-
+      button.closest("#inputSection").querySelector("#weight").classList.add("complete-weight-input");
       button.closest("#inputSection").querySelector("#reps").style.backgroundColor = "#0003FF";
       button.closest("#inputSection").querySelector("#reps").style.color = "white";
       button.closest("#inputSection").querySelector("#reps").placeholder = "";
       button.closest("#inputSection").querySelector("#weight").style.backgroundColor = "#0003FF";
       button.closest("#inputSection").querySelector("#weight").style.color = "white";
-      button.closest("#inputSection").querySelector("#weight").placeholder = "";
       button.closest("#inputSection").querySelector("#setNumber").style.backgroundColor = "#0003FF";
       button.closest("#inputSection").querySelector("#setNumber").style.color = "white";
 
@@ -1895,6 +1894,34 @@ function main() {
         nextCompletedImage.style.display = "block"; // Or any other display value you prefer
       }
   }
+
+  function showCompleteButton(button) {
+    // Hide the clicked element
+    button.style.display = "none";
+    
+    // Get input section sibling to update the previous set
+    pauseTimer();
+    activeTimer = null;
+    activeRestDiv = null;
+
+    button.closest("#inputSection").querySelector("#reps").style.backgroundColor = ""; // Reset to default
+    button.closest("#inputSection").querySelector("#reps").style.color = "";
+    button.closest("#inputSection").querySelector("#reps").placeholder = "Reps"; // Default placeholder
+    button.closest("#inputSection").querySelector("#weight").style.backgroundColor = "";
+    button.closest("#inputSection").querySelector("#weight").style.color = "";
+    button.closest("#inputSection").querySelector("#weight").classList.remove("complete-weight-input");
+    button.closest("#inputSection").querySelector("#setNumber").style.backgroundColor = "";
+    button.closest("#inputSection").querySelector("#setNumber").style.color = "";
+  
+    // Find the next sibling element with the id "completedExercise"
+    const previousCompleteImage = button.previousElementSibling;
+    if (previousCompleteImage && previousCompleteImage.id === "completeExercise") {
+      previousCompleteImage.style.display = "block"; // Or any other display value you prefer
+    }
+  }
+  
+
+
 
   async function updateExerciseDetails(exerciseID, exerciseName, inputValue, setNumber=null, type, inputArray) {
     MemberStack.onReady.then(async function(member) {  
