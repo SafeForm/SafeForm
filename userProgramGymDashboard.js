@@ -13,7 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 async function main() {
-
   //Check off checklist:
   checkOffChecklist();
   
@@ -858,7 +857,6 @@ async function main() {
       $(workoutSummary).find('#workoutSummaryName').html(workoutName);
       $(workoutSummary).find('#workoutSummaryDescription').html(workoutDescription);
       $(workoutSummary).find('#workoutJSON').html(workoutJSON);
-      console.log("Updated DOM for:", $(workoutSummary).find('#workoutSummaryName'));
     }
   
     // Create promises to process all workout summaries in parallel
@@ -7362,17 +7360,17 @@ async function main() {
 
     }
 
-    function addOrUpdateProgramRow(data, program) {
+    function addOrUpdateProgramRow(itemID, slug, program) {
 
-      var newProgramRow = document.querySelector(`div[programid="${data}"]`);
-      var modalProgramRow = document.querySelector(`div[programmodalid="${data}"]`);
+      var newProgramRow = document.querySelector(`div[programid="${itemID}"]`);
+      var modalProgramRow = document.querySelector(`div[programmodalid="${itemID}"]`);
 
       //Clone:
       if(sessionStorage.getItem("createProgram") == "true") {
         newProgramRow = document.getElementById("programrowplaceholder").cloneNode(true);
         modalProgramRow = document.getElementById("programPlaceholderParent").cloneNode(true);
-        newProgramRow.setAttribute("programid", data);
-        modalProgramRow.setAttribute("programmodalid", data);
+        newProgramRow.setAttribute("programid", itemID);
+        modalProgramRow.setAttribute("programmodalid", itemID);
       }
       
       //Fill in template values
@@ -7383,7 +7381,8 @@ async function main() {
       newProgramRow.querySelector("#programSummaryWeeks").innerText = program["numberOfWeeks"];
       newProgramRow.querySelector("#eventData").innerText = program["eventData"];
       newProgramRow.querySelector("#programLastEdited").innerText = moment().format('MMM D, YYYY');
-      newProgramRow.querySelector("#programID").innerText = data;
+      newProgramRow.querySelector("#programID").innerText = itemID;
+      newProgramRow.querySelector("#programSummaryLink").href = `https://benefiit.app/programs/${slug}`;
 
       newProgramRow.querySelector("#programSummary").style.display = "grid";
       
@@ -7394,7 +7393,7 @@ async function main() {
       modalProgramRow.querySelector("#programWeeks").innerText = program["numberOfWeeks"];
       modalProgramRow.querySelector("#eventDataModal").innerText = program["eventData"];
       modalProgramRow.querySelector("#programModalEdited").innerText = moment().format('MMM DD, YYYY');
-      modalProgramRow.querySelector("#programIDModal").innerText = data;
+      modalProgramRow.querySelector("#programIDModal").innerText = itemID;
       modalProgramRow.querySelector("#programFullNameModal").innerText = program["programName"];
       
       modalProgramRow.querySelector("#programModalSummary").style.display = "grid";
@@ -7427,7 +7426,7 @@ async function main() {
 
       if(sessionStorage.getItem("createProductProgram") == "true") {
         document.getElementById("productsPage").click();
-        prefillProductFormFromProgram(program["programName"], data);
+        prefillProductFormFromProgram(program["programName"], itemID);
         sessionStorage.setItem("createProductProgram", "false");
       } else {
         document.getElementById("programPage").style.display = "block";
@@ -8326,7 +8325,7 @@ async function main() {
         newProductRow.querySelector("#productSummaryDescription").innerHTML = product["programDescription"];
         newProductRow.querySelector("#productSummaryPrice").innerText = `$${price} ${currency}`;
         newProductRow.querySelector("#productSummaryStatus").innerText = "Published";
-        newProductRow.querySelector("#productSummaryLastEdited").innerText = moment().format('D/M/YY');
+        newProductRow.querySelector("#productSummaryLastEdited").innerText = moment().format('MMM D, YYYY');
         newProductRow.querySelector("#productSummaryProgramID").innerText = product["programID"];
         newProductRow.querySelector("#productSummaryProgramName").innerText = product["programName"];
         newProductRow.querySelector("#productSummaryBtnColor").innerText = product["buttonColor"];
@@ -8397,39 +8396,41 @@ async function main() {
     } 
 
     function sendProgramRequestToMake(destination, program) {
-      
       fetch(destination, {
         method: "POST",
         headers: {'Content-Type': 'application/json'}, 
         body: JSON.stringify(program)
-      }).then((res) => {
+      })
+      .then((res) => {
         if (res.ok) {
-          return res.text();
+          return res.json(); // Parse JSON response
         }
         throw new Error('Something went wrong');
       })
       .then((data) => {
-
-        addOrUpdateProgramRow(data, program);
-
-        //Reset program builder flags
+        const { itemID, slug } = data; // Extract fields from response
+    
+        // Use the fields as needed
+        addOrUpdateProgramRow(itemID, slug, program);
+    
+        // Reset program builder flags
         sessionStorage.setItem("editProgram", "false");
         sessionStorage.setItem("createProgram", "false");
-
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
         alert("Could not create program, please try again");
+    
         // Get the current URL without parameters
         const baseURLWithoutParams = window.location.origin + window.location.pathname;
-
+    
         // Construct the new URL with the parameter
         const newURL = `${baseURLWithoutParams}?showPage=programSummary`;
-
-        // Update the current URL to the new URL
-        //window.location.href = newURL;
+    
+        // Optionally, redirect to the new URL
+        // window.location.href = newURL;
       });
-    }
+    }    
 
     function prefillProductForm(productSummary) {
       // Fill in the product name
