@@ -375,16 +375,21 @@ async function main() {
     } else {
       document.getElementById("step2Completed").style.display = "block";
       document.getElementById("step2NotCompleted").style.display = "none";
-      // var nextElem = document.getElementById("step2Completed").nextElementSibling;
-      // if (nextElem) {
-      //   nextElem.style.textDecoration = "line-through";
-      // }
     }
   }
 
   async function populateSalesData() {
     const fcID = document.getElementById("gymID").innerText; // Get the gymID value
-    const response = await fetch(`https://hook.us1.make.com/sypo7waw59aiwxpbvdp56pt54dka88hj?fcID=${fcID}`);
+    const connectID = document.getElementById("stripeConnectID").innerText;
+    var url = "";
+    if(connectID != "") {
+      url = `https://hook.us1.make.com/sypo7waw59aiwxpbvdp56pt54dka88hj?fcID=${fcID}&connect_id=${connectID}`;
+    } else {
+      url = `https://hook.us1.make.com/sypo7waw59aiwxpbvdp56pt54dka88hj?fcID=${fcID}`;
+    }
+
+    const response = await fetch(url);
+     
     const result = await response.text();
     const salesData = JSON.parse(result); // Parse the data from the webhook response
   
