@@ -3085,7 +3085,7 @@ async function main() {
         : { base64Data: '', fileFormat: '' };
 
       // Construct the product object
-      var stripePrice = parseInt(document.getElementById("productAmount").value) * 100;
+      var stripePrice = Math.round(parseFloat(document.getElementById("productAmount").value) * 100);
       var product = {
         programName: document.getElementById("productName").value,
         programID: document.getElementById("productProgramID").innerText,
@@ -3116,8 +3116,14 @@ async function main() {
         product["product_id"] = document.getElementById("productID").innerText;
         product["stripeProductID"] = document.getElementById("stripeProductID").innerText;
         product["stripePaymentID"] = document.getElementById("stripePaymentID").innerText;
-      }
+      } 
 
+      //Add in connect ID
+      var connectID = document.getElementById("stripeConnectID").innerText;
+      if(connectID != "") {
+        product["connect_id"] = connectID;
+      }
+     
       //Create stripe product first
       var stripeObj = await sendProductToStripeMake(product, product.product_interval);
 
@@ -8333,7 +8339,8 @@ async function main() {
         newProductRow.querySelector("#productSummarySalesPage").href = salesPageLink;
         newProductRow.querySelector("#productSummaryProgramPreview").href = foundProgramRow.querySelector("#programSummaryLink").href;
         newProductRow.querySelector("#productSummarySalesID").innerText = salesPageID;
-
+        newProductRow.querySelector("#productStripeProductID").innerText = product["stripe_id"];
+        newProductRow.querySelector("#productStripePaymentID").innerText = product["payment_link_id"];
         
         newProductRow.querySelector("#productSummaryWeeks").innerText = foundProgramRow.querySelector("#programSummaryWeeks").innerText;
 
@@ -10072,8 +10079,9 @@ async function main() {
       var eventCells = document.querySelectorAll(".fc-daygrid-day-frame");
       for(let i = 0; i < eventCells.length; i++) {
         if(programType != "challenge") {
-          eventCells[i].style.height = "150px";
-          eventCells[i].style.width = "150px";
+          eventCells[i].style.height = "95%";
+          eventCells[i].style.width = "95%";
+          eventCells[i].style.maxHeight = "140px";
           eventCells[i].style.aspectRatio = "1 / 1";
 
         } else {
