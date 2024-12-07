@@ -7393,7 +7393,7 @@ async function main() {
       newProgramRow.querySelector("#eventData").innerText = program["eventData"];
       newProgramRow.querySelector("#programLastEdited").innerText = moment().format('MMM D, YYYY');
       newProgramRow.querySelector("#programID").innerText = itemID;
-      newProgramRow.querySelector("#programSummaryLink").href = `https://benefiit.app/programs/${slug}`;
+      newProgramRow.querySelector("#programSummaryLink").href = `https://trainlikeme.app/programs/${slug}`;
 
       newProgramRow.querySelector("#programSummary").style.display = "grid";
       
@@ -8315,7 +8315,7 @@ async function main() {
         var productID = data["platformItemID"];
         var salesPageSlug = data["landingPageSlug"];
         var salesPageID = data["landingPageItemID"];
-        var salesPageLink = `https://benefiit.me/sales-pages/${salesPageSlug}`;
+        var salesPageLink = `https://trainlike.me/sales-pages/${salesPageSlug}`;
         var price = product["programPrice"] / 100;
         var currency = product["currency"];
         var newProduct = false;
