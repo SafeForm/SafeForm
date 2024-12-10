@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   sessionStorage.setItem("numberOfGuides", 0);
   sessionStorage.setItem("onlyFinish", "false");
   var currentSwappedExercise = "";
@@ -21,7 +22,7 @@ function main() {
   let activeTimer = null; // Track the active timer
   let activeRestDiv = null; // Track the active restDiv
   let remainingTime = null; // Track the remaining time for the active timer
-  monitorUserActivity()
+  monitorUserActivity();
 
   var guideLinks = document.querySelectorAll("#guideLink");
 
@@ -190,6 +191,7 @@ function main() {
       }
       
       if(workoutInformation.length == 0) {
+        
         workoutInformation = weekWorkouts.filter(item => item.workoutName == workoutName);
       }
 
@@ -277,7 +279,7 @@ function main() {
       var exerciseFullName = inputList[i].querySelector("#exerciseShortNameInput").innerText;
 
       var exerciseInformation = [];
-      
+
       if(!workoutInformation || workoutInformation.length == 0 || fromChallenge) {
 
         if(fromChallenge) {
@@ -299,39 +301,12 @@ function main() {
         } else {
           const newWorkoutInformation = JSON.parse(document.getElementById("workoutJSON").innerText);
           const flatWorkoutInformation = newWorkoutInformation.flat(); // Flatten the nested arrays
-          function isExerciseAdded(exercise, addedExercises) {
-            return addedExercises.some((addedExercise) => {
-              // Check if basic properties match
-              if (
-                addedExercise.exerciseName === exercise.exerciseName &&
-                addedExercise.sets === exercise.sets &&
-                addedExercise.guideID === exercise.guideID &&
-                addedExercise.workoutExerciseItemID === exercise.workoutExerciseItemID
-              ) {
-                // Check if the 'exercises' arrays match
-                if (addedExercise.exercises.length === exercise.exercises.length) {
-                  return addedExercise.exercises.every((subExercise, index) => {
-                    const matchingSubExercise = exercise.exercises[index];
-                    return (
-                      subExercise.measure === matchingSubExercise.measure &&
-                      subExercise.quantityUnit === matchingSubExercise.quantityUnit &&
-                      subExercise.loadAmount === matchingSubExercise.loadAmount &&
-                      subExercise.exerciseRestSeconds === matchingSubExercise.exerciseRestSeconds &&
-                      subExercise.exerciseRestMinutes === matchingSubExercise.exerciseRestMinutes &&
-                      subExercise.reps === matchingSubExercise.reps
-                    );
-                  });
-                }
-              }
-              return false;
-            });
-          }
           
           for (let x = 0; x < flatWorkoutInformation.length; x++) {
             const exercise = flatWorkoutInformation[x];
           
             // Check if the exercise is not already added and matches the inputGuideID
-            if (!isExerciseAdded(exercise, addedExercises) && exercise.guideID && exercise.guideID.includes(inputGuideID)) {
+            if (exercise.guideID && exercise.guideID.includes(inputGuideID)) {
               exerciseInformation.push(exercise);
               addedExercises.push(exercise);
               totalIndex += 1;
@@ -347,7 +322,7 @@ function main() {
                 const subExercise = exerciseInfo[y];
                 
                 // Check if the subExercise is not already added and matches the inputGuideID
-                if (!isExerciseAdded(subExercise, addedExercises) && subExercise.guideID && subExercise.guideID.includes(inputGuideID)) {
+                if (subExercise.guideID && subExercise.guideID.includes(inputGuideID)) {
                   exerciseInformation.push(subExercise);
                   addedExercises.push(subExercise);
                   totalIndex += 1;
@@ -362,7 +337,7 @@ function main() {
             }
           }
         }
-
+        console.log(exerciseInformation)
         const newArray = [];
         var exerciseInformationIndex = 0;
 
