@@ -7776,8 +7776,8 @@ async function main() {
       userProgram["userMemberstackID"] = document.getElementById("userMemberstackID").innerText;
 
       if(userTrainingPlan.length > 0) {
-        const firstDate = userTrainingPlan[0].startWeek;
-        const lastDate = userTrainingPlan[0].endWeek;
+        const firstDate = new Date(userTrainingPlan[0].startWeek);
+        const lastDate = new Date(userTrainingPlan[0].endWeek);
         // Start date
         userProgram["startDate"] = firstDate;
         // End date
