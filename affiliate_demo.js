@@ -37,7 +37,6 @@ function main() {
   // ---------------------------------------------
   // 2) MAKE SORTABLE SETUPS
   // ---------------------------------------------
-
   // After sorting, update the order of categoryPreviewList to match horizontal-category-div
   var sortable = new Sortable(document.querySelector(".horizontal-category-div"), {
     animation: 150,
@@ -320,7 +319,7 @@ function main() {
     // ------------------------------------------
     //  (B) SELECT A CATEGORY BUTTON
     // ------------------------------------------
-    if (event.target.classList.contains('text-block-361')) {
+    if (event.target.classList.contains('text-block-369')) {
       // De-select all
       const buttons = document.querySelectorAll('.horizontal-category-div .category-button');
       buttons.forEach(button => {
@@ -476,7 +475,7 @@ function main() {
         imgElement.src = image.src;
         imgElement.alt = 'Subcategory Preview Image';
         imgElement.className = 'image-158';
-        if (imgElement.src != "https://cdn.prod.website-files.com/627e2ab6087a8112f74f4ec5/677644eb2c765ddc16f695a2_Group%208654.avif") {
+        if (imgElement.src != "https://cdn.prod.website-files.com/622f1b68bc1e4510618e0b04/6786267c6b2ee7c425c51aec_Group%208654.avif") {
           previewImageClone.appendChild(imgElement);
           previewImageContainer.appendChild(previewImageClone);
         }
@@ -566,8 +565,10 @@ function main() {
     }
 
     var affiliateElement = clonedItem.querySelector("#productAffiliate");
-    if (affiliateElement) {
+    if (affiliateElement && productAffiliate) {
       affiliateElement.textContent = "Affiliate Code: " + productAffiliate; 
+    } else {
+      affiliateElement.style.display = "none";
     }
 
     clonedItem.style.display = "flex";
