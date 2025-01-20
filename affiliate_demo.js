@@ -14,6 +14,7 @@ if (document.readyState !== 'loading') {
 
 function main() {
 
+
   // ---------------------------------------------
   // 1) GRAB THE "DEFAULT" SUBCATEGORY + PREVIEW CONTAINERS
   //    We will clone these for each new category.
@@ -149,6 +150,27 @@ function main() {
   // ---------------------------------------------
   document.addEventListener('click', function (event) {
 
+
+    if (event.target.id === "copyLink") {
+
+      // Get the link text
+      const linkText = document.getElementById("affiliatePageLink").innerText;
+    
+      // Write the link to the clipboard
+      navigator.clipboard.writeText(linkText)
+    
+      //Show #copiedLink for 1 second
+      const copiedLinkElement = document.getElementById("copiedLink");
+      copiedLinkElement.style.display = "block";
+
+      // Hide it after 1 second
+      setTimeout(() => {
+        copiedLinkElement.style.display = "none";
+      }, 1000);
+
+    }
+
+
     if (event.target.closest("#addSubCategory")) {
       document.getElementById("storeFrontPage").style.display = "none";
       document.getElementById("productPage").style.display = "flex";
@@ -166,9 +188,11 @@ function main() {
       document.getElementById("productPage").style.display = "none";
       document.getElementById("storefrontHeader").style.display = "flex";
       document.getElementById("productPageHeader").style.display = "none";
-      createProductsAndSubCategory();
+
       addSubCategoryToList();
+      sendProducts();
       clearSubCategoryPage();
+
     }
 
     if (event.target.id == "submitProductButton") {
@@ -234,6 +258,10 @@ function main() {
 
     if (event.target.id == "createProductModal" || event.target.id == "closeProductModal") {
       clearProductForm();
+    }
+
+    if (event.target.id == "copyLinkModal" || event.target.id == "closeLinkModal") {
+      document.getElementById("copyLinkModal").style.display = "none";
     }
 
     if (event.target.closest("#addProduct")) {
@@ -313,7 +341,10 @@ function main() {
         // -------------------------------------
         clonedButton.setAttribute("data-subcategory-list-id", newSubcategoryList.id);
         clonedButton.setAttribute("data-preview-container-id", newPreviewContainer.id);
+        clonedButton.querySelector(".text-block-369").click();
+        document.getElementById("categoryName").focus()
       }
+
     }
 
     // ------------------------------------------
@@ -367,28 +398,167 @@ function main() {
 
     if(event.target.id == "submitAffiliatePage") {
 
-      var affiliateData = {};
-
-      affiliateData["productName"]
-
       //Create categories
-      sendCategoriesToMake();
+      sendAffiliatePage();
 
-      //Create page
-      sendAllDataToMake();
     }
   });
 
-  async function sendProductsToMake() {
+  function sendAffiliatePage() {
 
+    var affiliatePage = {};
+
+    //Get all categories
+    var categories = document.querySelectorAll(".subcategorylist");
+
+    var categoryArr = [];
+    for(var i = 1; i < categories.length; i++) {
+      var categoryObj = {};
+
+      var category = categories[i];
+
+      var categoryID = category.id;
+
+      var subCategoryIDElements = category.querySelectorAll("#collectionID");
+
+      // Initialize an array to store the inner text values
+      var subCategoryIDs = [];
+      
+      // Iterate through the NodeList
+      subCategoryIDElements.forEach(function(element) {
+        // Add the inner text of each element to the array
+        if(element.innerText != "x products") {
+          subCategoryIDs.push(element.innerText);
+        }
+
+      });
+
+      categoryObj["subCategories"] = subCategoryIDs;
+      categoryObj["name"] = document.querySelector(`[data-subcategory-list-id="${categoryID}"]`).querySelector(".text-block-369").innerText;
+      categoryArr.push(categoryObj);
+    }
+    
+    affiliatePage["categories"] = categoryArr;
+    affiliatePage["profileName"] = "Test Name";
+    affiliatePage["profileImage"] = "https://hips.hearstapps.com/hmg-prod/images/mh-trainer-2-1533576998.png";
+
+    sendAffiliatePageToMake(affiliatePage);
   }
 
-  function createProductsAndSubCategory() {
+  async function sendAffiliatePageToMake(affiliatePage) {
+    const webhookUrl = "https://hook.us1.make.com/et78vs4klxjs3gss2gg2icpayjbmlw18";
+  
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST", // Use POST method
+        headers: {
+          "Content-Type": "application/json", // Indicate JSON format
+        },
+        body: JSON.stringify(affiliatePage), // Convert the object to JSON string
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to send data. Status: ${response.status} ${response.statusText}`);
+      }
+  
+      const result = await response.json();
+
+      document.getElementById("affiliatePageLink").innerText = result["affiliatePage"];
+
+      document.getElementById("copyLinkModal").style.display = "flex";
+
+    } catch (error) {
+      console.error("Error sending affiliatePage:", error.message);
+    }
+  }
+
+  function sendProducts() {
+    // Select all product items
+    var productItems = document.querySelectorAll("#productItem");
+    
+    var collection = {};
+    // Initialize an array to store product data
     var products = [];
+    
+    var productImages = [];
+    // Loop through each product item and extract required fields
+    for (let i = 1; i < productItems.length; i++) {
+      let item = productItems[i];
+      // Extract fields from the DOM elements inside the product item
+      var productName = item.querySelector("#productText")?.innerText.trim() || "N/A";
+      var productLink = item.querySelector("#productLink")?.href || "N/A";
+      var productImage = item.querySelector("#previewProductImage")?.src || "N/A";
+      var productDescription = item.querySelector("#productAffiliate")?.innerText.trim() || "N/A";
+      // Create product object and add to the products array
+      products.push({
+        productName: productName,
+        productLink: productLink,
+        productImage: productImage,
+        productDescription: productDescription
+      });
 
+      productImages.push({
+        url: productImage,
+        alt: productName
+      });
 
+    };
 
+    collection["products"] = products;
+    collection["name"] = document.getElementById("createSubCategoryName").value;
+    collection["productImage"] = JSON.stringify(productImages);
+
+    // Log the final list of products
+    sendProductsToMake(collection)
   }
+
+  async function sendProductsToMake(collection) {
+    const url = "https://hook.us1.make.com/fhygkduttzdxcic0jtteusj1lyb69ptd";
+  
+    try {
+      // Sending the POST request
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(collection),
+      });
+  
+      // Placeholder for handling the response content
+      if (response.ok) {
+        const data = await response.json();
+      
+        // Identify the .subcategorylist with display set to 'flex'
+        const visibleSubcategoryList = Array.from(document.querySelectorAll('.subcategorylist')).find(
+          list => getComputedStyle(list).display === 'flex'
+        );
+      
+        if (visibleSubcategoryList) {
+          // Grab all #subCategoryItem elements within the visible .subcategorylist
+          const subcategoryItems = visibleSubcategoryList.querySelectorAll('#subCategoryItem');
+      
+          // Find the last #subCategoryItem
+          const lastSubcategory = subcategoryItems[subcategoryItems.length - 1];
+      
+          if (lastSubcategory) {
+            // Update the #collectionID of the last subcategory
+            const collectionIDElement = lastSubcategory.querySelector('#collectionID');
+            if (collectionIDElement) {
+              collectionIDElement.innerText = data["collectionID"];
+            }
+          }
+        }
+      } else {
+        console.error("Error response:", response.status, response.statusText);
+        // Add additional error handling if needed
+      }
+    } catch (error) {
+      console.error("Request failed:", error);
+      // Handle network or unexpected errors here
+    }
+  }
+  
 
   function clearSubCategoryPage() {
     document.getElementById("createSubCategoryName").value = "";
