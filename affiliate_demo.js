@@ -13,8 +13,6 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
-
-
   // ---------------------------------------------
   // 1) GRAB THE "DEFAULT" SUBCATEGORY + PREVIEW CONTAINERS
   //    We will clone these for each new category.
@@ -197,6 +195,7 @@ function main() {
 
     if (event.target.id == "submitProductButton") {
       cloneAndAddProduct();
+      document.getElementById("productEmptyState").style.display = "none";
     }
 
     if (event.target.id == "deleteCategory") {
@@ -262,6 +261,7 @@ function main() {
 
     if (event.target.id == "copyLinkModal" || event.target.id == "closeLinkModal") {
       document.getElementById("copyLinkModal").style.display = "none";
+      document.getElementById("submitAffiliatePage").innerText = "Save";
     }
 
     if (event.target.closest("#addProduct")) {
@@ -272,6 +272,10 @@ function main() {
     //  (A) ADD CATEGORY
     // ------------------------------------------
     if (event.target.id == "addCategory") {
+
+      //Show placeholder
+      document.getElementById("collectionEmptyState").style.display = "flex";
+
       // Select the element to clone
       const categoryButton = document.querySelector('#categoryButton');    // The original "template" button
       const categoryPreview = document.querySelector('#categoryPreview');  // The original "template" preview in #categoryPreviewList
@@ -351,6 +355,7 @@ function main() {
     //  (B) SELECT A CATEGORY BUTTON
     // ------------------------------------------
     if (event.target.classList.contains('text-block-369')) {
+
       // De-select all
       const buttons = document.querySelectorAll('.horizontal-category-div .category-button');
       buttons.forEach(button => {
@@ -387,7 +392,16 @@ function main() {
 
       if (subcatId) {
         const subcatEl = document.getElementById(subcatId);
-        if (subcatEl) subcatEl.style.display = 'flex';
+        if (subcatEl) {
+          subcatEl.style.display = 'flex';
+          //Check if any collections
+          var subCats = subcatEl.querySelectorAll("#subCategoryItem");
+          if(subCats.length > 1) {
+            document.getElementById("collectionEmptyState").style.display = "none";
+          } else {
+            document.getElementById("collectionEmptyState").style.display = "flex";
+          }
+        }
       }
       if (previewId) {
         const previewEl = document.getElementById(previewId);
@@ -397,6 +411,8 @@ function main() {
     }
 
     if(event.target.id == "submitAffiliatePage") {
+
+      event.target.innerText = "Saving...";
 
       //Create categories
       sendAffiliatePage();
@@ -416,7 +432,6 @@ function main() {
       var categoryObj = {};
 
       var category = categories[i];
-
       var categoryID = category.id;
 
       var subCategoryIDElements = category.querySelectorAll("#collectionID");
@@ -439,8 +454,8 @@ function main() {
     }
     
     affiliatePage["categories"] = categoryArr;
-    affiliatePage["profileName"] = "Test Name";
-    affiliatePage["profileImage"] = "https://hips.hearstapps.com/hmg-prod/images/mh-trainer-2-1533576998.png";
+    affiliatePage["profileName"] = "Julia McMorrow";
+    affiliatePage["profileImage"] = "https://cdn.prod.website-files.com/622f1b68bc1e4510618e0b04/6639eeb7ac073812f5742a8a_Rectangle%205108.avif";
 
     sendAffiliatePageToMake(affiliatePage);
   }
@@ -489,6 +504,7 @@ function main() {
       var productLink = item.querySelector("#productLink")?.href || "N/A";
       var productImage = item.querySelector("#previewProductImage")?.src || "N/A";
       var productDescription = item.querySelector("#productAffiliate")?.innerText.trim() || "N/A";
+
       // Create product object and add to the products array
       products.push({
         productName: productName,
@@ -499,7 +515,9 @@ function main() {
 
       productImages.push({
         url: productImage,
-        alt: productName
+        alt: productName,
+        productName: productName,
+        productLink: productLink,
       });
 
     };
@@ -537,10 +555,8 @@ function main() {
         if (visibleSubcategoryList) {
           // Grab all #subCategoryItem elements within the visible .subcategorylist
           const subcategoryItems = visibleSubcategoryList.querySelectorAll('#subCategoryItem');
-      
           // Find the last #subCategoryItem
           const lastSubcategory = subcategoryItems[subcategoryItems.length - 1];
-      
           if (lastSubcategory) {
             // Update the #collectionID of the last subcategory
             const collectionIDElement = lastSubcategory.querySelector('#collectionID');
@@ -561,6 +577,7 @@ function main() {
   
 
   function clearSubCategoryPage() {
+
     document.getElementById("createSubCategoryName").value = "";
   
     // Select all product items
@@ -572,6 +589,9 @@ function main() {
         item.remove();
       }
     });
+
+    document.getElementById("collectionEmptyState").style.display = "none";
+    document.getElementById("productEmptyState").style.display = "block";
   }
   
 
