@@ -13,6 +13,7 @@ if (document.readyState !== 'loading') {
 }
 
 function main() {
+
   // ---------------------------------------------
   // 1) GRAB THE "DEFAULT" SUBCATEGORY + PREVIEW CONTAINERS
   //    We will clone these for each new category.
@@ -526,11 +527,16 @@ function main() {
     collection["name"] = document.getElementById("createSubCategoryName").value;
     collection["productImage"] = JSON.stringify(productImages);
 
+    // Identify the .subcategorylist with display set to 'flex'
+    const visibleSubcategoryList = Array.from(document.querySelectorAll('.subcategorylist')).find(
+      list => getComputedStyle(list).display === 'flex'
+    );
+
     // Log the final list of products
-    sendProductsToMake(collection)
+    sendProductsToMake(collection, visibleSubcategoryList)
   }
 
-  async function sendProductsToMake(collection) {
+  async function sendProductsToMake(collection, visibleSubcategoryList) {
     const url = "https://hook.us1.make.com/fhygkduttzdxcic0jtteusj1lyb69ptd";
   
     try {
@@ -546,11 +552,6 @@ function main() {
       // Placeholder for handling the response content
       if (response.ok) {
         const data = await response.json();
-      
-        // Identify the .subcategorylist with display set to 'flex'
-        const visibleSubcategoryList = Array.from(document.querySelectorAll('.subcategorylist')).find(
-          list => getComputedStyle(list).display === 'flex'
-        );
       
         if (visibleSubcategoryList) {
           // Grab all #subCategoryItem elements within the visible .subcategorylist
